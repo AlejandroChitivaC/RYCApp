@@ -34,7 +34,7 @@ logging:
 # CORS: sin barra final en URLs. Añade aquí nuevos túneles si cambian.
 app:
   cors:
-    allowed-origins: http://localhost:5173,http://127.0.0.1:5173,https://takes-arg-indicator-bars.trycloudflare.com
+    allowed-origins: http://localhost:5173,http://127.0.0.1:5173,https://master.d35vrictwsl2qg.amplifyapp.com
 
   jwt:
     # Mínimo 32 caracteres UTF-8 para HS256. Cambiar en producción.
