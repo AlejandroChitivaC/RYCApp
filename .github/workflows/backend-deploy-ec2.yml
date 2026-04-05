@@ -7,8 +7,8 @@
 #   EC2_DEPLOY_PATH       — directorio remoto donde vive el JAR (ej. /home/ubuntu/rycapp)
 #   EC2_SYSTEMD_SERVICE   — nombre del unit de systemd SIN .service (ej. rycapp)
 #
-# En la EC2: un servicio systemd cuyo ExecStart apunte al JAR en EC2_DEPLOY_PATH
-# (o al symlink que copies tras el deploy).
+# En la EC2: systemd debe usar un JAR fijo (ej. /opt/rycapp/rycapp.jar). Tras el SCP,
+# el workflow renombra el artefacto Maven (rycapp-backend-*.jar) a rycapp.jar y reinicia el servicio.
 
 name: Backend — build y deploy a EC2
 
@@ -53,7 +53,7 @@ jobs:
           strip_components: 2
           overwrite: true
 
-      - name: Restart service on EC2
+      - name: Promote JAR a rycapp.jar y reiniciar servicio
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
@@ -61,4 +61,20 @@ jobs:
           key: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
           port: 22
           script: |
-            sudo systemctl restart ${{ secrets.EC2_SYSTEMD_SERVICE }}
+            bash -euo pipefail <<'EOS'
+            shopt -s nullglob
+            DEPLOY_PATH='${{ secrets.EC2_DEPLOY_PATH }}'
+            SYSTEMD_UNIT='${{ secrets.EC2_SYSTEMD_SERVICE }}'
+            matches=("$DEPLOY_PATH"/rycapp-backend-*.jar)
+            shopt -u nullglob
+            if [ ${#matches[@]} -eq 0 ]; then
+              echo "Error: no hay rycapp-backend-*.jar en ${DEPLOY_PATH}"
+              exit 1
+            fi
+            newest="${matches[0]}"
+            for f in "${matches[@]}"; do
+              [ "$f" -nt "$newest" ] && newest="$f"
+            done
+            mv -f "$newest" "$DEPLOY_PATH/rycapp.jar"
+            sudo systemctl restart "$SYSTEMD_UNIT"
+            EOS
