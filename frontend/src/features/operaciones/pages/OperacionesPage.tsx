@@ -1,0 +1,228 @@
+import { useEffect, useMemo, useState } from 'react'
+import { Button } from '../../../shared/ui/Button'
+import { EmptyState } from '../../../shared/ui/EmptyState'
+import { Input } from '../../../shared/ui/Input'
+import { Modal } from '../../../shared/ui/Modal'
+import { Select } from '../../../shared/ui/Select'
+import { Table, TBody, TD, TH, THead } from '../../../shared/ui/Table'
+import { useLineasNegocioStore } from '../../lineasNegocio/store'
+import { useMaterialesStore } from '../../materiales/store'
+import { useProveedoresStore } from '../../proveedores/store'
+import { useUsuariosStore } from '../../usuarios/store'
+import { useVehiculosStore } from '../../vehiculos/store'
+import { OperacionForm } from '../components/OperacionForm'
+import { useOperacionesStore } from '../store'
+
+function fmtDate(iso: string | null) {
+  if (!iso) return '—'
+  try {
+    return new Date(iso).toLocaleString()
+  } catch {
+    return iso
+  }
+}
+
+export function OperacionesPage() {
+  const items = useOperacionesStore((s) => s.items)
+  const isLoading = useOperacionesStore((s) => s.isLoading)
+  const error = useOperacionesStore((s) => s.error)
+  const filters = useOperacionesStore((s) => s.filters)
+  const setFilters = useOperacionesStore((s) => s.setFilters)
+  const fetchAll = useOperacionesStore((s) => s.fetchAll)
+  const create = useOperacionesStore((s) => s.create)
+
+  const lineasItems = useLineasNegocioStore((s) => s.items)
+  const fetchLineas = useLineasNegocioStore((s) => s.fetchAll)
+
+  const usuariosItems = useUsuariosStore((s) => s.items)
+  const fetchUsuarios = useUsuariosStore((s) => s.fetchAll)
+
+  const vehiculosItems = useVehiculosStore((s) => s.items)
+  const fetchVehiculos = useVehiculosStore((s) => s.fetchAll)
+
+  const materialesItems = useMaterialesStore((s) => s.items)
+  const fetchMateriales = useMaterialesStore((s) => s.fetchAll)
+
+  const proveedoresItems = useProveedoresStore((s) => s.items)
+  const fetchProveedores = useProveedoresStore((s) => s.fetchAll)
+
+  const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    fetchLineas()
+    fetchUsuarios()
+    fetchVehiculos()
+    fetchMateriales()
+    fetchProveedores()
+    fetchAll()
+  }, [
+    fetchLineas,
+    fetchUsuarios,
+    fetchVehiculos,
+    fetchMateriales,
+    fetchProveedores,
+    fetchAll,
+  ])
+
+  const catalogos = useMemo(
+    () => ({
+      lineas: lineasItems,
+      usuarios: usuariosItems,
+      vehiculos: vehiculosItems,
+      materiales: materialesItems,
+      proveedores: proveedoresItems,
+    }),
+    [lineasItems, usuariosItems, vehiculosItems, materialesItems, proveedoresItems],
+  )
+
+  const sorted = useMemo(() => [...items].sort((a, b) => b.id - a.id), [items])
+
+  const lineasById = useMemo(() => {
+    const map = new Map<number, string>()
+    for (const l of lineasItems) map.set(l.id, l.lineaNegocio)
+    return map
+  }, [lineasItems])
+
+  const materialesById = useMemo(() => {
+    const map = new Map<number, string>()
+    for (const m of materialesItems) map.set(m.id, m.material)
+    return map
+  }, [materialesItems])
+
+  return (
+    <div>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="text-sm font-semibold text-slate-900">Operaciones</div>
+          <div className="text-sm text-slate-600">
+            Tabla Operaciones_Lineas_Negocio: filtros por fechas de inserción, línea y vehículo.
+          </div>
+        </div>
+        <Button onClick={() => setOpen(true)}>Nueva operación</Button>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-12">
+        <div className="lg:col-span-3">
+          <Input
+            label="Desde (Fecha_Inserción)"
+            type="datetime-local"
+            value={filters.from}
+            onChange={(e) => setFilters({ from: e.target.value })}
+          />
+        </div>
+        <div className="lg:col-span-3">
+          <Input
+            label="Hasta"
+            type="datetime-local"
+            value={filters.to}
+            onChange={(e) => setFilters({ to: e.target.value })}
+          />
+        </div>
+        <div className="lg:col-span-3">
+          <Select
+            label="Línea de negocio"
+            value={filters.lineaNegocioId}
+            onChange={(e) => setFilters({ lineaNegocioId: e.target.value })}
+          >
+            <option value="">Todas</option>
+            {lineasItems.map((l) => (
+              <option key={l.id} value={l.id}>
+                {l.lineaNegocio}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="lg:col-span-3">
+          <Select
+            label="Vehículo"
+            value={filters.vehiculoId}
+            onChange={(e) => setFilters({ vehiculoId: e.target.value })}
+          >
+            <option value="">Todos</option>
+            {vehiculosItems.map((v) => (
+              <option key={v.id} value={v.id}>
+                {v.placa}
+              </option>
+            ))}
+          </Select>
+        </div>
+
+        <div className="lg:col-span-12 flex flex-wrap items-end gap-2">
+          <Button
+            variant="secondary"
+            onClick={() => fetchAll()}
+            loading={isLoading}
+            size="sm"
+          >
+            Aplicar filtros
+          </Button>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              setFilters({ from: '', to: '', lineaNegocioId: '', vehiculoId: '' })
+              setTimeout(() => fetchAll(), 0)
+            }}
+            size="sm"
+          >
+            Limpiar
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-6">
+        {isLoading ? (
+          <div className="h-40 w-full animate-pulse rounded-2xl bg-slate-100" />
+        ) : error ? (
+          <EmptyState title="No se pudo cargar" description={error} />
+        ) : sorted.length === 0 ? (
+          <EmptyState
+            title="Sin operaciones"
+            description="Registra una operación para comenzar."
+          />
+        ) : (
+          <Table>
+            <THead>
+              <tr>
+                <TH>ID</TH>
+                <TH>Fecha inserción</TH>
+                <TH>Línea</TH>
+                <TH>Material</TH>
+                <TH>Valor</TH>
+                <TH>Medio pago</TH>
+              </tr>
+            </THead>
+            <TBody>
+              {sorted.map((o) => (
+                <tr key={o.id} className="hover:bg-brand-yellow/5">
+                  <TD>{o.id}</TD>
+                  <TD>{fmtDate(o.fechaInsercion)}</TD>
+                  <TD>
+                    <span className="inline-flex rounded-full bg-brand-yellow/20 px-2 py-1 text-xs font-bold text-brand-dark ring-1 ring-brand-yellow/50">
+                      {lineasById.get(o.lineaNegocioId) ?? `#${o.lineaNegocioId}`}
+                    </span>
+                  </TD>
+                  <TD>{materialesById.get(o.materialId) ?? `#${o.materialId}`}</TD>
+                  <TD>
+                    <span className="font-extrabold text-brand-dark">{o.valor}</span>
+                  </TD>
+                  <TD>{o.medioPago}</TD>
+                </tr>
+              ))}
+            </TBody>
+          </Table>
+        )}
+      </div>
+
+      <Modal open={open} title="Nueva operación" onClose={() => setOpen(false)}>
+        <OperacionForm
+          catalogos={catalogos}
+          onCancel={() => setOpen(false)}
+          onSubmit={async (payload) => {
+            await create(payload)
+            setOpen(false)
+          }}
+        />
+      </Modal>
+    </div>
+  )
+}

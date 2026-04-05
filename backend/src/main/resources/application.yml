@@ -1,0 +1,54 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: rycapp-backend
+
+  datasource:
+    url: jdbc:mysql://localhost:3306/rycapp?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    properties:
+      hibernate:
+        format_sql: true
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.hibernate.SQL: WARN
+
+# CORS: sin barra final en URLs. Añade aquí nuevos túneles si cambian.
+app:
+  cors:
+    allowed-origins: http://localhost:5173,http://127.0.0.1:5173,https://takes-arg-indicator-bars.trycloudflare.com
+
+  jwt:
+    # Mínimo 32 caracteres UTF-8 para HS256. Cambiar en producción.
+    secret: "rycapp-dev-jwt-secret-key-min-32-chars-change-in-prod-2026!!"
+    expiration-minutes: 720
+
+  auth:
+    otp-length: 6
+    otp-expiration-minutes: 2
+
+  mail:
+    from: "noreply@rycapp.local"
+
+# Correo (OTP): sin perfil activo no hay spring.mail.host → OTP solo en logs (MailOtpSender).
+# Brevo: copia application-local.example.yml → application-local.yml y ejecuta con perfil local:
+#   mvn spring-boot:run -Dspring-boot.run.profiles=local
+# O exporta SPRING_MAIL_USERNAME / SPRING_MAIL_PASSWORD y define spring.mail.* por variables.

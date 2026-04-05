@@ -1,0 +1,33 @@
+# Copia este archivo como application-local.yml y rellena los valores.
+# application-local.yml está ignorado por Git.
+#
+# Arranque con correo:
+#   mvn spring-boot:run -Dspring-boot.run.profiles=local
+#
+# Brevo — si el log dice "Authentication failed":
+#   1) https://app.brevo.com/settings/keys/smtp
+#   2) spring.mail.username = «Iniciar sesión» en SMTP (a menudo algo@smtp-brevo.com, no tu correo personal).
+#   3) spring.mail.password = clave SMTP (xsmtpsib-...), NUNCA la API key (xkeysib-...) ni la contraseña de login web.
+#   4) Si rotaste claves o dudas, genera una nueva clave SMTP en esa misma página.
+#   5) app.mail.from debe ser un remitente verificado en Brevo (Senders), no inventar sin verificar.
+#   6) Cuenta nueva: confirma que el envío transaccional/SMTP no esté suspendido (mensajes 450 en la doc Brevo).
+#
+# Depuración (mucho log): descomenta la siguiente línea bajo spring.mail:
+#   properties.mail.debug: true
+
+spring:
+  mail:
+    host: smtp-relay.brevo.com
+    port: 587
+    username: TU_LOGIN_SMTP_BREVO
+    password: TU_CLAVE_SMTP_BREVO
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.ssl.checkserveridentity: false
+      mail.smtp.ssl.trust: smtp-relay.brevo.com
+
+app:
+  mail:
+    from: "Nombre visible <remitente@verificado.com>"
