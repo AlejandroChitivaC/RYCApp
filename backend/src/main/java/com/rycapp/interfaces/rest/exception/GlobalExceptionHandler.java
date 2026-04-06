@@ -6,6 +6,7 @@ import com.rycapp.application.exception.EmailNotVerifiedException;
 import com.rycapp.application.exception.InvalidCredentialsException;
 import com.rycapp.application.exception.InvalidOtpException;
 import com.rycapp.application.exception.NotFoundException;
+import com.rycapp.application.exception.WeakPasswordException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +52,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidOtpException.class)
     public ResponseEntity<ApiErrorResponse> handleInvalidOtp(InvalidOtpException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, ex, request, null, null);
+    }
+
+    @ExceptionHandler(WeakPasswordException.class)
+    public ResponseEntity<ApiErrorResponse> handleWeakPassword(WeakPasswordException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex, request, null, "WEAK_PASSWORD");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

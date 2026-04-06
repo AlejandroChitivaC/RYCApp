@@ -6,11 +6,16 @@ export default {
       colors: {
         brand: {
           yellow: '#F5B800',
-          'yellow-bright': '#F9C81C',
+          'yellow-bright': '#FFD700',
           'yellow-muted': '#E5AC00',
+          'yellow-soft': '#FEF9E7',
           dark: '#2B2B2B',
           'dark-deep': '#1A1A1A',
           muted: '#5C5C5C',
+          sidebar: '#121212',
+          page: '#F8F9FA',
+          success: '#22C55E',
+          'success-soft': '#DCFCE7',
         },
       },
       fontFamily: {

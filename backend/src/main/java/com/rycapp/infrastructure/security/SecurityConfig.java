@@ -71,6 +71,8 @@ public class SecurityConfig {
                                 "/api/auth/registro",
                                 "/api/auth/verificar-correo",
                                 "/api/auth/reenviar-otp",
+                                "/api/auth/recuperacion/solicitar",
+                                "/api/auth/recuperacion/confirmar",
                                 "/api/auth/login"
                         ).permitAll()
                         .requestMatchers("/api/**").authenticated()

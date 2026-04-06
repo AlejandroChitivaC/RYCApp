@@ -1,13 +1,34 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLayoutSearch } from '../../../app/shell/LayoutSearchContext'
 import { Button } from '../../../shared/ui/Button'
 import { EmptyState } from '../../../shared/ui/EmptyState'
 import { Modal } from '../../../shared/ui/Modal'
+import { PageListToolbar } from '../../../shared/ui/PageListToolbar'
 import { Select } from '../../../shared/ui/Select'
+import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import { Table, TBody, TD, TH, THead } from '../../../shared/ui/Table'
 import { useAuthStore } from '../../auth/store'
 import { UsuarioForm } from '../components/UsuarioForm'
 import type { Usuario, UsuarioPendienteActivacion } from '../types'
 import { useUsuariosStore } from '../store'
+
+function matchesUsuario(
+  x: Usuario,
+  q: string,
+  rolNombre: Map<number, string>,
+) {
+  const s = q.trim().toLowerCase()
+  if (!s) return true
+  const rol = (rolNombre.get(x.rolId) ?? '').toLowerCase()
+  return (
+    String(x.id).includes(s) ||
+    x.cedula.toLowerCase().includes(s) ||
+    x.nombre.toLowerCase().includes(s) ||
+    x.apellido.toLowerCase().includes(s) ||
+    String(x.estado).toLowerCase().includes(s) ||
+    rol.includes(s)
+  )
+}
 
 export function UsuariosPage() {
   const authUser = useAuthStore((s) => s.user)
@@ -31,6 +52,8 @@ export function UsuariosPage() {
   const [activarOpen, setActivarOpen] = useState(false)
   const [activarTarget, setActivarTarget] = useState<UsuarioPendienteActivacion | null>(null)
   const [activarRolId, setActivarRolId] = useState('')
+  const { query: layoutQuery } = useLayoutSearch()
+  const [tableQuery, setTableQuery] = useState('')
 
   const esAdmin = authUser?.rol === 'Administrador'
 
@@ -62,24 +85,18 @@ export function UsuariosPage() {
     return m
   }, [roles])
 
+  const filteredUsuarios = useMemo(
+    () =>
+      sorted.filter(
+        (x) => matchesUsuario(x, layoutQuery, rolNombre) && matchesUsuario(x, tableQuery, rolNombre),
+      ),
+    [sorted, layoutQuery, tableQuery, rolNombre],
+  )
+
   return (
     <div>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="text-sm font-semibold text-brand-dark">Usuarios</div>
-        </div>
-        <Button
-          onClick={() => {
-            setEditing(null)
-            setOpen(true)
-          }}
-        >
-          Nuevo usuario
-        </Button>
-      </div>
-
       {esAdmin ? (
-        <div className="mt-6 rounded-2xl border border-brand-yellow/40 bg-brand-yellow/10 p-4">
+        <div className="mb-8 rounded-2xl border border-zinc-200/90 bg-brand-yellow-soft/50 p-4 shadow-sm ring-1 ring-amber-200/40">
           <div className="text-sm font-bold text-brand-dark">Cuentas pendientes de activación</div>
           <p className="mt-1 text-sm text-brand-muted">
             Usuarios con rol temporal «Usuario registrado» que ya verificaron el correo. Al activar, debes asignar el rol
@@ -195,9 +212,26 @@ export function UsuariosPage() {
         ) : null}
       </Modal>
 
-      <div className="mt-6">
+      <PageListToolbar
+        title="Usuarios del sistema"
+        description="Alta, edición y gestión de roles y estados."
+        tableSearch={{ value: tableQuery, onChange: setTableQuery }}
+        action={
+          <Button
+            className="rounded-xl px-5"
+            onClick={() => {
+              setEditing(null)
+              setOpen(true)
+            }}
+          >
+            + Nuevo usuario
+          </Button>
+        }
+      />
+
+      <div className="mt-2">
         {isLoading ? (
-          <div className="h-40 w-full animate-pulse rounded-2xl bg-zinc-200" />
+          <div className="h-40 w-full animate-pulse rounded-2xl bg-zinc-100" />
         ) : error ? (
           <EmptyState title="No se pudo cargar" description={error} />
         ) : sorted.length === 0 ? (
@@ -211,23 +245,28 @@ export function UsuariosPage() {
                 <TH>Nombre</TH>
                 <TH>Rol</TH>
                 <TH>Estado</TH>
-                <TH>Acciones</TH>
+                <TH className="text-right">Acciones</TH>
               </tr>
             </THead>
             <TBody>
-              {sorted.map((x) => (
-                <tr key={x.id} className="hover:bg-brand-yellow/5">
-                  <TD>{x.id}</TD>
+              {filteredUsuarios.map((x) => (
+                <tr key={x.id} className="hover:bg-brand-yellow/[0.06]">
+                  <TD className="tabular-nums text-zinc-600">{x.id}</TD>
                   <TD>{x.cedula}</TD>
                   <TD>
-                    {x.nombre} {x.apellido}
+                    <span className="font-medium">
+                      {x.nombre} {x.apellido}
+                    </span>
                   </TD>
                   <TD>{rolNombre.get(x.rolId) ?? `#${x.rolId}`}</TD>
-                  <TD>{x.estado}</TD>
                   <TD>
+                    <StatusBadge>{String(x.estado).replace(/_/g, ' ')}</StatusBadge>
+                  </TD>
+                  <TD className="text-right">
                     <Button
                       variant="secondary"
                       size="sm"
+                      className="rounded-xl border-zinc-200"
                       onClick={() => {
                         setEditing(x)
                         setOpen(true)

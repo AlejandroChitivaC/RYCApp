@@ -24,5 +24,11 @@ export const authApi = {
   reenviarOtp: async (correo: string) =>
     (await http.post<MessageResponse>('/api/auth/reenviar-otp', { correo })).data,
 
+  solicitarRecuperacion: async (correo: string) =>
+    (await http.post<MessageResponse>('/api/auth/recuperacion/solicitar', { correo })).data,
+
+  confirmarRecuperacion: async (payload: { correo: string; codigo: string; password: string }) =>
+    (await http.post<MessageResponse>('/api/auth/recuperacion/confirmar', payload)).data,
+
   me: async () => (await http.get<AuthUser>('/api/auth/me')).data,
 }

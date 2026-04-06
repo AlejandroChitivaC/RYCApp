@@ -31,6 +31,12 @@ public class CuentaAutenticacionEntity {
     @Column(name = "OTP_Expira")
     private LocalDateTime otpExpira;
 
+    @Column(name = "Reset_OTP_Hash", length = 64)
+    private String resetOtpHash;
+
+    @Column(name = "Reset_OTP_Expira")
+    private LocalDateTime resetOtpExpira;
+
     public Long getId() {
         return id;
     }
@@ -85,5 +91,21 @@ public class CuentaAutenticacionEntity {
 
     public void setOtpExpira(LocalDateTime otpExpira) {
         this.otpExpira = otpExpira;
+    }
+
+    public String getResetOtpHash() {
+        return resetOtpHash;
+    }
+
+    public void setResetOtpHash(String resetOtpHash) {
+        this.resetOtpHash = resetOtpHash;
+    }
+
+    public LocalDateTime getResetOtpExpira() {
+        return resetOtpExpira;
+    }
+
+    public void setResetOtpExpira(LocalDateTime resetOtpExpira) {
+        this.resetOtpExpira = resetOtpExpira;
     }
 }

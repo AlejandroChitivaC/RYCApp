@@ -1,23 +1,112 @@
-import { useEffect, useMemo, useState } from 'react';
-import { http } from '../../../app/http/httpClient';
-import { getApiErrorMessage } from '../../../app/http/apiError';
-import { EmptyState } from '../../../shared/ui/EmptyState';
+import { useEffect, useMemo, useState, type ReactNode } from 'react'
+import { http } from '../../../app/http/httpClient'
+import { getApiErrorMessage } from '../../../app/http/apiError'
+import { EmptyState } from '../../../shared/ui/EmptyState'
+import { StatMiniCard } from '../../../shared/ui/StatMiniCard'
 
 type Stat = {
-  label: string;
-  value: number;
-  hint: string;
-  tone: 'yellow' | 'dark' | 'amber' | 'gold' | 'steel';
-};
+  label: string
+  value: number
+  icon: ReactNode
+  iconBgClass: string
+}
 
 async function safeCount<T>(path: string): Promise<number> {
-  const res = await http.get<T[]>(path);
-  return Array.isArray(res.data) ? res.data.length : 0;
+  const res = await http.get<T[]>(path)
+  return Array.isArray(res.data) ? res.data.length : 0
+}
+
+function IconBriefcase({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <path
+        d="M9 6a3 3 0 0 1 6 0v1h3a2 2 0 0 1 2 2v3.5a2.5 2.5 0 0 1-2 2.45V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2.05A2.5 2.5 0 0 1 2 12.5V9a2 2 0 0 1 2-2h3V6Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path d="M9 7V6a3 3 0 0 1 6 0v1" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function IconUsers({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <path d="M16 11a4 4 0 1 0-8 0 4 4 0 0 0 8 0Z" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M4 20a8 8 0 0 1 16 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IconTruck({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <path d="M3 7h11v10H3V7Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path d="M14 10h4l3 3v4h-7V10Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+      <path
+        d="M7 19a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3ZM18 19a1.5 1.5 0 1 0 0-3 1.5 1.5 0 0 0 0 3Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+      />
+    </svg>
+  )
+}
+
+function IconCube({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <path
+        d="M12 3 4 7v10l8 4 8-4V7l-8-4Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path d="m4 7 8 4 8-4M12 11v10" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function IconBuilding({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <path
+        d="M4 21V8l8-4v17M4 21h16M12 21V12m0 0h8v9"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function IconReceipt({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <path
+        d="M7 3h10a2 2 0 0 1 2 2v16l-2-1-2 1-2-1-2 1-2-1-2 1V5a2 2 0 0 1 2-2Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path d="M9 8h6M9 12h6M9 16h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+function IconTag({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none" stroke="currentColor" strokeWidth="1.8">
+      <path d="M4 4h7l9 9-7 7-9-9V4Z" strokeLinejoin="round" />
+      <path d="M7.5 7.5h.01" strokeLinecap="round" />
+    </svg>
+  )
 }
 
 export function DashboardPage() {
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [counts, setCounts] = useState({
     lineas: 0,
     usuarios: 0,
@@ -26,32 +115,25 @@ export function DashboardPage() {
     proveedores: 0,
     operaciones: 0,
     tiposCosto: 0,
-  });
+  })
 
   useEffect(() => {
-    let active = true;
-    (async () => {
+    let active = true
+    ;(async () => {
       try {
-        setLoading(true);
-        setError(null);
-        const [
-          lineas,
-          usuarios,
-          vehiculos,
-          materiales,
-          proveedores,
-          operaciones,
-          tiposCosto,
-        ] = await Promise.all([
-          safeCount('/api/lineas-negocio'),
-          safeCount('/api/usuarios'),
-          safeCount('/api/vehiculos'),
-          safeCount('/api/materiales'),
-          safeCount('/api/proveedores'),
-          safeCount('/api/operaciones'),
-          safeCount('/api/tipos-costo'),
-        ]);
-        if (!active) return;
+        setLoading(true)
+        setError(null)
+        const [lineas, usuarios, vehiculos, materiales, proveedores, operaciones, tiposCosto] =
+          await Promise.all([
+            safeCount('/api/lineas-negocio'),
+            safeCount('/api/usuarios'),
+            safeCount('/api/vehiculos'),
+            safeCount('/api/materiales'),
+            safeCount('/api/proveedores'),
+            safeCount('/api/operaciones'),
+            safeCount('/api/tipos-costo'),
+          ])
+        if (!active) return
         setCounts({
           lineas,
           usuarios,
@@ -60,144 +142,106 @@ export function DashboardPage() {
           proveedores,
           operaciones,
           tiposCosto,
-        });
+        })
       } catch (e) {
-        if (!active) return;
-        setError(getApiErrorMessage(e));
+        if (!active) return
+        setError(getApiErrorMessage(e))
       } finally {
-        if (!active) return;
-        setLoading(false);
+        if (!active) return
+        setLoading(false)
       }
-    })();
+    })()
     return () => {
-      active = false;
-    };
-  }, []);
+      active = false
+    }
+  }, [])
 
   const stats = useMemo<Stat[]>(
     () => [
       {
         label: 'Líneas de negocio',
         value: counts.lineas,
-        hint: 'Linea_Negocio',
-        tone: 'yellow',
+        icon: <IconBriefcase className="h-6 w-6" />,
+        iconBgClass: 'bg-brand-yellow/20 text-brand-dark',
       },
       {
         label: 'Usuarios',
         value: counts.usuarios,
-        hint: 'Usuario · Rol',
-        tone: 'dark',
+        icon: <IconUsers className="h-6 w-6" />,
+        iconBgClass: 'bg-zinc-200 text-brand-dark',
       },
       {
         label: 'Vehículos',
         value: counts.vehiculos,
-        hint: 'Vehiculo',
-        tone: 'amber',
+        icon: <IconTruck className="h-6 w-6" />,
+        iconBgClass: 'bg-amber-100 text-amber-900',
       },
       {
         label: 'Materiales',
         value: counts.materiales,
-        hint: 'Material',
-        tone: 'steel',
+        icon: <IconCube className="h-6 w-6" />,
+        iconBgClass: 'bg-brand-yellow/15 text-brand-dark',
       },
       {
         label: 'Proveedores',
         value: counts.proveedores,
-        hint: 'Proveedor',
-        tone: 'gold',
+        icon: <IconBuilding className="h-6 w-6" />,
+        iconBgClass: 'bg-zinc-100 text-zinc-700',
       },
       {
         label: 'Operaciones',
         value: counts.operaciones,
-        hint: 'Operaciones_Lineas_Negocio',
-        tone: 'yellow',
+        icon: <IconReceipt className="h-6 w-6" />,
+        iconBgClass: 'bg-brand-yellow/25 text-brand-dark',
       },
       {
         label: 'Tipos de costo',
         value: counts.tiposCosto,
-        hint: 'Tipo_Costo',
-        tone: 'dark',
+        icon: <IconTag className="h-6 w-6" />,
+        iconBgClass: 'bg-emerald-100 text-emerald-900',
       },
     ],
     [counts],
-  );
-
-  const blob = (t: Stat['tone']) => {
-    switch (t) {
-      case 'yellow':
-        return 'bg-brand-yellow/40';
-      case 'dark':
-        return 'bg-brand-dark/25';
-      case 'amber':
-        return 'bg-amber-400/35';
-      case 'gold':
-        return 'bg-brand-yellow-bright/45';
-      case 'steel':
-        return 'bg-zinc-400/30';
-      default:
-        return 'bg-brand-yellow/30';
-    }
-  };
+  )
 
   return (
     <div>
-      <div className="relative overflow-hidden rounded-2xl border-2 border-zinc-200 bg-gradient-to-r from-white via-brand-yellow/10 to-white p-5 shadow-soft">
-        <div className="relative flex flex-col gap-4 border-l-4 border-brand-yellow pl-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="rounded-2xl border border-zinc-200/90 bg-gradient-to-br from-white via-brand-yellow-soft/40 to-white p-5 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="text-xs font-extrabold uppercase tracking-[0.2em] text-brand-muted">
+            <div className="text-[10px] font-extrabold uppercase tracking-[0.2em] text-brand-yellow">
+              R&amp;C Transportes
+            </div>
+            <h2 className="mt-1 text-xl font-extrabold tracking-tight text-brand-dark sm:text-2xl">
               Resumen operativo
-            </div>
-            <div className="mt-1 text-lg font-extrabold text-brand-dark">
-              Panel R&amp;C Transportes
-            </div>
-            <div className="text-sm text-brand-muted">
-              Modelo ER: catálogos y operaciones alineados a la base de datos.
-            </div>
+            </h2>
+            <p className="mt-1 max-w-xl text-sm text-brand-muted">
+              Vista rápida de volúmenes por entidad del modelo: catálogos y operaciones.
+            </p>
           </div>
-          <div className="rounded-xl border-2 border-brand-dark bg-brand-dark px-4 py-2 text-xs font-bold text-brand-yellow">
-            Actualizado: ahora
+          <div className="rounded-full bg-brand-yellow-soft px-4 py-2 text-xs font-bold text-amber-900 ring-1 ring-amber-200/60">
+            {loading ? 'Cargando…' : 'Datos al día'}
           </div>
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:gap-5">
+      <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {stats.map((s) => (
-          <div
+          <StatMiniCard
             key={s.label}
-            className="group relative overflow-hidden rounded-2xl border-2 border-zinc-200 bg-white p-5 shadow-soft"
-          >
-            <div
-              className={`pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full blur-2xl opacity-70 transition group-hover:opacity-100 ${blob(s.tone)}`}
-            />
-
-            <div className="relative">
-              <div className="text-[11px] font-bold uppercase tracking-wider text-brand-muted">
-                {s.hint}
-              </div>
-              <div className="mt-1 text-sm font-extrabold text-brand-dark">
-                {s.label}
-              </div>
-            </div>
-
-            <div className="relative mt-3 text-4xl font-extrabold tracking-tight text-brand-dark xl:text-5xl">
-              {loading ? (
-                <span className="inline-block h-9 w-20 animate-pulse rounded-xl bg-zinc-200" />
-              ) : (
-                s.value
-              )}
-            </div>
-          </div>
+            icon={s.icon}
+            label={s.label}
+            value={loading ? '—' : s.value}
+            iconBgClass={s.iconBgClass}
+          />
         ))}
       </div>
 
       {error ? (
         <div className="mt-6">
-          <EmptyState
-            title="No se pudo cargar el dashboard"
-            description={error}
-          />
+          <EmptyState title="No se pudo cargar el dashboard" description={error} />
         </div>
       ) : null}
     </div>
-  );
+  )
 }

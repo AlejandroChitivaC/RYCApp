@@ -4,7 +4,7 @@
 
 @layer base {
   html {
-    @apply h-full bg-zinc-100 font-sans text-brand-dark antialiased;
+    @apply h-full bg-brand-page font-sans text-brand-dark antialiased;
   }
 
   body {

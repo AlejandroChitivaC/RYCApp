@@ -15,6 +15,7 @@ import com.rycapp.infrastructure.persistence.jpa.repository.UsuarioJpaRepository
 import com.rycapp.infrastructure.security.JwtService;
 import com.rycapp.infrastructure.security.OtpGenerator;
 import com.rycapp.infrastructure.security.OtpHasher;
+import com.rycapp.infrastructure.security.PasswordPolicy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -67,6 +68,7 @@ public class AuthService {
 
     @Transactional
     public void registrar(String correo, String passwordPlano, String cedula, String nombre, String apellido) {
+        PasswordPolicy.requireStrong(passwordPlano);
         String email = correo.trim().toLowerCase();
         if (cuentaJpaRepository.existsByCorreoIgnoreCase(email)) {
             throw new ConflictException("Ya existe una cuenta con ese correo.");
@@ -171,5 +173,52 @@ public class AuthService {
         cuenta.setOtpHash(OtpHasher.sha256Hex(plain));
         cuenta.setOtpExpira(LocalDateTime.now(clock).plusMinutes(otpExpirationMinutes));
         mailOtpSender.sendOtp(cuenta.getCorreo(), plain, otpExpirationMinutes);
+    }
+
+    /**
+     * No revela si el correo existe: solo envía OTP si hay cuenta con correo verificado.
+     */
+    @Transactional
+    public void solicitarRecuperacionContrasena(String correo) {
+        String email = correo.trim().toLowerCase();
+        var opt = cuentaJpaRepository.findWithUsuarioByCorreoIgnoreCase(email);
+        if (opt.isEmpty() || !opt.get().isCorreoVerificado()) {
+            return;
+        }
+        var cuenta = opt.get();
+        generarYEnviarOtpRecuperacion(cuenta);
+        cuentaJpaRepository.save(cuenta);
+    }
+
+    @Transactional
+    public void confirmarRecuperacionContrasena(String correo, String codigoOtp, String nuevaPasswordPlano) {
+        PasswordPolicy.requireStrong(nuevaPasswordPlano);
+        String email = correo.trim().toLowerCase();
+        var cuenta = cuentaJpaRepository.findWithUsuarioByCorreoIgnoreCase(email)
+                .orElseThrow(() -> new InvalidOtpException("Cuenta no encontrada o código no válido."));
+        if (!cuenta.isCorreoVerificado()) {
+            throw new InvalidOtpException("Cuenta no encontrada o código no válido.");
+        }
+        if (cuenta.getResetOtpHash() == null || cuenta.getResetOtpExpira() == null) {
+            throw new InvalidOtpException("No hay un código activo. Solicita uno nuevo desde «Olvidé mi contraseña».");
+        }
+        LocalDateTime ahora = LocalDateTime.now(clock);
+        if (ahora.isAfter(cuenta.getResetOtpExpira())) {
+            throw new InvalidOtpException("El código expiró. Solicita uno nuevo.");
+        }
+        if (!OtpHasher.matches(cuenta.getResetOtpHash(), codigoOtp)) {
+            throw new InvalidOtpException("Código incorrecto.");
+        }
+        cuenta.setContrasenaHash(passwordEncoder.encode(nuevaPasswordPlano));
+        cuenta.setResetOtpHash(null);
+        cuenta.setResetOtpExpira(null);
+        cuentaJpaRepository.save(cuenta);
+    }
+
+    private void generarYEnviarOtpRecuperacion(CuentaAutenticacionEntity cuenta) {
+        String plain = otpGenerator.generateNumericOtp(otpLength);
+        cuenta.setResetOtpHash(OtpHasher.sha256Hex(plain));
+        cuenta.setResetOtpExpira(LocalDateTime.now(clock).plusMinutes(otpExpirationMinutes));
+        mailOtpSender.sendPasswordResetOtp(cuenta.getCorreo(), plain, otpExpirationMinutes);
     }
 }

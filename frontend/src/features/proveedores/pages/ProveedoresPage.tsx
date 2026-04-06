@@ -1,14 +1,30 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLayoutSearch } from '../../../app/shell/LayoutSearchContext'
 import { Button } from '../../../shared/ui/Button'
 import { EmptyState } from '../../../shared/ui/EmptyState'
 import { Modal } from '../../../shared/ui/Modal'
+import { PageListToolbar } from '../../../shared/ui/PageListToolbar'
 import { Table, TBody, TD, TH, THead } from '../../../shared/ui/Table'
 import { ProveedorForm } from '../components/ProveedorForm'
 import type { Proveedor } from '../types'
 import { useProveedoresStore } from '../store'
 
+function matchesProveedor(x: Proveedor, q: string) {
+  const s = q.trim().toLowerCase()
+  if (!s) return true
+  const ubi = [x.departamento, x.municipio].filter(Boolean).join(' ').toLowerCase()
+  return (
+    String(x.id).includes(s) ||
+    x.nombre.toLowerCase().includes(s) ||
+    x.nit.toLowerCase().includes(s) ||
+    ubi.includes(s)
+  )
+}
+
 export function ProveedoresPage() {
   const { items, isLoading, error, fetchAll, create, update } = useProveedoresStore()
+  const { query: layoutQuery } = useLayoutSearch()
+  const [tableQuery, setTableQuery] = useState('')
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Proveedor | null>(null)
 
@@ -18,24 +34,31 @@ export function ProveedoresPage() {
 
   const sorted = useMemo(() => [...items].sort((a, b) => b.id - a.id), [items])
 
+  const filtered = useMemo(
+    () => sorted.filter((x) => matchesProveedor(x, layoutQuery) && matchesProveedor(x, tableQuery)),
+    [sorted, layoutQuery, tableQuery],
+  )
+
   return (
     <div>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="text-sm font-semibold text-brand-dark">Proveedores</div>
-          <div className="text-sm text-brand-muted">Catálogo Proveedor del ER.</div>
-        </div>
-        <Button
-          onClick={() => {
-            setEditing(null)
-            setOpen(true)
-          }}
-        >
-          Nuevo proveedor
-        </Button>
-      </div>
+      <PageListToolbar
+        title="Catálogo de proveedores"
+        description="Proveedores y ubicación según el modelo de datos."
+        tableSearch={{ value: tableQuery, onChange: setTableQuery }}
+        action={
+          <Button
+            className="rounded-xl px-5"
+            onClick={() => {
+              setEditing(null)
+              setOpen(true)
+            }}
+          >
+            + Nuevo proveedor
+          </Button>
+        }
+      />
 
-      <div className="mt-6">
+      <div className="mt-2">
         {isLoading ? (
           <div className="h-40 animate-pulse rounded-2xl bg-zinc-200" />
         ) : error ? (
@@ -50,24 +73,25 @@ export function ProveedoresPage() {
                 <TH>Nombre</TH>
                 <TH>NIT</TH>
                 <TH>Ubicación</TH>
-                <TH>Acciones</TH>
+                <TH className="text-right">Acciones</TH>
               </tr>
             </THead>
             <TBody>
-              {sorted.map((x) => (
-                <tr key={x.id}>
-                  <TD>{x.id}</TD>
+              {filtered.map((x) => (
+                <tr key={x.id} className="hover:bg-brand-yellow/[0.06]">
+                  <TD className="tabular-nums text-zinc-600">{x.id}</TD>
                   <TD>
-                    <span className="font-medium">{x.nombre}</span>
+                    <span className="font-semibold text-brand-dark">{x.nombre}</span>
                   </TD>
                   <TD>{x.nit}</TD>
-                  <TD>
+                  <TD className="text-brand-muted">
                     {[x.departamento, x.municipio].filter(Boolean).join(' · ') || '—'}
                   </TD>
-                  <TD>
+                  <TD className="text-right">
                     <Button
                       variant="secondary"
                       size="sm"
+                      className="rounded-xl border-zinc-200"
                       onClick={() => {
                         setEditing(x)
                         setOpen(true)

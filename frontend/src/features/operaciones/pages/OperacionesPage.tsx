@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useLayoutSearch } from '../../../app/shell/LayoutSearchContext'
 import { Button } from '../../../shared/ui/Button'
 import { EmptyState } from '../../../shared/ui/EmptyState'
 import { Input } from '../../../shared/ui/Input'
 import { Modal } from '../../../shared/ui/Modal'
+import { PageListToolbar } from '../../../shared/ui/PageListToolbar'
 import { Select } from '../../../shared/ui/Select'
 import { Table, TBody, TD, TH, THead } from '../../../shared/ui/Table'
 import { useLineasNegocioStore } from '../../lineasNegocio/store'
@@ -11,6 +13,7 @@ import { useProveedoresStore } from '../../proveedores/store'
 import { useAuthStore } from '../../auth/store'
 import { useVehiculosStore } from '../../vehiculos/store'
 import { OperacionForm } from '../components/OperacionForm'
+import type { Operacion } from '../types'
 import { useOperacionesStore } from '../store'
 
 function fmtDate(iso: string | null) {
@@ -20,6 +23,26 @@ function fmtDate(iso: string | null) {
   } catch {
     return iso
   }
+}
+
+function matchesOperacion(
+  o: Operacion,
+  q: string,
+  lineasById: Map<number, string>,
+  materialesById: Map<number, string>,
+) {
+  const s = q.trim().toLowerCase()
+  if (!s) return true
+  const linea = (lineasById.get(o.lineaNegocioId) ?? '').toLowerCase()
+  const mat = (materialesById.get(o.materialId) ?? '').toLowerCase()
+  return (
+    String(o.id).includes(s) ||
+    fmtDate(o.fechaInsercion).toLowerCase().includes(s) ||
+    linea.includes(s) ||
+    mat.includes(s) ||
+    String(o.valor).toLowerCase().includes(s) ||
+    String(o.medioPago).toLowerCase().includes(s)
+  )
 }
 
 export function OperacionesPage() {
@@ -46,6 +69,8 @@ export function OperacionesPage() {
   const fetchProveedores = useProveedoresStore((s) => s.fetchAll)
 
   const [open, setOpen] = useState(false)
+  const { query: layoutQuery } = useLayoutSearch()
+  const [tableQuery, setTableQuery] = useState('')
 
   useEffect(() => {
     fetchLineas()
@@ -89,17 +114,28 @@ export function OperacionesPage() {
     return map
   }, [materialesItems])
 
+  const filteredOps = useMemo(
+    () =>
+      sorted.filter(
+        (o) =>
+          matchesOperacion(o, layoutQuery, lineasById, materialesById) &&
+          matchesOperacion(o, tableQuery, lineasById, materialesById),
+      ),
+    [sorted, layoutQuery, tableQuery, lineasById, materialesById],
+  )
+
   return (
     <div>
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="text-sm font-semibold text-slate-900">Operaciones</div>
-          <div className="text-sm text-slate-600">
-            Tabla Operaciones_Lineas_Negocio: filtros por fechas de inserción, línea y vehículo.
-          </div>
-        </div>
-        <Button onClick={() => setOpen(true)}>Nueva operación</Button>
-      </div>
+      <PageListToolbar
+        title="Operaciones registradas"
+        description="Filtros por fechas de inserción, línea y vehículo; búsqueda en la tabla."
+        tableSearch={{ value: tableQuery, onChange: setTableQuery }}
+        action={
+          <Button className="rounded-xl px-5" onClick={() => setOpen(true)}>
+            + Nueva operación
+          </Button>
+        }
+      />
 
       <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-12">
         <div className="lg:col-span-3">
@@ -150,6 +186,7 @@ export function OperacionesPage() {
         <div className="lg:col-span-12 flex flex-wrap items-end gap-2">
           <Button
             variant="secondary"
+            className="rounded-xl border-zinc-200"
             onClick={() => fetchAll()}
             loading={isLoading}
             size="sm"
@@ -158,6 +195,7 @@ export function OperacionesPage() {
           </Button>
           <Button
             variant="secondary"
+            className="rounded-xl border-zinc-200"
             onClick={() => {
               setFilters({ from: '', to: '', lineaNegocioId: '', vehiculoId: '' })
               setTimeout(() => fetchAll(), 0)
@@ -171,7 +209,7 @@ export function OperacionesPage() {
 
       <div className="mt-6">
         {isLoading ? (
-          <div className="h-40 w-full animate-pulse rounded-2xl bg-slate-100" />
+          <div className="h-40 w-full animate-pulse rounded-2xl bg-zinc-100" />
         ) : error ? (
           <EmptyState title="No se pudo cargar" description={error} />
         ) : sorted.length === 0 ? (
@@ -192,8 +230,8 @@ export function OperacionesPage() {
               </tr>
             </THead>
             <TBody>
-              {sorted.map((o) => (
-                <tr key={o.id} className="hover:bg-brand-yellow/5">
+              {filteredOps.map((o) => (
+                <tr key={o.id} className="hover:bg-brand-yellow/[0.06]">
                   <TD>{o.id}</TD>
                   <TD>{fmtDate(o.fechaInsercion)}</TD>
                   <TD>

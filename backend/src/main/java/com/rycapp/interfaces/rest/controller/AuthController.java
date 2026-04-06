@@ -48,6 +48,20 @@ public class AuthController {
         ));
     }
 
+    @PostMapping("/recuperacion/solicitar")
+    public ResponseEntity<MessageResponse> solicitarRecuperacion(@Valid @RequestBody AuthRecuperacionSolicitarRequest req) {
+        authService.solicitarRecuperacionContrasena(req.correo());
+        return ResponseEntity.ok(new MessageResponse(
+                "Si el correo está registrado y verificado, recibirás un código OTP para restablecer la contraseña."
+        ));
+    }
+
+    @PostMapping("/recuperacion/confirmar")
+    public ResponseEntity<MessageResponse> confirmarRecuperacion(@Valid @RequestBody AuthRecuperacionConfirmarRequest req) {
+        authService.confirmarRecuperacionContrasena(req.correo(), req.codigo(), req.password());
+        return ResponseEntity.ok(new MessageResponse("Contraseña actualizada. Ya puedes iniciar sesión."));
+    }
+
     @PostMapping("/login")
     public ResponseEntity<AuthLoginResponse> login(@Valid @RequestBody AuthLoginRequest req) {
         var result = authService.login(req.correo(), req.password());

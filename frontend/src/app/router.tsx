@@ -4,6 +4,7 @@ import { RequireAuth } from '../features/auth/components/RequireAuth'
 import { LoginPage } from '../features/auth/pages/LoginPage'
 import { RegisterPage } from '../features/auth/pages/RegisterPage'
 import { VerifyEmailPage } from '../features/auth/pages/VerifyEmailPage'
+import { ForgotPasswordPage } from '../features/auth/pages/ForgotPasswordPage'
 import { DashboardPage } from '../features/dashboard/pages/DashboardPage'
 import { LineasNegocioPage } from '../features/lineasNegocio/pages/LineasNegocioPage'
 import { UsuariosPage } from '../features/usuarios/pages/UsuariosPage'
@@ -16,6 +17,7 @@ export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
   { path: '/registro', element: <RegisterPage /> },
   { path: '/verificar-correo', element: <VerifyEmailPage /> },
+  { path: '/recuperar-contrasena', element: <ForgotPasswordPage /> },
   {
     element: (
       <RequireAuth>
