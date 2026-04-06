@@ -18,30 +18,63 @@ export function AuthLogoHero({ className }: { className?: string }) {
   )
 }
 
+const PLUS_GRID_SVG =
+  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath stroke='%23ffffff' stroke-opacity='0.11' stroke-width='1' d='M14 6v16M6 14h16'/%3E%3C/svg%3E"
+
 export function AuthSplitLayout({
   left,
   right,
   leftClassName,
+  rightVariant = 'dark',
+  leftPlusPattern = false,
 }: {
   left: ReactNode
   right: ReactNode
   leftClassName?: string
+  /** Panel derecho claro (p. ej. recuperar contraseña). */
+  rightVariant?: 'dark' | 'light'
+  /** Patrón sutil de cruces en el panel izquierdo. */
+  leftPlusPattern?: boolean
 }) {
+  const mainBg = rightVariant === 'light' ? 'bg-brand-page' : 'bg-[#121212]'
+
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-[#121212] text-white lg:flex-row">
+    <div
+      className={[
+        'flex min-h-[100dvh] flex-col lg:flex-row',
+        rightVariant === 'light' ? 'bg-brand-page lg:bg-[#121212]' : 'bg-[#121212]',
+      ].join(' ')}
+    >
       <aside
         className={[
-          'relative flex w-full flex-col justify-between border-b border-white/[0.06] px-6 py-8 sm:px-8 sm:py-10 lg:w-[min(44%,520px)] lg:shrink-0 lg:border-b-0 lg:border-r lg:border-white/[0.06] lg:px-10 lg:py-12',
+          'relative flex min-h-0 w-full flex-col border-b border-white/[0.06] px-6 py-8 sm:px-8 sm:py-10 lg:w-1/2 lg:max-w-none lg:shrink-0 lg:border-b-0 lg:border-r lg:border-white/[0.06] lg:px-10 lg:py-12 xl:px-12',
           leftClassName ?? '',
         ].join(' ')}
         style={{
           background:
-            'radial-gradient(ellipse 120% 80% at 0% 0%, rgba(245,184,0,0.14), transparent 55%), linear-gradient(165deg, #1c1c1c 0%, #141414 45%, #121212 100%)',
+            'radial-gradient(ellipse 100% 70% at 0% 0%, rgba(245,158,11,0.18), transparent 50%), radial-gradient(ellipse 120% 80% at 0% 0%, rgba(245,184,0,0.12), transparent 55%), linear-gradient(165deg, #1c1c1c 0%, #141414 45%, #121212 100%)',
         }}
       >
-        {left}
+        {leftPlusPattern ? (
+          <div
+            className="pointer-events-none absolute inset-0 z-0 opacity-90"
+            style={{
+              backgroundImage: `url("${PLUS_GRID_SVG}")`,
+              backgroundSize: '28px 28px',
+            }}
+            aria-hidden
+          />
+        ) : null}
+        <div className="relative z-10 flex min-h-[min(420px,50vh)] flex-1 flex-col justify-between gap-10 lg:min-h-0">
+          {left}
+        </div>
       </aside>
-      <main className="flex min-h-0 flex-1 flex-col justify-center bg-[#121212] px-5 py-10 sm:px-8 lg:px-12 xl:px-20 2xl:px-28">
+      <main
+        className={[
+          'flex min-h-0 flex-1 flex-col justify-center px-5 py-10 sm:px-8 lg:px-12 xl:px-16 2xl:px-24',
+          mainBg,
+        ].join(' ')}
+      >
         <div className="mx-auto w-full max-w-md">{right}</div>
       </main>
     </div>
