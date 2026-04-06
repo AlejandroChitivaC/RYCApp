@@ -34,7 +34,7 @@ logging:
 # CORS: sin barra final en URLs. Añade aquí nuevos túneles si cambian.
 app:
   cors:
-    allowed-origins: https://master.d35vrictwsl2qg.amplifyapp.com
+    allowed-origins: https://master.d35vrictwsl2qg.amplifyapp.com, http://localhost:5173
 
   jwt:
     # Mínimo 32 caracteres UTF-8 para HS256. Cambiar en producción.

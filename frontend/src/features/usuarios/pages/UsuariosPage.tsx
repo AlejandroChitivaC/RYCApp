@@ -3,18 +3,37 @@ import { Button } from '../../../shared/ui/Button'
 import { EmptyState } from '../../../shared/ui/EmptyState'
 import { Modal } from '../../../shared/ui/Modal'
 import { Table, TBody, TD, TH, THead } from '../../../shared/ui/Table'
+import { useAuthStore } from '../../auth/store'
 import { UsuarioForm } from '../components/UsuarioForm'
 import type { Usuario } from '../types'
 import { useUsuariosStore } from '../store'
 
 export function UsuariosPage() {
-  const { items, roles, isLoading, error, fetchAll, create, update } = useUsuariosStore()
+  const authUser = useAuthStore((s) => s.user)
+  const {
+    items,
+    roles,
+    pendientesActivacion,
+    isLoading,
+    error,
+    fetchAll,
+    fetchPendientesActivacion,
+    activarCuenta,
+    create,
+    update,
+  } = useUsuariosStore()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Usuario | null>(null)
+
+  const esAdmin = authUser?.rol === 'Administrador'
 
   useEffect(() => {
     fetchAll()
   }, [fetchAll])
+
+  useEffect(() => {
+    if (esAdmin) fetchPendientesActivacion()
+  }, [esAdmin, fetchPendientesActivacion])
 
   const sorted = useMemo(() => [...items].sort((a, b) => b.id - a.id), [items])
 
@@ -42,6 +61,54 @@ export function UsuariosPage() {
           Nuevo usuario
         </Button>
       </div>
+
+      {esAdmin ? (
+        <div className="mt-6 rounded-2xl border border-brand-yellow/40 bg-brand-yellow/10 p-4">
+          <div className="text-sm font-bold text-brand-dark">Cuentas pendientes de activación</div>
+          <p className="mt-1 text-sm text-brand-muted">
+            Usuarios que ya verificaron el correo y esperan que un administrador active la cuenta. También se envía un
+            correo a administradores con cuenta en el sistema.
+          </p>
+          {pendientesActivacion.length === 0 ? (
+            <div className="mt-3 text-sm text-slate-600">No hay solicitudes pendientes.</div>
+          ) : (
+            <div className="mt-3">
+              <Table>
+              <THead>
+                <tr>
+                  <TH>Correo</TH>
+                  <TH>Nombre</TH>
+                  <TH>Cédula</TH>
+                  <TH>Acción</TH>
+                </tr>
+              </THead>
+              <TBody>
+                {pendientesActivacion.map((p) => (
+                  <tr key={p.id}>
+                    <TD>{p.correo}</TD>
+                    <TD>
+                      {p.nombre} {p.apellido}
+                    </TD>
+                    <TD>{p.cedula}</TD>
+                    <TD>
+                      <Button
+                        size="sm"
+                        onClick={async () => {
+                          await activarCuenta(p.id)
+                          await fetchPendientesActivacion()
+                        }}
+                      >
+                        Activar cuenta
+                      </Button>
+                    </TD>
+                  </tr>
+                ))}
+              </TBody>
+              </Table>
+            </div>
+          )}
+        </div>
+      ) : null}
 
       <div className="mt-6">
         {isLoading ? (

@@ -25,6 +25,10 @@ public class VehiculoEntity {
     @Column(name = "Estado", nullable = false, length = 32)
     private String estado;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "ID_Conductor", unique = true)
+    private UsuarioEntity conductor;
+
     public Long getId() {
         return id;
     }
@@ -71,5 +75,13 @@ public class VehiculoEntity {
 
     public void setEstado(String estado) {
         this.estado = estado;
+    }
+
+    public UsuarioEntity getConductor() {
+        return conductor;
+    }
+
+    public void setConductor(UsuarioEntity conductor) {
+        this.conductor = conductor;
     }
 }

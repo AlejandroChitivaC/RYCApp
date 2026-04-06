@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { getFieldErrors } from '../../../app/http/apiError'
 import { Button } from '../../../shared/ui/Button'
 import { Input } from '../../../shared/ui/Input'
@@ -7,20 +7,18 @@ import { Textarea } from '../../../shared/ui/Textarea'
 import type { LineaNegocio } from '../../lineasNegocio/types'
 import type { Material } from '../../materiales/types'
 import type { Proveedor } from '../../proveedores/types'
-import type { Usuario } from '../../usuarios/types'
 import type { Vehiculo } from '../../vehiculos/types'
 
 type Props = {
   catalogos: {
     lineas: LineaNegocio[]
-    usuarios: Usuario[]
     vehiculos: Vehiculo[]
     materiales: Material[]
     proveedores: Proveedor[]
   }
+  usuarioRegistroLabel: string
   onCancel: () => void
   onSubmit: (payload: {
-    usuarioRegistroId: number
     lineaNegocioId: number
     vehiculoId: number
     materialId: number
@@ -33,13 +31,7 @@ type Props = {
   }) => Promise<void>
 }
 
-export function OperacionForm({ catalogos, onCancel, onSubmit }: Props) {
-  const defaultUsuarioId = useMemo(() => {
-    const u = catalogos.usuarios[0]
-    return u ? String(u.id) : ''
-  }, [catalogos.usuarios])
-
-  const [usuarioRegistroId, setUsuarioRegistroId] = useState(defaultUsuarioId)
+export function OperacionForm({ catalogos, usuarioRegistroLabel, onCancel, onSubmit }: Props) {
   const [lineaNegocioId, setLineaNegocioId] = useState('')
   const [vehiculoId, setVehiculoId] = useState('')
   const [materialId, setMaterialId] = useState('')
@@ -52,16 +44,9 @@ export function OperacionForm({ catalogos, onCancel, onSubmit }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
-  useEffect(() => {
-    if (!usuarioRegistroId && defaultUsuarioId) {
-      setUsuarioRegistroId(defaultUsuarioId)
-    }
-  }, [defaultUsuarioId, usuarioRegistroId])
-
   const hasCatalogos = useMemo(() => {
     return (
       catalogos.lineas.length > 0 &&
-      catalogos.usuarios.length > 0 &&
       catalogos.vehiculos.length > 0 &&
       catalogos.materiales.length > 0 &&
       catalogos.proveedores.length > 0
@@ -76,7 +61,6 @@ export function OperacionForm({ catalogos, onCancel, onSubmit }: Props) {
           setIsSubmitting(true)
           setFieldErrors({})
           await onSubmit({
-            usuarioRegistroId: Number(usuarioRegistroId),
             lineaNegocioId: Number(lineaNegocioId),
             vehiculoId: Number(vehiculoId),
             materialId: Number(materialId),
@@ -101,29 +85,21 @@ export function OperacionForm({ catalogos, onCancel, onSubmit }: Props) {
         Registrar operación (Operaciones_Lineas_Negocio)
       </div>
       <div className="mt-1 text-sm text-slate-600">
-        Usuario de registro, línea, vehículo, material y proveedor son obligatorios en el modelo ER.
+        El usuario de registro se toma automáticamente de tu sesión. Línea, vehículo, material y proveedor son
+        obligatorios en el modelo ER.
       </div>
 
       {!hasCatalogos ? (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Completa catálogos: al menos una línea de negocio, usuario, vehículo, material y proveedor.
+          Completa catálogos: al menos una línea de negocio, vehículo, material y proveedor.
         </div>
       ) : null}
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Select
-          label="Usuario registro"
-          value={usuarioRegistroId}
-          onChange={(e) => setUsuarioRegistroId(e.target.value)}
-          error={fieldErrors.usuarioRegistroId}
-        >
-          <option value="">Seleccione...</option>
-          {catalogos.usuarios.map((x) => (
-            <option key={x.id} value={x.id}>
-              {x.nombre} {x.apellido} · {x.cedula}
-            </option>
-          ))}
-        </Select>
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 sm:col-span-2">
+          <div className="text-xs font-bold uppercase tracking-wide text-slate-500">Usuario registro</div>
+          <div className="mt-1 text-sm font-semibold text-slate-900">{usuarioRegistroLabel}</div>
+        </div>
 
         <Select
           label="Línea de negocio"

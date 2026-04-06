@@ -10,5 +10,8 @@ public interface VehiculoRepository {
     Optional<Vehiculo> findById(Long id);
     List<Vehiculo> findAll();
     boolean existsByPlacaIgnoreCase(String placa);
+
+    /** true si otro vehículo (distinto de excluirVehiculoId, si no es null) ya usa este conductor */
+    boolean conductorAsignadoOtroVehiculo(Long conductorId, Long excluirVehiculoId);
 }
 

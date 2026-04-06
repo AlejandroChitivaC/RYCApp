@@ -8,7 +8,7 @@ import { Table, TBody, TD, TH, THead } from '../../../shared/ui/Table'
 import { useLineasNegocioStore } from '../../lineasNegocio/store'
 import { useMaterialesStore } from '../../materiales/store'
 import { useProveedoresStore } from '../../proveedores/store'
-import { useUsuariosStore } from '../../usuarios/store'
+import { useAuthStore } from '../../auth/store'
 import { useVehiculosStore } from '../../vehiculos/store'
 import { OperacionForm } from '../components/OperacionForm'
 import { useOperacionesStore } from '../store'
@@ -34,8 +34,7 @@ export function OperacionesPage() {
   const lineasItems = useLineasNegocioStore((s) => s.items)
   const fetchLineas = useLineasNegocioStore((s) => s.fetchAll)
 
-  const usuariosItems = useUsuariosStore((s) => s.items)
-  const fetchUsuarios = useUsuariosStore((s) => s.fetchAll)
+  const authUser = useAuthStore((s) => s.user)
 
   const vehiculosItems = useVehiculosStore((s) => s.items)
   const fetchVehiculos = useVehiculosStore((s) => s.fetchAll)
@@ -50,14 +49,12 @@ export function OperacionesPage() {
 
   useEffect(() => {
     fetchLineas()
-    fetchUsuarios()
     fetchVehiculos()
     fetchMateriales()
     fetchProveedores()
     fetchAll()
   }, [
     fetchLineas,
-    fetchUsuarios,
     fetchVehiculos,
     fetchMateriales,
     fetchProveedores,
@@ -67,13 +64,16 @@ export function OperacionesPage() {
   const catalogos = useMemo(
     () => ({
       lineas: lineasItems,
-      usuarios: usuariosItems,
       vehiculos: vehiculosItems,
       materiales: materialesItems,
       proveedores: proveedoresItems,
     }),
-    [lineasItems, usuariosItems, vehiculosItems, materialesItems, proveedoresItems],
+    [lineasItems, vehiculosItems, materialesItems, proveedoresItems],
   )
+
+  const usuarioRegistroLabel = authUser
+    ? `${authUser.nombre} ${authUser.apellido} · ${authUser.correo}`
+    : '—'
 
   const sorted = useMemo(() => [...items].sort((a, b) => b.id - a.id), [items])
 
@@ -216,6 +216,7 @@ export function OperacionesPage() {
       <Modal open={open} title="Nueva operación" onClose={() => setOpen(false)}>
         <OperacionForm
           catalogos={catalogos}
+          usuarioRegistroLabel={usuarioRegistroLabel}
           onCancel={() => setOpen(false)}
           onSubmit={async (payload) => {
             await create(payload)

@@ -5,8 +5,8 @@ import com.rycapp.domain.model.Vehiculo;
 import java.util.List;
 
 public interface VehiculoUseCase {
-    Vehiculo crear(String placa, String clase, String marca, String modelo);
-    Vehiculo editar(Long id, String placa, String clase, String marca, String modelo);
+    Vehiculo crear(String placa, String clase, String marca, String modelo, Long conductorId);
+    Vehiculo editar(Long id, String placa, String clase, String marca, String modelo, Long conductorId);
     List<Vehiculo> listar();
     Vehiculo obtener(Long id);
 }

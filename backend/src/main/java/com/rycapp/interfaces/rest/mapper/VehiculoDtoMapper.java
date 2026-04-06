@@ -6,14 +6,16 @@ import com.rycapp.interfaces.rest.dto.vehiculo.VehiculoResponse;
 public final class VehiculoDtoMapper {
     private VehiculoDtoMapper() {}
 
-    public static VehiculoResponse toResponse(Vehiculo domain) {
+    public static VehiculoResponse toResponse(Vehiculo domain, String conductorNombre) {
         return new VehiculoResponse(
                 domain.id(),
                 domain.placa(),
                 domain.clase(),
                 domain.marca(),
                 domain.modelo(),
-                domain.estado()
+                domain.estado(),
+                domain.conductorId(),
+                conductorNombre
         );
     }
 }

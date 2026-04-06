@@ -1,9 +1,11 @@
 package com.rycapp.application.service;
 
 import com.rycapp.application.exception.ConflictException;
+import com.rycapp.application.exception.AccountPendingApprovalException;
 import com.rycapp.application.exception.EmailNotVerifiedException;
 import com.rycapp.application.exception.InvalidCredentialsException;
 import com.rycapp.application.exception.InvalidOtpException;
+import com.rycapp.infrastructure.mail.MailAccountNotifications;
 import com.rycapp.infrastructure.mail.MailOtpSender;
 import com.rycapp.infrastructure.persistence.jpa.entity.CuentaAutenticacionEntity;
 import com.rycapp.infrastructure.persistence.jpa.entity.UsuarioEntity;
@@ -23,6 +25,8 @@ import java.time.LocalDateTime;
 @Service
 public class AuthService {
     private static final String ROL_REGISTRADO = "Usuario registrado";
+    private static final String ESTADO_PENDIENTE_APROBACION = "PENDIENTE_APROBACION";
+    private static final String ESTADO_ACTIVO = "ACTIVO";
 
     private final UsuarioJpaRepository usuarioJpaRepository;
     private final RolJpaRepository rolJpaRepository;
@@ -31,6 +35,7 @@ public class AuthService {
     private final OtpGenerator otpGenerator;
     private final JwtService jwtService;
     private final MailOtpSender mailOtpSender;
+    private final MailAccountNotifications mailAccountNotifications;
     private final int otpLength;
     private final int otpExpirationMinutes;
     private final Clock clock;
@@ -43,6 +48,7 @@ public class AuthService {
             OtpGenerator otpGenerator,
             JwtService jwtService,
             MailOtpSender mailOtpSender,
+            MailAccountNotifications mailAccountNotifications,
             @Value("${app.auth.otp-length:6}") int otpLength,
             @Value("${app.auth.otp-expiration-minutes:2}") int otpExpirationMinutes
     ) {
@@ -53,6 +59,7 @@ public class AuthService {
         this.otpGenerator = otpGenerator;
         this.jwtService = jwtService;
         this.mailOtpSender = mailOtpSender;
+        this.mailAccountNotifications = mailAccountNotifications;
         this.otpLength = otpLength;
         this.otpExpirationMinutes = otpExpirationMinutes;
         this.clock = Clock.systemUTC();
@@ -75,7 +82,7 @@ public class AuthService {
         usuario.setCedula(cedula.trim());
         usuario.setNombre(nombre.trim());
         usuario.setApellido(apellido.trim());
-        usuario.setEstado("ACTIVO");
+        usuario.setEstado(ESTADO_PENDIENTE_APROBACION);
         usuario = usuarioJpaRepository.save(usuario);
 
         var cuenta = new CuentaAutenticacionEntity();
@@ -109,6 +116,14 @@ public class AuthService {
         cuenta.setOtpHash(null);
         cuenta.setOtpExpira(null);
         cuentaJpaRepository.save(cuenta);
+
+        UsuarioEntity u = cuenta.getUsuario();
+        mailAccountNotifications.notificarAdminsCuentaEsperandoAprobacion(
+                u.getNombre(),
+                u.getApellido(),
+                cuenta.getCorreo(),
+                u.getCedula()
+        );
     }
 
     @Transactional
@@ -137,6 +152,9 @@ public class AuthService {
             throw new EmailNotVerifiedException();
         }
         UsuarioEntity u = cuenta.getUsuario();
+        if (!ESTADO_ACTIVO.equalsIgnoreCase(u.getEstado())) {
+            throw new AccountPendingApprovalException();
+        }
         String rolDesc = u.getRol() != null ? u.getRol().getDescripcion() : "";
         String token = jwtService.createAccessToken(
                 u.getId(),

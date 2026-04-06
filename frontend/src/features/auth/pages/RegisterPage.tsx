@@ -23,8 +23,9 @@ export function RegisterPage() {
           <img src={logoUrl} alt="R&C" className="h-14 w-auto object-contain" />
           <h1 className="text-xl font-extrabold text-brand-dark">Crear cuenta</h1>
           <p className="text-center text-sm text-brand-muted">
-            Recibirás un código OTP por correo (válido <strong className="text-brand-dark">2 minutos</strong>) para
-            verificar tu cuenta.
+            Flujo: creas la cuenta → verificas el correo con un código OTP (válido{' '}
+            <strong className="text-brand-dark">2 minutos</strong>) → un administrador recibe aviso y activa tu cuenta →
+            te notificamos por correo cuando ya puedas entrar.
           </p>
         </div>
 

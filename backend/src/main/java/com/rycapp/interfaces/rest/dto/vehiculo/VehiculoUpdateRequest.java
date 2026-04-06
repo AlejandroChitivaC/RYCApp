@@ -18,5 +18,7 @@ public record VehiculoUpdateRequest(
 
         @NotBlank(message = "El modelo es obligatorio.")
         @Size(max = 60, message = "El modelo no debe exceder 60 caracteres.")
-        String modelo
+        String modelo,
+
+        Long conductorId
 ) {}

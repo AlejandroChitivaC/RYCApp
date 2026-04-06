@@ -6,5 +6,7 @@ public record VehiculoResponse(
         String clase,
         String marca,
         String modelo,
-        String estado
+        String estado,
+        Long conductorId,
+        String conductorNombre
 ) {}

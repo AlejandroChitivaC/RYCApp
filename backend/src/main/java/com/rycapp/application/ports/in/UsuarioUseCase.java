@@ -1,6 +1,7 @@
 package com.rycapp.application.ports.in;
 
 import com.rycapp.domain.model.Usuario;
+import com.rycapp.domain.model.UsuarioPendienteActivacion;
 
 import java.util.List;
 
@@ -9,4 +10,10 @@ public interface UsuarioUseCase {
     Usuario editar(Long id, Long rolId, String cedula, String nombre, String apellido, String estado);
     List<Usuario> listar();
     Usuario obtener(Long id);
+
+    List<UsuarioPendienteActivacion> listarPendientesActivacion();
+
+    void activarCuentaRegistrada(Long usuarioId);
+
+    List<Usuario> listarConductores();
 }

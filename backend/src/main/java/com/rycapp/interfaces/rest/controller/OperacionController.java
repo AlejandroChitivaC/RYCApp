@@ -1,12 +1,14 @@
 package com.rycapp.interfaces.rest.controller;
 
 import com.rycapp.application.ports.in.OperacionUseCase;
+import com.rycapp.infrastructure.security.JwtPrincipal;
 import com.rycapp.interfaces.rest.dto.operacion.OperacionCreateRequest;
 import com.rycapp.interfaces.rest.dto.operacion.OperacionResponse;
 import com.rycapp.interfaces.rest.mapper.OperacionDtoMapper;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -26,9 +28,12 @@ public class OperacionController {
     }
 
     @PostMapping
-    public ResponseEntity<OperacionResponse> crear(@Valid @RequestBody OperacionCreateRequest req) {
+    public ResponseEntity<OperacionResponse> crear(
+            @AuthenticationPrincipal JwtPrincipal principal,
+            @Valid @RequestBody OperacionCreateRequest req
+    ) {
         var created = useCase.crear(
-                req.usuarioRegistroId(),
+                principal.usuarioId(),
                 req.lineaNegocioId(),
                 req.vehiculoId(),
                 req.materialId(),

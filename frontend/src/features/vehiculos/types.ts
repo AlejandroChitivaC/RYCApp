@@ -5,6 +5,8 @@ export type Vehiculo = {
   marca: string
   modelo: string
   estado: string
+  conductorId: number | null
+  conductorNombre: string | null
 }
 
 export type VehiculoCreate = {
@@ -12,6 +14,7 @@ export type VehiculoCreate = {
   clase: string
   marca: string
   modelo: string
+  conductorId?: number | null
 }
 
 export type VehiculoUpdate = VehiculoCreate

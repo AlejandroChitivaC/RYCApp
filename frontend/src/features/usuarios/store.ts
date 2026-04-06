@@ -2,15 +2,20 @@ import { create } from 'zustand'
 import { getApiErrorMessage } from '../../app/http/apiError'
 import { loading, notify } from '../../shared/notify/notiflix'
 import { rolesApi, usuariosApi } from './api'
-import type { Rol, Usuario, UsuarioCreate, UsuarioUpdate } from './types'
+import type { Rol, Usuario, UsuarioCreate, UsuarioPendienteActivacion, UsuarioUpdate } from './types'
 
 type State = {
   items: Usuario[]
   roles: Rol[]
+  conductores: Usuario[]
+  pendientesActivacion: UsuarioPendienteActivacion[]
   isLoading: boolean
   error: string | null
   fetchAll: () => Promise<void>
   fetchRoles: () => Promise<void>
+  fetchConductores: () => Promise<void>
+  fetchPendientesActivacion: () => Promise<void>
+  activarCuenta: (id: number) => Promise<void>
   create: (payload: UsuarioCreate) => Promise<Usuario>
   update: (id: number, payload: UsuarioUpdate) => Promise<Usuario>
 }
@@ -18,6 +23,8 @@ type State = {
 export const useUsuariosStore = create<State>((set, get) => ({
   items: [],
   roles: [],
+  conductores: [],
+  pendientesActivacion: [],
   isLoading: false,
   error: null,
 
@@ -38,6 +45,39 @@ export const useUsuariosStore = create<State>((set, get) => ({
       set({ error: getApiErrorMessage(e) })
     } finally {
       set({ isLoading: false })
+    }
+  },
+
+  fetchConductores: async () => {
+    try {
+      set({ conductores: await usuariosApi.listConductores() })
+    } catch {
+      set({ conductores: [] })
+    }
+  },
+
+  fetchPendientesActivacion: async () => {
+    try {
+      set({ pendientesActivacion: await usuariosApi.listPendientesActivacion() })
+    } catch {
+      set({ pendientesActivacion: [] })
+    }
+  },
+
+  activarCuenta: async (id) => {
+    loading.show('Activando cuenta...')
+    try {
+      const updated = await usuariosApi.activarCuenta(id)
+      set({
+        items: get().items.map((x) => (x.id === id ? updated : x)),
+        pendientesActivacion: get().pendientesActivacion.filter((p) => p.id !== id),
+      })
+      notify.success('Cuenta activada. Se notificó al usuario por correo.')
+    } catch (e) {
+      notify.failure(getApiErrorMessage(e))
+      throw e
+    } finally {
+      loading.remove()
     }
   },
 

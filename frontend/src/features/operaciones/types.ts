@@ -14,7 +14,6 @@ export type Operacion = {
 }
 
 export type OperacionCreate = {
-  usuarioRegistroId: number
   lineaNegocioId: number
   vehiculoId: number
   materialId: number

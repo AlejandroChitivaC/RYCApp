@@ -3,18 +3,22 @@ import { Button } from '../../../shared/ui/Button'
 import { EmptyState } from '../../../shared/ui/EmptyState'
 import { Modal } from '../../../shared/ui/Modal'
 import { Table, TBody, TD, TH, THead } from '../../../shared/ui/Table'
+import { useUsuariosStore } from '../../usuarios/store'
 import type { Vehiculo } from '../types'
 import { useVehiculosStore } from '../store'
 import { VehiculoForm } from '../components/VehiculoForm'
 
 export function VehiculosPage() {
   const { items, isLoading, error, fetchAll, create, update } = useVehiculosStore()
+  const conductores = useUsuariosStore((s) => s.conductores)
+  const fetchConductores = useUsuariosStore((s) => s.fetchConductores)
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Vehiculo | null>(null)
 
   useEffect(() => {
     fetchAll()
-  }, [fetchAll])
+    fetchConductores()
+  }, [fetchAll, fetchConductores])
 
   const sorted = useMemo(() => [...items].sort((a, b) => b.id - a.id), [items])
 
@@ -52,6 +56,7 @@ export function VehiculosPage() {
                 <TH>Marca</TH>
                 <TH>Modelo</TH>
                 <TH>Estado</TH>
+                <TH>Conductor</TH>
                 <TH>Acciones</TH>
               </tr>
             </THead>
@@ -66,6 +71,7 @@ export function VehiculosPage() {
                   <TD>{x.marca}</TD>
                   <TD>{x.modelo}</TD>
                   <TD>{x.estado}</TD>
+                  <TD>{x.conductorNombre ?? '—'}</TD>
                   <TD>
                     <Button
                       variant="secondary"
@@ -87,6 +93,7 @@ export function VehiculosPage() {
       <Modal open={open} title={editing ? 'Editar' : 'Nuevo'} onClose={() => setOpen(false)}>
         <VehiculoForm
           initial={editing}
+          conductores={conductores}
           onCancel={() => setOpen(false)}
           onSubmit={async (payload) => {
             if (editing) await update(editing.id, payload)

@@ -27,14 +27,17 @@ public class AuthController {
     public ResponseEntity<MessageResponse> registro(@Valid @RequestBody AuthRegisterRequest req) {
         authService.registrar(req.correo(), req.password(), req.cedula(), req.nombre(), req.apellido());
         return ResponseEntity.ok(new MessageResponse(
-                "Registro creado. Revisa tu correo: el código OTP es válido por 2 minutos."
+                "Registro creado. Revisa tu correo: el código OTP es válido por 2 minutos. "
+                        + "Después de verificar el correo, un administrador deberá activar tu cuenta."
         ));
     }
 
     @PostMapping("/verificar-correo")
     public ResponseEntity<MessageResponse> verificar(@Valid @RequestBody AuthVerifyEmailRequest req) {
         authService.verificarCorreo(req.correo(), req.codigo());
-        return ResponseEntity.ok(new MessageResponse("Correo verificado. Ya puedes iniciar sesión."));
+        return ResponseEntity.ok(new MessageResponse(
+                "Correo verificado. Se notificó a los administradores. Cuando activen tu cuenta podrás iniciar sesión."
+        ));
     }
 
     @PostMapping("/reenviar-otp")

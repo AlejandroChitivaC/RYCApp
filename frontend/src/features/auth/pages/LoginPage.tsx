@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { getApiErrorMessage } from '../../../app/http/apiError'
+import { getApiErrorCode, getApiErrorMessage } from '../../../app/http/apiError'
 import { Button } from '../../../shared/ui/Button'
 import { Input } from '../../../shared/ui/Input'
 import { authApi } from '../api'
@@ -15,6 +15,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [errorCode, setErrorCode] = useState<string | null>(null)
 
   const from = (location.state as { from?: string } | null)?.from ?? '/dashboard'
 
@@ -25,7 +26,7 @@ export function LoginPage() {
           <img src={logoUrl} alt="R&C" className="h-14 w-auto object-contain" />
           <h1 className="text-xl font-extrabold text-brand-dark">Iniciar sesión</h1>
           <p className="text-center text-sm text-brand-muted">
-            Usa el correo y contraseña registrados (correo verificado con OTP).
+            Ingresa con correo y contraseña. El correo debe estar verificado y la cuenta activada por un administrador.
           </p>
         </div>
 
@@ -34,6 +35,7 @@ export function LoginPage() {
           onSubmit={async (e) => {
             e.preventDefault()
             setError(null)
+            setErrorCode(null)
             setLoading(true)
             try {
               const res = await authApi.login(correo.trim(), password)
@@ -41,6 +43,7 @@ export function LoginPage() {
               navigate(from, { replace: true })
             } catch (err) {
               setError(getApiErrorMessage(err))
+              setErrorCode(getApiErrorCode(err) ?? null)
             } finally {
               setLoading(false)
             }
@@ -63,8 +66,23 @@ export function LoginPage() {
             required
           />
           {error ? (
-            <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
-              {error}
+            <div className="space-y-3 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-800">
+              <p>{error}</p>
+              {errorCode === 'EMAIL_NOT_VERIFIED' ? (
+                <div>
+                  <Link
+                    to={`/verificar-correo?email=${encodeURIComponent(correo.trim())}`}
+                    className="font-bold text-brand-dark underline"
+                  >
+                    Ir a verificar correo (activar correo con OTP)
+                  </Link>
+                </div>
+              ) : null}
+              {errorCode === 'ACCOUNT_PENDING_APPROVAL' ? (
+                <p className="text-red-900/90">
+                  Cuando un administrador active tu cuenta recibirás un correo de confirmación.
+                </p>
+              ) : null}
             </div>
           ) : null}
           <Button type="submit" className="w-full" loading={loading}>

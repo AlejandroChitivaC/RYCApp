@@ -9,9 +9,6 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 public record OperacionCreateRequest(
-        @NotNull(message = "usuarioRegistroId es obligatorio.")
-        Long usuarioRegistroId,
-
         @NotNull(message = "lineaNegocioId es obligatorio.")
         Long lineaNegocioId,
 

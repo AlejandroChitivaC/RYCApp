@@ -126,7 +126,9 @@ export function VerifyEmailPage() {
               ok = true
               sessionStorage.removeItem(deadlineStorageKey(correo.trim()))
               setDeadlineMs(null)
-              notify.success('Correo verificado correctamente. Te redirigimos al inicio de sesión.')
+              notify.success(
+                'Correo verificado. Un administrador activará tu cuenta; luego podrás iniciar sesión.',
+              )
               window.setTimeout(() => {
                 navigate('/login', { replace: true })
               }, LOGIN_REDIRECT_MS)

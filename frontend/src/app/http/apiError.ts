@@ -7,6 +7,7 @@ export type ApiErrorResponse = {
   message?: string
   path?: string
   fieldErrors?: Record<string, string>
+  code?: string
 }
 
 export function getApiErrorMessage(err: unknown): string {
@@ -22,5 +23,10 @@ export function getApiErrorMessage(err: unknown): string {
 export function getFieldErrors(err: unknown): Record<string, string> | undefined {
   const axiosErr = err as AxiosError<ApiErrorResponse>
   return axiosErr.response?.data?.fieldErrors
+}
+
+export function getApiErrorCode(err: unknown): string | undefined {
+  const axiosErr = err as AxiosError<ApiErrorResponse>
+  return axiosErr.response?.data?.code
 }
 

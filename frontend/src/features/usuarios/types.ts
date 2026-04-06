@@ -26,3 +26,11 @@ export type UsuarioUpdate = {
   apellido: string
   estado: string
 }
+
+export type UsuarioPendienteActivacion = {
+  id: number
+  cedula: string
+  nombre: string
+  apellido: string
+  correo: string
+}

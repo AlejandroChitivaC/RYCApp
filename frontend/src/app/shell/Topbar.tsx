@@ -1,20 +1,20 @@
-import { useLocation, useNavigate } from 'react-router-dom'
-import { useAuthStore } from '../../features/auth/store'
-import { Button } from '../../shared/ui/Button'
-import { BrandCornerDecor } from './BrandCornerDecor'
-import { NAV_ITEMS } from './nav'
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuthStore } from "../../features/auth/store";
+import { Button } from "../../shared/ui/Button";
+import { BrandCornerDecor } from "./BrandCornerDecor";
+import { NAV_ITEMS } from "./nav";
 
 function getTitle(pathname: string) {
-  const item = NAV_ITEMS.find((i) => i.to === pathname)
-  return item?.label ?? 'Módulo'
+  const item = NAV_ITEMS.find((i) => i.to === pathname);
+  return item?.label ?? "Módulo";
 }
 
 export function Topbar() {
-  const { pathname } = useLocation()
-  const navigate = useNavigate()
-  const user = useAuthStore((s) => s.user)
-  const logout = useAuthStore((s) => s.logout)
-  const title = getTitle(pathname)
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
+  const title = getTitle(pathname);
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-soft">
@@ -49,15 +49,12 @@ export function Topbar() {
               variant="secondary"
               size="sm"
               onClick={() => {
-                logout()
-                navigate('/login', { replace: true })
+                logout();
+                navigate("/login", { replace: true });
               }}
             >
               Cerrar sesión
             </Button>
-            <div className="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-semibold text-brand-dark">
-              Entorno: <span className="text-brand-muted">local</span>
-            </div>
             <div className="rounded-xl bg-brand-dark px-3 py-2 text-xs font-bold text-brand-yellow shadow-sm">
               Sistema en línea
             </div>
@@ -65,5 +62,5 @@ export function Topbar() {
         </div>
       </div>
     </div>
-  )
+  );
 }

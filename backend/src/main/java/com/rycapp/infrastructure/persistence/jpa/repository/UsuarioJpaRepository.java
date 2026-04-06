@@ -16,4 +16,7 @@ public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long>
 
     @Query("select u from UsuarioEntity u join fetch u.rol order by u.apellido, u.nombre")
     List<UsuarioEntity> findAllFetched();
+
+    @Query("select u from UsuarioEntity u join fetch u.rol r where r.descripcion = :rol order by u.apellido, u.nombre")
+    List<UsuarioEntity> findAllByRolDescripcion(@Param("rol") String rol);
 }
