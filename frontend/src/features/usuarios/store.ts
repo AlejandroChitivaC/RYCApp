@@ -7,15 +7,19 @@ import type { Rol, Usuario, UsuarioCreate, UsuarioPendienteActivacion, UsuarioUp
 type State = {
   items: Usuario[]
   roles: Rol[]
+  estadosEdicion: string[]
+  rolesActivacionRegistro: Rol[]
   conductores: Usuario[]
   pendientesActivacion: UsuarioPendienteActivacion[]
   isLoading: boolean
   error: string | null
   fetchAll: () => Promise<void>
   fetchRoles: () => Promise<void>
+  fetchEstadosEdicion: () => Promise<void>
+  fetchRolesActivacionRegistro: () => Promise<void>
   fetchConductores: () => Promise<void>
   fetchPendientesActivacion: () => Promise<void>
-  activarCuenta: (id: number) => Promise<void>
+  activarCuenta: (id: number, rolId: number) => Promise<void>
   create: (payload: UsuarioCreate) => Promise<Usuario>
   update: (id: number, payload: UsuarioUpdate) => Promise<Usuario>
 }
@@ -23,6 +27,8 @@ type State = {
 export const useUsuariosStore = create<State>((set, get) => ({
   items: [],
   roles: [],
+  estadosEdicion: [],
+  rolesActivacionRegistro: [],
   conductores: [],
   pendientesActivacion: [],
   isLoading: false,
@@ -39,12 +45,32 @@ export const useUsuariosStore = create<State>((set, get) => ({
   fetchAll: async () => {
     try {
       set({ isLoading: true, error: null })
-      const [items, roles] = await Promise.all([usuariosApi.list(), rolesApi.list()])
-      set({ items, roles })
+      const [items, roles, estadosEdicion] = await Promise.all([
+        usuariosApi.list(),
+        rolesApi.list(),
+        usuariosApi.listEstadosEdicion(),
+      ])
+      set({ items, roles, estadosEdicion })
     } catch (e) {
       set({ error: getApiErrorMessage(e) })
     } finally {
       set({ isLoading: false })
+    }
+  },
+
+  fetchEstadosEdicion: async () => {
+    try {
+      set({ estadosEdicion: await usuariosApi.listEstadosEdicion() })
+    } catch {
+      set({ estadosEdicion: [] })
+    }
+  },
+
+  fetchRolesActivacionRegistro: async () => {
+    try {
+      set({ rolesActivacionRegistro: await usuariosApi.listRolesActivacionRegistro() })
+    } catch {
+      set({ rolesActivacionRegistro: [] })
     }
   },
 
@@ -64,10 +90,10 @@ export const useUsuariosStore = create<State>((set, get) => ({
     }
   },
 
-  activarCuenta: async (id) => {
+  activarCuenta: async (id, rolId) => {
     loading.show('Activando cuenta...')
     try {
-      const updated = await usuariosApi.activarCuenta(id)
+      const updated = await usuariosApi.activarCuenta(id, rolId)
       set({
         items: get().items.map((x) => (x.id === id ? updated : x)),
         pendientesActivacion: get().pendientesActivacion.filter((p) => p.id !== id),

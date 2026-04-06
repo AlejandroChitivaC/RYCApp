@@ -26,4 +26,9 @@ public class RolRepositoryAdapter implements RolRepository {
     public Optional<Rol> findById(Long id) {
         return jpaRepository.findById(id).map(RolMapper::toDomain);
     }
+
+    @Override
+    public Optional<Rol> findByDescripcion(String descripcion) {
+        return jpaRepository.findByDescripcion(descripcion).map(RolMapper::toDomain);
+    }
 }

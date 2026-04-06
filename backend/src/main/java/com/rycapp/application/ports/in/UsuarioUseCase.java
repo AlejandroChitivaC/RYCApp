@@ -1,5 +1,6 @@
 package com.rycapp.application.ports.in;
 
+import com.rycapp.domain.model.Rol;
 import com.rycapp.domain.model.Usuario;
 import com.rycapp.domain.model.UsuarioPendienteActivacion;
 
@@ -13,7 +14,11 @@ public interface UsuarioUseCase {
 
     List<UsuarioPendienteActivacion> listarPendientesActivacion();
 
-    void activarCuentaRegistrada(Long usuarioId);
+    void activarCuentaRegistrada(Long usuarioId, Long rolAsignarId);
 
     List<Usuario> listarConductores();
+
+    List<String> catalogoEstadosUsuarioEdicion();
+
+    List<Rol> rolesAsignablesAlActivarRegistro();
 }

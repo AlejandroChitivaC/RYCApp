@@ -9,4 +9,6 @@ public interface RolRepository {
     List<Rol> findAll();
 
     Optional<Rol> findById(Long id);
+
+    Optional<Rol> findByDescripcion(String descripcion);
 }

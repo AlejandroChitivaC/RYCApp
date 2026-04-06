@@ -2,10 +2,11 @@ import { useEffect, useMemo, useState } from 'react'
 import { Button } from '../../../shared/ui/Button'
 import { EmptyState } from '../../../shared/ui/EmptyState'
 import { Modal } from '../../../shared/ui/Modal'
+import { Select } from '../../../shared/ui/Select'
 import { Table, TBody, TD, TH, THead } from '../../../shared/ui/Table'
 import { useAuthStore } from '../../auth/store'
 import { UsuarioForm } from '../components/UsuarioForm'
-import type { Usuario } from '../types'
+import type { Usuario, UsuarioPendienteActivacion } from '../types'
 import { useUsuariosStore } from '../store'
 
 export function UsuariosPage() {
@@ -13,17 +14,23 @@ export function UsuariosPage() {
   const {
     items,
     roles,
+    estadosEdicion,
+    rolesActivacionRegistro,
     pendientesActivacion,
     isLoading,
     error,
     fetchAll,
     fetchPendientesActivacion,
+    fetchRolesActivacionRegistro,
     activarCuenta,
     create,
     update,
   } = useUsuariosStore()
   const [open, setOpen] = useState(false)
   const [editing, setEditing] = useState<Usuario | null>(null)
+  const [activarOpen, setActivarOpen] = useState(false)
+  const [activarTarget, setActivarTarget] = useState<UsuarioPendienteActivacion | null>(null)
+  const [activarRolId, setActivarRolId] = useState('')
 
   const esAdmin = authUser?.rol === 'Administrador'
 
@@ -34,6 +41,18 @@ export function UsuariosPage() {
   useEffect(() => {
     if (esAdmin) fetchPendientesActivacion()
   }, [esAdmin, fetchPendientesActivacion])
+
+  useEffect(() => {
+    if (esAdmin && activarOpen && rolesActivacionRegistro.length === 0) {
+      fetchRolesActivacionRegistro()
+    }
+  }, [esAdmin, activarOpen, rolesActivacionRegistro.length, fetchRolesActivacionRegistro])
+
+  useEffect(() => {
+    if (activarOpen && rolesActivacionRegistro.length > 0 && !activarRolId) {
+      setActivarRolId(String(rolesActivacionRegistro[0].id))
+    }
+  }, [activarOpen, rolesActivacionRegistro, activarRolId])
 
   const sorted = useMemo(() => [...items].sort((a, b) => b.id - a.id), [items])
 
@@ -48,9 +67,6 @@ export function UsuariosPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="text-sm font-semibold text-brand-dark">Usuarios</div>
-          <div className="text-sm text-brand-muted">
-            Entidad Usuario (FK a Rol). El usuario sistema inicial viene del seed SQL.
-          </div>
         </div>
         <Button
           onClick={() => {
@@ -66,8 +82,8 @@ export function UsuariosPage() {
         <div className="mt-6 rounded-2xl border border-brand-yellow/40 bg-brand-yellow/10 p-4">
           <div className="text-sm font-bold text-brand-dark">Cuentas pendientes de activación</div>
           <p className="mt-1 text-sm text-brand-muted">
-            Usuarios que ya verificaron el correo y esperan que un administrador active la cuenta. También se envía un
-            correo a administradores con cuenta en el sistema.
+            Usuarios con rol temporal «Usuario registrado» que ya verificaron el correo. Al activar, debes asignar el rol
+            definitivo: Conductor o Contador (el rol temporal deja de aplicarse).
           </p>
           {pendientesActivacion.length === 0 ? (
             <div className="mt-3 text-sm text-slate-600">No hay solicitudes pendientes.</div>
@@ -93,9 +109,12 @@ export function UsuariosPage() {
                     <TD>
                       <Button
                         size="sm"
-                        onClick={async () => {
-                          await activarCuenta(p.id)
-                          await fetchPendientesActivacion()
+                        onClick={() => {
+                          setActivarTarget(p)
+                          setActivarRolId(
+                            rolesActivacionRegistro[0] ? String(rolesActivacionRegistro[0].id) : '',
+                          )
+                          setActivarOpen(true)
                         }}
                       >
                         Activar cuenta
@@ -109,6 +128,72 @@ export function UsuariosPage() {
           )}
         </div>
       ) : null}
+
+      <Modal
+        open={activarOpen}
+        title="Activar cuenta y asignar rol"
+        onClose={() => {
+          setActivarOpen(false)
+          setActivarTarget(null)
+          setActivarRolId('')
+        }}
+      >
+        {activarTarget ? (
+          <div className="space-y-4">
+            <p className="text-sm text-slate-600">
+              <span className="font-semibold text-slate-900">
+                {activarTarget.nombre} {activarTarget.apellido}
+              </span>{' '}
+              · {activarTarget.correo}
+            </p>
+            <Select
+              label="Rol definitivo"
+              value={activarRolId}
+              onChange={(e) => setActivarRolId(e.target.value)}
+            >
+              {rolesActivacionRegistro.length === 0 ? (
+                <option value="">Cargando roles…</option>
+              ) : (
+                rolesActivacionRegistro.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.descripcion}
+                  </option>
+                ))
+              )}
+            </Select>
+            <p className="text-xs text-slate-500">
+              Solo se permiten los roles indicados por el servidor para cuentas provenientes del registro público.
+            </p>
+            <div className="flex justify-end gap-2 pt-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  setActivarOpen(false)
+                  setActivarTarget(null)
+                  setActivarRolId('')
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button
+                type="button"
+                disabled={!activarRolId || rolesActivacionRegistro.length === 0}
+                onClick={async () => {
+                  if (!activarTarget || !activarRolId) return
+                  await activarCuenta(activarTarget.id, Number(activarRolId))
+                  await fetchPendientesActivacion()
+                  setActivarOpen(false)
+                  setActivarTarget(null)
+                  setActivarRolId('')
+                }}
+              >
+                Confirmar activación
+              </Button>
+            </div>
+          </div>
+        ) : null}
+      </Modal>
 
       <div className="mt-6">
         {isLoading ? (
@@ -162,6 +247,7 @@ export function UsuariosPage() {
         <UsuarioForm
           initial={editing}
           roles={roles}
+          estadosEdicion={estadosEdicion}
           onCancel={() => setOpen(false)}
           onSubmit={async (payload) => {
             if (editing) {

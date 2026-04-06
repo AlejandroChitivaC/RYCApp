@@ -1,6 +1,8 @@
 package com.rycapp.interfaces.rest.controller;
 
 import com.rycapp.application.ports.in.UsuarioUseCase;
+import com.rycapp.interfaces.rest.dto.rol.RolResponse;
+import com.rycapp.interfaces.rest.dto.usuario.UsuarioActivarRequest;
 import com.rycapp.interfaces.rest.dto.usuario.UsuarioCreateRequest;
 import com.rycapp.interfaces.rest.dto.usuario.UsuarioPendienteResponse;
 import com.rycapp.interfaces.rest.dto.usuario.UsuarioResponse;
@@ -55,6 +57,20 @@ public class UsuarioController {
         return ResponseEntity.ok(useCase.listarConductores().stream().map(UsuarioController::toResponse).toList());
     }
 
+    @GetMapping("/catalogo/estados-edicion")
+    public ResponseEntity<List<String>> catalogoEstadosEdicion() {
+        return ResponseEntity.ok(useCase.catalogoEstadosUsuarioEdicion());
+    }
+
+    @GetMapping("/catalogo/roles-activacion-registro")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<List<RolResponse>> rolesActivacionRegistro() {
+        var items = useCase.rolesAsignablesAlActivarRegistro().stream()
+                .map(r -> new RolResponse(r.id(), r.descripcion()))
+                .toList();
+        return ResponseEntity.ok(items);
+    }
+
     @GetMapping("/pendientes-activacion")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<UsuarioPendienteResponse>> pendientesActivacion() {
@@ -66,8 +82,11 @@ public class UsuarioController {
 
     @PostMapping("/{id}/activar")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
-    public ResponseEntity<UsuarioResponse> activarCuenta(@PathVariable Long id) {
-        useCase.activarCuentaRegistrada(id);
+    public ResponseEntity<UsuarioResponse> activarCuenta(
+            @PathVariable Long id,
+            @Valid @RequestBody UsuarioActivarRequest req
+    ) {
+        useCase.activarCuentaRegistrada(id, req.rolId());
         return ResponseEntity.ok(toResponse(useCase.obtener(id)));
     }
 }
