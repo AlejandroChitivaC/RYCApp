@@ -65,10 +65,7 @@ export function Sidebar() {
 
       <div className="shrink-0 border-t border-white/10 p-3 sm:p-4">
         <div className="text-[11px] text-zinc-500">
-          <span className="text-zinc-400">API</span>{' '}
-          <span className="font-semibold text-zinc-300">Spring Boot</span>
-          <span className="mx-2 text-zinc-600">·</span>
-          <span className="text-brand-yellow/90">R&amp;C</span>
+          <span className="text-brand-yellow/90">Todos los derechos reservados | R&amp;C { new Date().getFullYear() }</span>
         </div>
       </div>
     </div>
