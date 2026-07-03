@@ -7,9 +7,21 @@ export const operacionesApi = {
     to?: string
     lineaNegocioId?: number
     vehiculoId?: number
+    proveedorId?: number
   }) =>
     (
       await http.get<Operacion[]>('/api/operaciones', {
+        params,
+      })
+    ).data,
+  historial: async (params?: {
+    from?: string
+    to?: string
+    lineaNegocioId?: number
+    proveedorId?: number
+  }) =>
+    (
+      await http.get<Operacion[]>('/api/operaciones/historial', {
         params,
       })
     ).data,

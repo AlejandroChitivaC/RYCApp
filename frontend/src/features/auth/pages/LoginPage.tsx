@@ -39,26 +39,6 @@ function IconPin() {
     </svg>
   )
 }
-
-function IconGoogle() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden>
-      <path
-        fill="currentColor"
-        d="M12 10.2v3.9h5.5c-.25 1.6-1.9 4.7-5.5 4.7-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.2.8 3.9 1.5l2.7-2.6C16.8 3.9 14.6 3 12 3 7.03 3 3 7.03 3 12s4.03 9 9 9c5.2 0 8.6-3.6 8.6-8.7 0-.6-.1-1.1-.2-1.6H12z"
-      />
-    </svg>
-  )
-}
-
-function IconGithub() {
-  return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
-      <path d="M12 2C6.477 2 2 6.477 2 12c0 4.418 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.464-1.11-1.464-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.031-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482C19.138 20.163 22 16.418 22 12c0-5.523-4.477-10-10-10z" />
-    </svg>
-  )
-}
-
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
@@ -222,37 +202,6 @@ export function LoginPage() {
               Entrar <span aria-hidden>→</span>
             </Button>
           </form>
-
-          <div className="relative my-10">
-            <div className="absolute inset-0 flex items-center" aria-hidden>
-              <div className="w-full border-t border-zinc-800" />
-            </div>
-            <div className="relative flex justify-center text-xs">
-              <span className="bg-[#121212] px-4 font-medium text-zinc-500">o continúa con</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              disabled
-              title="Inicio de sesión social no disponible en esta versión"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800/80 py-3 text-sm font-bold text-zinc-300 opacity-60"
-            >
-              <IconGoogle />
-              Google
-            </button>
-            <button
-              type="button"
-              disabled
-              title="Inicio de sesión social no disponible en esta versión"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-800/80 py-3 text-sm font-bold text-zinc-300 opacity-60"
-            >
-              <IconGithub />
-              GitHub
-            </button>
-          </div>
-
           <p className="mt-10 text-center text-sm text-zinc-500">
             ¿No tienes cuenta?{' '}
             <Link

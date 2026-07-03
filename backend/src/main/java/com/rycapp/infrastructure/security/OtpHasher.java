@@ -8,14 +8,12 @@ import java.util.HexFormat;
 public final class OtpHasher {
     private OtpHasher() {}
 
+    public static String sha256Hex(byte[] bytes) {
+        return com.rycapp.application.util.Sha256Hasher.hex(bytes);
+    }
+
     public static String sha256Hex(String plain) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] digest = md.digest(plain.getBytes(StandardCharsets.UTF_8));
-            return HexFormat.of().formatHex(digest);
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 no disponible", e);
-        }
+        return sha256Hex(plain.getBytes(StandardCharsets.UTF_8));
     }
 
     /**

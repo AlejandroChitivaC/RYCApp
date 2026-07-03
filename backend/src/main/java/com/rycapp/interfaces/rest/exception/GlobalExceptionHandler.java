@@ -12,11 +12,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.LinkedHashMap;
 
@@ -57,6 +61,47 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(WeakPasswordException.class)
     public ResponseEntity<ApiErrorResponse> handleWeakPassword(WeakPasswordException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST, ex, request, null, "WEAK_PASSWORD");
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiErrorResponse> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST, ex, request, null, null);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiErrorResponse> handleIllegalState(IllegalStateException ex, HttpServletRequest request) {
+        return build(HttpStatus.SERVICE_UNAVAILABLE, ex, request, null, null);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ApiErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
+        return build(HttpStatus.CONFLICT,
+                new ConflictException("El registro viola una restricción de integridad (dato duplicado o referencia inválida)."),
+                request, null, null);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleMaxUploadSize(MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        return build(HttpStatus.BAD_REQUEST,
+                new MaxUploadSizeExceededException(ex.getMaxUploadSize()) {
+                    @Override public String getMessage() { return "El archivo excede el tamaño máximo permitido (10 MB)."; }
+                },
+                request, null, null);
+    }
+
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<ApiErrorResponse> handleIOException(IOException ex, HttpServletRequest request) {
+        log.error("Error de E/S al procesar archivo", ex);
+        return build(HttpStatus.BAD_REQUEST,
+                new RuntimeException("Error al procesar el archivo enviado."),
+                request, null, null);
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ApiErrorResponse> handleUnsupportedMediaType(HttpMediaTypeNotSupportedException ex, HttpServletRequest request) {
+        return build(HttpStatus.UNSUPPORTED_MEDIA_TYPE,
+                new IllegalArgumentException("El archivo debe enviarse como multipart/form-data."),
+                request, null, null);
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

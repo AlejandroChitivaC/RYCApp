@@ -1,8 +1,6 @@
 import { create } from 'zustand'
 import type { AuthUser } from './types'
-
-const TOKEN_KEY = 'rycapp_token'
-const USER_KEY = 'rycapp_user'
+import { TOKEN_KEY, USER_KEY } from '../../shared/auth/storageKeys'
 
 function readUser(): AuthUser | null {
   try {

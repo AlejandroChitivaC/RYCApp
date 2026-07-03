@@ -1,8 +1,6 @@
 import axios from 'axios'
 import { API_BASE_URL } from '../config'
-
-const TOKEN_KEY = 'rycapp_token'
-const USER_KEY = 'rycapp_user'
+import { TOKEN_KEY, USER_KEY } from '../../shared/auth/storageKeys'
 
 export const http = axios.create({
   baseURL: API_BASE_URL,
@@ -20,6 +18,13 @@ http.interceptors.request.use((config) => {
   const token = localStorage.getItem(TOKEN_KEY)
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
+  }
+  if (config.data instanceof FormData) {
+    if (typeof config.headers.delete === 'function') {
+      config.headers.delete('Content-Type')
+    } else {
+      delete config.headers['Content-Type']
+    }
   }
   return config
 })

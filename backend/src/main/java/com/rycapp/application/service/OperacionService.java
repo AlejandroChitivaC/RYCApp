@@ -99,7 +99,13 @@ public class OperacionService implements OperacionUseCase {
     }
 
     @Override
-    public List<Operacion> filtrar(Instant fromInclusive, Instant toInclusive, Long lineaNegocioId, Long vehiculoId) {
-        return operacionRepository.filter(fromInclusive, toInclusive, lineaNegocioId, vehiculoId);
+    public List<Operacion> filtrar(
+            Instant fromInclusive,
+            Instant toInclusive,
+            Long lineaNegocioId,
+            Long vehiculoId,
+            Long proveedorId
+    ) {
+        return operacionRepository.filter(fromInclusive, toInclusive, lineaNegocioId, vehiculoId, proveedorId);
     }
 }

@@ -24,5 +24,11 @@ public interface OperacionUseCase {
 
     List<Operacion> listar();
 
-    List<Operacion> filtrar(Instant fromInclusive, Instant toInclusive, Long lineaNegocioId, Long vehiculoId);
+    List<Operacion> filtrar(
+            Instant fromInclusive,
+            Instant toInclusive,
+            Long lineaNegocioId,
+            Long vehiculoId,
+            Long proveedorId
+    );
 }

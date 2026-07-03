@@ -73,10 +73,16 @@ public class OperacionRepositoryAdapter implements OperacionRepository {
     }
 
     @Override
-    public List<Operacion> filter(Instant fromInclusive, Instant toInclusive, Long lineaNegocioId, Long vehiculoId) {
+    public List<Operacion> filter(
+            Instant fromInclusive,
+            Instant toInclusive,
+            Long lineaNegocioId,
+            Long vehiculoId,
+            Long proveedorId
+    ) {
         var from = TimeMapper.toLocalDateTimeUtc(fromInclusive);
         var to = TimeMapper.toLocalDateTimeUtc(toInclusive);
-        return operacionJpaRepository.filterFetched(from, to, lineaNegocioId, vehiculoId).stream()
+        return operacionJpaRepository.filterFetched(from, to, lineaNegocioId, vehiculoId, proveedorId).stream()
                 .map(OperacionMapper::toDomain)
                 .toList();
     }

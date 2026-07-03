@@ -15,15 +15,7 @@ import { useVehiculosStore } from '../../vehiculos/store'
 import { OperacionForm } from '../components/OperacionForm'
 import type { Operacion } from '../types'
 import { useOperacionesStore } from '../store'
-
-function fmtDate(iso: string | null) {
-  if (!iso) return '—'
-  try {
-    return new Date(iso).toLocaleString()
-  } catch {
-    return iso
-  }
-}
+import { fmtDate } from '../../../shared/utils/format'
 
 function matchesOperacion(
   o: Operacion,

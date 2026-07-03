@@ -9,6 +9,8 @@ import { useVehiculosStore } from '../../features/vehiculos/store'
 import { useProveedoresStore } from '../../features/proveedores/store'
 import { useLineasNegocioStore } from '../../features/lineasNegocio/store'
 import { useOperacionesStore } from '../../features/operaciones/store'
+import { useHistorialOperacionesStore } from '../../features/operaciones/historialStore'
+import { useTicketsStore } from '../../features/tickets/store'
 
 function initials(nombre: string, apellido: string) {
   const a = (nombre || '').trim().charAt(0)
@@ -35,6 +37,8 @@ function useNavCounts(): Record<string, number> {
   const proveedores = useProveedoresStore((s) => s.items.length)
   const lineas = useLineasNegocioStore((s) => s.items.length)
   const operaciones = useOperacionesStore((s) => s.items.length)
+  const historial = useHistorialOperacionesStore((s) => s.items.length)
+  const tickets = useTicketsStore((s) => s.items.length)
   return {
     '/materiales': materiales,
     '/usuarios': usuarios,
@@ -42,12 +46,18 @@ function useNavCounts(): Record<string, number> {
     '/proveedores': proveedores,
     '/lineas-negocio': lineas,
     '/operaciones': operaciones,
+    '/historial-operaciones': historial,
+    '/tickets': tickets,
   }
 }
 
 export function Sidebar() {
   const user = useAuthStore((s) => s.user)
   const counts = useNavCounts()
+
+  const visibleNavItems = NAV_ITEMS.filter(
+    (item) => !item.roles || (user?.rol != null && item.roles.includes(user.rol)),
+  )
 
   return (
     <div className="flex min-h-0 w-full flex-col overflow-hidden bg-brand-sidebar lg:h-full">
@@ -64,7 +74,7 @@ export function Sidebar() {
       </div>
 
       <nav className="scrollbar-none flex-1 space-y-0.5 overflow-y-auto overflow-x-hidden p-2">
-        {NAV_ITEMS.map((item) => (
+        {visibleNavItems.map((item) => (
           <NavItemLink key={item.to} item={item} count={counts[item.to]} />
         ))}
       </nav>

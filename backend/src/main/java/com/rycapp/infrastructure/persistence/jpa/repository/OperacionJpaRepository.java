@@ -43,12 +43,14 @@ public interface OperacionJpaRepository extends JpaRepository<OperacionEntity, L
               and (:to is null or o.fechaInsercion <= :to)
               and (:lineaNegocioId is null or o.lineaNegocio.id = :lineaNegocioId)
               and (:vehiculoId is null or o.vehiculo.id = :vehiculoId)
+              and (:proveedorId is null or o.proveedor.id = :proveedorId)
             order by o.fechaInsercion desc, o.id desc
             """)
     List<OperacionEntity> filterFetched(
             @Param("from") LocalDateTime fromInclusive,
             @Param("to") LocalDateTime toInclusive,
             @Param("lineaNegocioId") Long lineaNegocioId,
-            @Param("vehiculoId") Long vehiculoId
+            @Param("vehiculoId") Long vehiculoId,
+            @Param("proveedorId") Long proveedorId
     );
 }

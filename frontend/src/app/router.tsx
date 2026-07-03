@@ -12,6 +12,10 @@ import { MaterialesPage } from '../features/materiales/pages/MaterialesPage'
 import { ProveedoresPage } from '../features/proveedores/pages/ProveedoresPage'
 import { VehiculosPage } from '../features/vehiculos/pages/VehiculosPage'
 import { OperacionesPage } from '../features/operaciones/pages/OperacionesPage'
+import { HistorialOperacionesPage } from '../features/operaciones/pages/HistorialOperacionesPage'
+import { TicketsPage } from '../features/tickets/pages/TicketsPage'
+import { RequireRole } from '../features/auth/components/RequireRole'
+import { ROLES_CONSULTA_HISTORIAL, ROLES_TICKETS_CARGA, ROLES_TICKETS_CONSULTA } from '../features/auth/roles'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -33,6 +37,22 @@ export const router = createBrowserRouter([
       { path: '/proveedores', element: <ProveedoresPage /> },
       { path: '/vehiculos', element: <VehiculosPage /> },
       { path: '/operaciones', element: <OperacionesPage /> },
+      {
+        path: '/historial-operaciones',
+        element: (
+          <RequireRole roles={ROLES_CONSULTA_HISTORIAL}>
+            <HistorialOperacionesPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/tickets',
+        element: (
+          <RequireRole roles={[...ROLES_TICKETS_CARGA, ...ROLES_TICKETS_CONSULTA]}>
+            <TicketsPage />
+          </RequireRole>
+        ),
+      },
     ],
   },
 ])

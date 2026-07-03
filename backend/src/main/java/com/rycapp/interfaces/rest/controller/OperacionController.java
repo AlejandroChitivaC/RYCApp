@@ -8,6 +8,7 @@ import com.rycapp.interfaces.rest.mapper.OperacionDtoMapper;
 import jakarta.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
@@ -48,19 +49,36 @@ public class OperacionController {
         return ResponseEntity.created(location).body(OperacionDtoMapper.toResponse(created));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<OperacionResponse> obtener(@PathVariable Long id) {
-        return ResponseEntity.ok(OperacionDtoMapper.toResponse(useCase.obtener(id)));
-    }
-
     @GetMapping
     public ResponseEntity<List<OperacionResponse>> listar(
             @RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant from,
             @RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant to,
             @RequestParam(value = "lineaNegocioId", required = false) Long lineaNegocioId,
-            @RequestParam(value = "vehiculoId", required = false) Long vehiculoId
+            @RequestParam(value = "vehiculoId", required = false) Long vehiculoId,
+            @RequestParam(value = "proveedorId", required = false) Long proveedorId
     ) {
-        var items = useCase.filtrar(from, to, lineaNegocioId, vehiculoId).stream().map(OperacionDtoMapper::toResponse).toList();
+        var items = useCase.filtrar(from, to, lineaNegocioId, vehiculoId, proveedorId).stream()
+                .map(OperacionDtoMapper::toResponse)
+                .toList();
         return ResponseEntity.ok(items);
+    }
+
+    @GetMapping("/historial")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
+    public ResponseEntity<List<OperacionResponse>> historial(
+            @RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant from,
+            @RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant to,
+            @RequestParam(value = "lineaNegocioId", required = false) Long lineaNegocioId,
+            @RequestParam(value = "proveedorId", required = false) Long proveedorId
+    ) {
+        var items = useCase.filtrar(from, to, lineaNegocioId, null, proveedorId).stream()
+                .map(OperacionDtoMapper::toResponse)
+                .toList();
+        return ResponseEntity.ok(items);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<OperacionResponse> obtener(@PathVariable Long id) {
+        return ResponseEntity.ok(OperacionDtoMapper.toResponse(useCase.obtener(id)));
     }
 }
