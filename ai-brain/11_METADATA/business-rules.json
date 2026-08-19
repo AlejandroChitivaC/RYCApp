@@ -1,0 +1,142 @@
+{
+  "generated": "2026-07-13",
+  "version": "1.0.0",
+  "rules": [
+    {
+      "id": "BR-AUTH-01",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-AUTH-02",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-AUTH-03",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-AUTH-04",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-AUTH-05",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-AUTH-06",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-AUTH-07",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-USR-01",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-USR-02",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-USR-03",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-USR-04",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-USR-05",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-VEH-01",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-VEH-02",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-VEH-03",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-VEH-04",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-LN-01",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-PROV-01",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-TC-01",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-OP-01",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-OP-02",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-COST-01",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-TKT-01",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-TKT-02",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-TKT-03",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-TKT-04",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-TKT-05",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-TKT-06",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-TKT-07",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-SIG-01",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-SIG-02",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-GAP-01",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-GAP-02",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    },
+    {
+      "id": "BR-GAP-03",
+      "doc": "02_DOMAIN/BUSINESS_RULES.md"
+    }
+  ]
+}

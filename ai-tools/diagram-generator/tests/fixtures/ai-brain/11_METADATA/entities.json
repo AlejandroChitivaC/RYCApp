@@ -1,0 +1,16 @@
+{
+  "generated": "2026-07-13",
+  "version": "1.0.0",
+  "entities": [
+    {
+      "id": "Usuario",
+      "path": "domain/Usuario.java",
+      "fields": ["id", "nombre"]
+    },
+    {
+      "id": "Rol",
+      "path": "domain/Rol.java",
+      "fields": ["id", "descripcion"]
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "generated": "2026-07-13",
+  "version": "1.0.0",
+  "use_cases": [
+    {
+      "id": "UC-AUTH-*",
+      "location": "AuthService / AuthController"
+    },
+    {
+      "id": "UsuarioUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/UsuarioUseCase.java"
+    },
+    {
+      "id": "RolUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/RolUseCase.java"
+    },
+    {
+      "id": "LineaNegocioUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/LineaNegocioUseCase.java"
+    },
+    {
+      "id": "MaterialUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/MaterialUseCase.java"
+    },
+    {
+      "id": "ProveedorUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/ProveedorUseCase.java"
+    },
+    {
+      "id": "TipoCostoUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/TipoCostoUseCase.java"
+    },
+    {
+      "id": "VehiculoUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/VehiculoUseCase.java"
+    },
+    {
+      "id": "OperacionUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/OperacionUseCase.java"
+    },
+    {
+      "id": "NominaUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/NominaUseCase.java"
+    },
+    {
+      "id": "CostoAdministrativoUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/CostoAdministrativoUseCase.java"
+    },
+    {
+      "id": "CostoVehiculoUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/CostoVehiculoUseCase.java"
+    },
+    {
+      "id": "CostoFinancieroOtrosGastosUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/CostoFinancieroOtrosGastosUseCase.java"
+    },
+    {
+      "id": "TicketUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/TicketUseCase.java"
+    },
+    {
+      "id": "SiigoConnectionUseCase",
+      "location": "backend/src/main/java/com/rycapp/application/ports/in/SiigoConnectionUseCase.java"
+    }
+  ]
+}

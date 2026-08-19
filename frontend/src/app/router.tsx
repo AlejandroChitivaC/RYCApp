@@ -14,8 +14,14 @@ import { VehiculosPage } from '../features/vehiculos/pages/VehiculosPage'
 import { OperacionesPage } from '../features/operaciones/pages/OperacionesPage'
 import { HistorialOperacionesPage } from '../features/operaciones/pages/HistorialOperacionesPage'
 import { TicketsPage } from '../features/tickets/pages/TicketsPage'
+import { SiigoConnectionPage } from '../features/siigo/pages/SiigoConnectionPage'
 import { RequireRole } from '../features/auth/components/RequireRole'
-import { ROLES_CONSULTA_HISTORIAL, ROLES_TICKETS_CARGA, ROLES_TICKETS_CONSULTA } from '../features/auth/roles'
+import {
+  ROLES_CONSULTA_HISTORIAL,
+  ROLES_SIIGO,
+  ROLES_TICKETS_CARGA,
+  ROLES_TICKETS_CONSULTA,
+} from '../features/auth/roles'
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -50,6 +56,14 @@ export const router = createBrowserRouter([
         element: (
           <RequireRole roles={[...ROLES_TICKETS_CARGA, ...ROLES_TICKETS_CONSULTA]}>
             <TicketsPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/siigo',
+        element: (
+          <RequireRole roles={ROLES_SIIGO}>
+            <SiigoConnectionPage />
           </RequireRole>
         ),
       },

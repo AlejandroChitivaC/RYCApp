@@ -1,5 +1,10 @@
 import type { ReactElement } from 'react'
-import { ROLES_CONSULTA_HISTORIAL, ROLES_TICKETS_CARGA, ROLES_TICKETS_CONSULTA } from '../../features/auth/roles'
+import {
+  ROLES_CONSULTA_HISTORIAL,
+  ROLES_SIIGO,
+  ROLES_TICKETS_CARGA,
+  ROLES_TICKETS_CONSULTA,
+} from '../../features/auth/roles'
 
 export type NavItem = {
   to: string
@@ -164,6 +169,21 @@ function IconHistory({ className }: { className?: string }) {
   )
 }
 
+function IconPlug({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <path
+        d="M9 7v4M15 7v4M8 11h8v2a5 5 0 0 1-5 5h0a5 5 0 0 1-5-5v-2Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M12 18v3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 export const NAV_ITEMS: NavItem[] = [
   { to: '/dashboard', label: 'Dashboard', icon: IconGrid },
   { to: '/lineas-negocio', label: 'Líneas de negocio', icon: IconBriefcase },
@@ -183,6 +203,12 @@ export const NAV_ITEMS: NavItem[] = [
     label: 'Tickets',
     icon: IconTicket,
     roles: [...ROLES_TICKETS_CARGA, ...ROLES_TICKETS_CONSULTA],
+  },
+  {
+    to: '/siigo',
+    label: 'Siigo',
+    icon: IconPlug,
+    roles: ROLES_SIIGO,
   },
 ]
 

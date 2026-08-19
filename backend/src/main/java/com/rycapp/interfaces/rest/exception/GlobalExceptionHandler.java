@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -30,7 +31,16 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFound(NotFoundException ex, HttpServletRequest request) {
+        log.warn("404 | {} {} | {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
         return build(HttpStatus.NOT_FOUND, ex, request, null, null);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleNoStaticResource(NoResourceFoundException ex, HttpServletRequest request) {
+        log.warn("404 | {} {} | ruta no mapeada", request.getMethod(), request.getRequestURI());
+        return build(HttpStatus.NOT_FOUND,
+                new NotFoundException("Recurso no encontrado."),
+                request, null, null);
     }
 
     @ExceptionHandler(ConflictException.class)
@@ -115,8 +125,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiErrorResponse> handleGeneric(Exception ex, HttpServletRequest request) {
-        log.error("Error inesperado", ex);
-        return build(HttpStatus.INTERNAL_SERVER_ERROR, ex, request, null, null);
+        log.error("500 | {} {} | {}", request.getMethod(), request.getRequestURI(), ex.getMessage(), ex);
+        return build(HttpStatus.INTERNAL_SERVER_ERROR,
+                new RuntimeException("Error interno del servidor."),
+                request, null, null);
     }
 
     private static ResponseEntity<ApiErrorResponse> build(HttpStatus status, Exception ex, HttpServletRequest request, java.util.Map<String, String> fieldErrors, String code) {

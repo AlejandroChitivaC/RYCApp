@@ -1,0 +1,12 @@
+{
+  "generated": "2026-07-13",
+  "version": "1.0.0",
+  "dependencies": {
+    "java": "21",
+    "maven_parent": "spring-boot-starter-parent:3.4.2",
+    "frontend": {
+      "react": "^19.0.0"
+    },
+    "module_edges": []
+  }
+}

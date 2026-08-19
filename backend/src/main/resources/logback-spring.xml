@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration>
+<configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
+
+    <!-- Consola legible: hora corta, nivel coloreado, logger corto, mensaje. -->
+    <property name="CONSOLE_LOG_PATTERN"
+              value="%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr(%-36.36logger{36}){cyan} %clr(|){faint} %msg%n%wEx{full}"/>
+
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+    </appender>
+
+    <!-- Menos ruido de frameworks en consola -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.springframework.boot" level="INFO"/>
+    <logger name="org.springframework.web" level="WARN"/>
+    <logger name="org.springframework.security" level="WARN"/>
+    <logger name="org.hibernate" level="WARN"/>
+    <logger name="org.hibernate.SQL" level="WARN"/>
+    <logger name="com.zaxxer.hikari" level="WARN"/>
+    <logger name="org.flywaydb" level="INFO"/>
+    <logger name="org.apache.catalina" level="WARN"/>
+    <logger name="org.apache.tomcat" level="WARN"/>
+    <logger name="org.apache.coyote" level="WARN"/>
+
+    <!-- App y Siigo visibles -->
+    <logger name="com.rycapp" level="INFO"/>
+    <logger name="com.rycapp.infrastructure.siigo" level="INFO"/>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+</configuration>

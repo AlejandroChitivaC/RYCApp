@@ -31,3 +31,11 @@ spring:
 app:
   mail:
     from: "Nombre visible <remitente@verificado.com>"
+
+  # Siigo — prueba de conexión (GET /api/siigo/health como Administrador).
+  # Preferible: variables de entorno SIIGO_USERNAME, SIIGO_ACCESS_KEY, SIIGO_PARTNER_ID.
+  # Si defines aquí valores reales, NUNCA subas application-local.yml al repositorio.
+  siigo:
+    username: ""
+    access-key: ""
+    partner-id: RYCApp

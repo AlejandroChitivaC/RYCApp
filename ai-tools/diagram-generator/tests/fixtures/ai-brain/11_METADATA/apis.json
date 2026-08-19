@@ -1,0 +1,12 @@
+{
+  "generated": "2026-07-13",
+  "version": "1.0.0",
+  "endpoints": [
+    {
+      "method": "POST",
+      "path": "/api/auth/login",
+      "auth": "public",
+      "controller": "AuthController"
+    }
+  ]
+}

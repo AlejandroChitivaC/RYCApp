@@ -1,0 +1,12 @@
+{
+  "generated": "2026-07-13",
+  "version": "1.0.0",
+  "project": "FixtureApp",
+  "docs_by_topic": {
+    "architecture": "01_ARCHITECTURE/ARCHITECTURE.md"
+  },
+  "locate": {
+    "modules": "11_METADATA/modules.json",
+    "entities": "11_METADATA/entities.json"
+  }
+}

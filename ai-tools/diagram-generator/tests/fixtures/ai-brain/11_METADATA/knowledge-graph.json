@@ -1,0 +1,18 @@
+{
+  "generated": "2026-07-13",
+  "version": "1.0.0",
+  "description": "Fixture graph",
+  "stats": {"nodes": 3, "edges": 1},
+  "nodes": [
+    {"id": "entity:Usuario", "type": "entity", "label": "Usuario"},
+    {"id": "entity:Rol", "type": "entity", "label": "Rol"},
+    {"id": "module:auth", "type": "module", "label": "auth"}
+  ],
+  "edges": [
+    {
+      "from": "entity:Usuario",
+      "to": "entity:Rol",
+      "type": "many-to-one"
+    }
+  ]
+}

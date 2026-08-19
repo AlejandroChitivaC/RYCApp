@@ -1,0 +1,69 @@
+{
+  "generated": "2026-07-13",
+  "version": "1.0.0",
+  "relationships": [
+    {
+      "from": "Usuario",
+      "to": "Rol",
+      "type": "many-to-one"
+    },
+    {
+      "from": "Vehiculo",
+      "to": "Usuario",
+      "type": "optional-one-to-one",
+      "role": "conductor"
+    },
+    {
+      "from": "Operacion",
+      "to": "Usuario",
+      "type": "many-to-one",
+      "role": "registrador"
+    },
+    {
+      "from": "Operacion",
+      "to": "LineaNegocio",
+      "type": "many-to-one"
+    },
+    {
+      "from": "Operacion",
+      "to": "Vehiculo",
+      "type": "many-to-one"
+    },
+    {
+      "from": "Operacion",
+      "to": "Material",
+      "type": "many-to-one"
+    },
+    {
+      "from": "Operacion",
+      "to": "Proveedor",
+      "type": "many-to-one"
+    },
+    {
+      "from": "Ticket",
+      "to": "Operacion",
+      "type": "many-to-one"
+    },
+    {
+      "from": "TicketAuditoria",
+      "to": "Ticket",
+      "type": "many-to-one"
+    },
+    {
+      "from": "Nomina",
+      "to": "TipoCosto",
+      "type": "many-to-one"
+    },
+    {
+      "from": "CostoVehiculo",
+      "to": "Vehiculo",
+      "type": "many-to-one"
+    },
+    {
+      "from": "CuentaAutenticacion",
+      "to": "Usuario",
+      "type": "one-to-one",
+      "layer": "infrastructure"
+    }
+  ]
+}

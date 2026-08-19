@@ -1,0 +1,104 @@
+{
+  "generated": "2026-07-13",
+  "version": "1.0.0",
+  "modules": [
+    {
+      "id": "auth",
+      "backend": "03_BACKEND/AUTH.md",
+      "frontend": "frontend/src/features/auth",
+      "controller": "AuthController"
+    },
+    {
+      "id": "usuarios",
+      "backend": "03_BACKEND/USUARIOS.md",
+      "frontend": "frontend/src/features/usuarios",
+      "controller": "UsuarioController"
+    },
+    {
+      "id": "roles",
+      "backend": "03_BACKEND/ROLES.md",
+      "frontend": null,
+      "controller": "RolController"
+    },
+    {
+      "id": "lineas-negocio",
+      "backend": "03_BACKEND/LINEAS_NEGOCIO.md",
+      "frontend": "frontend/src/features/lineasNegocio",
+      "controller": "LineaNegocioController"
+    },
+    {
+      "id": "materiales",
+      "backend": "03_BACKEND/MATERIALES.md",
+      "frontend": "frontend/src/features/materiales",
+      "controller": "MaterialController"
+    },
+    {
+      "id": "proveedores",
+      "backend": "03_BACKEND/PROVEEDORES.md",
+      "frontend": "frontend/src/features/proveedores",
+      "controller": "ProveedorController"
+    },
+    {
+      "id": "tipos-costo",
+      "backend": "03_BACKEND/TIPOS_COSTO.md",
+      "frontend": null,
+      "controller": "TipoCostoController",
+      "note": "API only"
+    },
+    {
+      "id": "vehiculos",
+      "backend": "03_BACKEND/VEHICULOS.md",
+      "frontend": "frontend/src/features/vehiculos",
+      "controller": "VehiculoController"
+    },
+    {
+      "id": "operaciones",
+      "backend": "03_BACKEND/OPERACIONES.md",
+      "frontend": "frontend/src/features/operaciones",
+      "controller": "OperacionController"
+    },
+    {
+      "id": "nomina",
+      "backend": "03_BACKEND/NOMINA.md",
+      "frontend": null,
+      "controller": "NominaController",
+      "note": "API only"
+    },
+    {
+      "id": "costos-administrativos",
+      "backend": "03_BACKEND/COSTOS_ADMINISTRATIVOS.md",
+      "frontend": null,
+      "controller": "CostoAdministrativoController"
+    },
+    {
+      "id": "costos-vehiculo",
+      "backend": "03_BACKEND/COSTOS_VEHICULO.md",
+      "frontend": null,
+      "controller": "CostoVehiculoController"
+    },
+    {
+      "id": "costos-financieros",
+      "backend": "03_BACKEND/COSTOS_FINANCIEROS.md",
+      "frontend": null,
+      "controller": "CostoFinancieroOtrosGastosController"
+    },
+    {
+      "id": "tickets",
+      "backend": "03_BACKEND/TICKETS.md",
+      "frontend": "frontend/src/features/tickets",
+      "controller": "TicketController"
+    },
+    {
+      "id": "siigo",
+      "backend": "03_BACKEND/SIIGO.md",
+      "frontend": "frontend/src/features/siigo",
+      "controller": "SiigoController"
+    },
+    {
+      "id": "dashboard",
+      "backend": null,
+      "frontend": "frontend/src/features/dashboard",
+      "controller": null
+    }
+  ]
+}

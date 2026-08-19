@@ -30,10 +30,16 @@ spring:
     enabled: true
     locations: classpath:db/migration
 
+  output:
+    ansi:
+      enabled: always
+
 logging:
   level:
     root: INFO
-    org.springframework.web: INFO
+    com.rycapp: INFO
+    com.rycapp.infrastructure.siigo: INFO
+    org.springframework.web: WARN
     org.hibernate.SQL: WARN
 
 # CORS: sin barra final en URLs. Añade aquí nuevos túneles si cambian.
@@ -52,6 +58,15 @@ app:
 
   mail:
     from: "noreply@rycapp.local"
+
+  # Integración Siigo (solo auth/health en esta etapa). Credenciales por variables de entorno.
+  siigo:
+    base-url: https://api.siigo.com
+    username: ${SIIGO_USERNAME:}
+    access-key: ${SIIGO_ACCESS_KEY:}
+    partner-id: ${SIIGO_PARTNER_ID:RYCApp}
+    connect-timeout-ms: 10000
+    read-timeout-ms: 30000
 
 # Correo (OTP): sin perfil activo no hay spring.mail.host → OTP solo en logs (MailOtpSender).
 # Brevo: copia application-local.example.yml → application-local.yml y ejecuta con perfil local:
