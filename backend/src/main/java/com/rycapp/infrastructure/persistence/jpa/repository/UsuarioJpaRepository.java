@@ -11,6 +11,8 @@ import java.util.Optional;
 public interface UsuarioJpaRepository extends JpaRepository<UsuarioEntity, Long> {
     boolean existsByCedulaIgnoreCase(String cedula);
 
+    Optional<UsuarioEntity> findByCedulaIgnoreCase(String cedula);
+
     @Query("select u from UsuarioEntity u join fetch u.rol where u.id = :id")
     Optional<UsuarioEntity> findOneFetched(@Param("id") Long id);
 

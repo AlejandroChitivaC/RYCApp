@@ -33,6 +33,11 @@ public class ProveedorRepositoryAdapter implements ProveedorRepository {
     }
 
     @Override
+    public Optional<Proveedor> findByNitIgnoreCase(String nit) {
+        return jpaRepository.findByNitIgnoreCase(nit).map(ProveedorMapper::toDomain);
+    }
+
+    @Override
     public boolean existsByNitIgnoreCase(String nit) {
         return jpaRepository.existsByNitIgnoreCase(nit);
     }

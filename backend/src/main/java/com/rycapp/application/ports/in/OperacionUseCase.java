@@ -31,4 +31,6 @@ public interface OperacionUseCase {
             Long vehiculoId,
             Long proveedorId
     );
+
+    Operacion confirmar(Long id);
 }

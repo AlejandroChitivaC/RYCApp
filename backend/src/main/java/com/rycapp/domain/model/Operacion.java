@@ -15,5 +15,6 @@ public record Operacion(
         Instant fechaFin,
         String medioPago,
         BigDecimal valor,
-        String descripcion
+        String descripcion,
+        String estado
 ) {}

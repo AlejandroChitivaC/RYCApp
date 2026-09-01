@@ -16,10 +16,10 @@ const dot: Record<Tone, string> = {
 
 function inferTone(label: string): Tone {
   const u = label.toUpperCase()
-  if (u.includes('ACTIVO')) return 'success'
-  if (u.includes('PENDIENTE')) return 'warning'
+  if (u.includes('ACTIVO') || u.includes('PAGADO') || u.includes('CONFIRMADA')) return 'success'
+  if (u.includes('PENDIENTE') || u.includes('REGISTRADA')) return 'warning'
   if (u.includes('INACTIVO')) return 'neutral'
-  if (u.includes('ERROR') || u.includes('BAJA') || u.includes('RECHAZ')) return 'danger'
+  if (u.includes('ERROR') || u.includes('BAJA') || u.includes('RECHAZ') || u.includes('VENCIDO')) return 'danger'
   return 'neutral'
 }
 

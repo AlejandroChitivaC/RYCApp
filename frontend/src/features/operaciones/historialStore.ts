@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { getApiErrorMessage } from '../../app/http/apiError'
+import { loading, notify } from '../../shared/notify/notiflix'
 import { operacionesApi } from './api'
 import type { Operacion } from './types'
 
@@ -17,6 +18,7 @@ type State = {
   filters: HistorialFilters
   setFilters: (patch: Partial<HistorialFilters>) => void
   fetchHistorial: () => Promise<void>
+  confirmar: (id: number) => Promise<void>
 }
 
 export const useHistorialOperacionesStore = create<State>((set, get) => ({
@@ -41,6 +43,20 @@ export const useHistorialOperacionesStore = create<State>((set, get) => ({
       set({ error: getApiErrorMessage(e) })
     } finally {
       set({ isLoading: false })
+    }
+  },
+
+  confirmar: async (id) => {
+    loading.show('Confirmando operación...')
+    try {
+      const updated = await operacionesApi.confirmar(id)
+      set({ items: get().items.map((x) => (x.id === id ? { ...x, ...updated } : x)) })
+      notify.success('Operación confirmada. Ya puede sincronizarse con Siigo.')
+    } catch (e) {
+      notify.failure(getApiErrorMessage(e))
+      throw e
+    } finally {
+      loading.remove()
     }
   },
 }))

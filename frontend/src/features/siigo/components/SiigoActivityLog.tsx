@@ -6,6 +6,7 @@ import type { SiigoLogEntry, SiigoLogLevel } from '../types'
 type Props = {
   entries: SiigoLogEntry[]
   onClear: () => void
+  className?: string
 }
 
 const levelStyles: Record<
@@ -37,11 +38,17 @@ const levelStyles: Record<
 const actionLabel: Record<SiigoLogEntry['action'], string> = {
   HEALTH: 'Autenticación',
   CONSULTA: 'Consulta',
+  SYNC: 'Sincronización',
 }
 
-export function SiigoActivityLog({ entries, onClear }: Props) {
+export function SiigoActivityLog({ entries, onClear, className }: Props) {
   return (
-    <div className="mt-6 max-w-4xl overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
+    <div
+      className={[
+        'flex h-full max-h-[32rem] min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm',
+        className ?? '',
+      ].join(' ')}
+    >
       <div className="flex items-center justify-between gap-3 border-b border-zinc-100 bg-zinc-50/80 px-5 py-3">
         <div>
           <div className="text-sm font-extrabold uppercase tracking-wide text-brand-dark">
@@ -71,7 +78,7 @@ export function SiigoActivityLog({ entries, onClear }: Props) {
           />
         </div>
       ) : (
-        <ol className="max-h-[28rem] divide-y divide-zinc-100 overflow-y-auto">
+        <ol className="min-h-0 flex-1 divide-y divide-zinc-100 overflow-y-auto">
           {entries.map((entry) => {
             const style = levelStyles[entry.level]
             return (
@@ -85,7 +92,7 @@ export function SiigoActivityLog({ entries, onClear }: Props) {
                       {style.label}
                     </span>
                     <span className="text-xs font-semibold text-zinc-800">
-                      {actionLabel[entry.action]}
+                      {actionLabel[entry.action] ?? entry.action}
                     </span>
                     <span className="text-[11px] text-zinc-400">{fmtDate(entry.at)}</span>
                   </div>

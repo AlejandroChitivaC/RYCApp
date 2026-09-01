@@ -9,6 +9,7 @@ import com.rycapp.application.ports.out.ProveedorRepository;
 import com.rycapp.application.ports.out.UsuarioRepository;
 import com.rycapp.application.ports.out.VehiculoRepository;
 import com.rycapp.domain.model.Operacion;
+import com.rycapp.domain.model.OperacionEstados;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -81,7 +82,8 @@ public class OperacionService implements OperacionUseCase {
                 fechaFin,
                 medioPago,
                 valor,
-                descripcion
+                descripcion,
+                OperacionEstados.REGISTRADA
         ));
         log.info("Operación creada id={} lineaNegocioId={}", created.id(), created.lineaNegocioId());
         return created;
@@ -107,5 +109,30 @@ public class OperacionService implements OperacionUseCase {
             Long proveedorId
     ) {
         return operacionRepository.filter(fromInclusive, toInclusive, lineaNegocioId, vehiculoId, proveedorId);
+    }
+
+    @Override
+    public Operacion confirmar(Long id) {
+        var actual = obtener(id);
+        if (OperacionEstados.esConfirmada(actual.estado())) {
+            return actual;
+        }
+        var confirmada = operacionRepository.save(new Operacion(
+                actual.id(),
+                actual.usuarioRegistroId(),
+                actual.lineaNegocioId(),
+                actual.vehiculoId(),
+                actual.materialId(),
+                actual.proveedorId(),
+                actual.fechaInsercion(),
+                actual.fechaInicio(),
+                actual.fechaFin(),
+                actual.medioPago(),
+                actual.valor(),
+                actual.descripcion(),
+                OperacionEstados.CONFIRMADA
+        ));
+        log.info("Operación confirmada id={}", confirmada.id());
+        return confirmada;
     }
 }

@@ -9,5 +9,6 @@ public interface ProveedorRepository {
     Proveedor save(Proveedor proveedor);
     Optional<Proveedor> findById(Long id);
     List<Proveedor> findAll();
+    Optional<Proveedor> findByNitIgnoreCase(String nit);
     boolean existsByNitIgnoreCase(String nit);
 }

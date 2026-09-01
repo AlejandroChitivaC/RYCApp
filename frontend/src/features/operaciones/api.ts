@@ -29,4 +29,6 @@ export const operacionesApi = {
     (await http.get<Operacion>(`/api/operaciones/${id}`)).data,
   create: async (payload: OperacionCreate) =>
     (await http.post<Operacion>('/api/operaciones', payload)).data,
+  confirmar: async (id: number) =>
+    (await http.post<Operacion>(`/api/operaciones/${id}/confirmar`)).data,
 }

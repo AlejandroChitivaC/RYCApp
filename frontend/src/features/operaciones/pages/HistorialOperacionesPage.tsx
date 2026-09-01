@@ -5,6 +5,7 @@ import { EmptyState } from '../../../shared/ui/EmptyState'
 import { Input } from '../../../shared/ui/Input'
 import { PageListToolbar } from '../../../shared/ui/PageListToolbar'
 import { Select } from '../../../shared/ui/Select'
+import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import { Table, TBody, TD, TH, THead } from '../../../shared/ui/Table'
 import { useLineasNegocioStore } from '../../lineasNegocio/store'
 import { useMaterialesStore } from '../../materiales/store'
@@ -48,6 +49,7 @@ export function HistorialOperacionesPage() {
   const filters = useHistorialOperacionesStore((s) => s.filters)
   const setFilters = useHistorialOperacionesStore((s) => s.setFilters)
   const fetchHistorial = useHistorialOperacionesStore((s) => s.fetchHistorial)
+  const confirmar = useHistorialOperacionesStore((s) => s.confirmar)
 
   const lineasItems = useLineasNegocioStore((s) => s.items)
   const fetchLineas = useLineasNegocioStore((s) => s.fetchAll)
@@ -132,7 +134,7 @@ export function HistorialOperacionesPage() {
     <div>
       <PageListToolbar
         title="Historial de operaciones"
-        description="Consulta de servicios registrados. Filtra por fecha, cliente o línea de negocio. Los registros históricos no pueden eliminarse."
+        description="Consulta de servicios registrados y estado de pago según Siigo. Solo las operaciones confirmadas se sincronizan con facturación. Los registros históricos no pueden eliminarse."
         tableSearch={{ value: tableQuery, onChange: setTableQuery }}
       />
 
@@ -235,6 +237,10 @@ export function HistorialOperacionesPage() {
                 <TH>Fin</TH>
                 <TH>Valor</TH>
                 <TH>Medio pago</TH>
+                <TH>Estado</TH>
+                <TH>Pago Siigo</TH>
+                <TH>Factura</TH>
+                <TH>Acciones</TH>
                 <TH>Descripción</TH>
               </tr>
             </THead>
@@ -257,6 +263,27 @@ export function HistorialOperacionesPage() {
                     <span className="font-extrabold text-brand-dark">{o.valor}</span>
                   </TD>
                   <TD>{o.medioPago}</TD>
+                  <TD>
+                    <StatusBadge>{o.estado ?? 'REGISTRADA'}</StatusBadge>
+                  </TD>
+                  <TD>
+                    {o.estadoPago ? <StatusBadge>{o.estadoPago}</StatusBadge> : <span className="text-zinc-400">—</span>}
+                  </TD>
+                  <TD>{o.facturaSiigo ?? '—'}</TD>
+                  <TD>
+                    {o.estado !== 'CONFIRMADA' ? (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="rounded-xl border-zinc-200"
+                        onClick={() => void confirmar(o.id)}
+                      >
+                        Confirmar
+                      </Button>
+                    ) : (
+                      <span className="text-xs text-zinc-500">Confirmada</span>
+                    )}
+                  </TD>
                   <TD className="max-w-[200px] truncate">
                     <span title={o.descripcion ?? undefined}>{o.descripcion ?? '—'}</span>
                   </TD>

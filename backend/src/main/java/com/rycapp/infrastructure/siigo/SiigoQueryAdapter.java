@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -125,6 +127,89 @@ public class SiigoQueryAdapter implements SiigoQueryPort {
         }
     }
 
+    @Override
+    public InvoicesPage listarFacturas(String accessToken, int page, int pageSize) {
+        try {
+            InvoicesPageDto body = siigoRestClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/v1/invoices")
+                            .queryParam("page", page)
+                            .queryParam("page_size", pageSize)
+                            .build())
+                    .headers(h -> {
+                        h.setBearerAuth(accessToken);
+                        h.set("Partner-Id", properties.partnerId());
+                    })
+                    .retrieve()
+                    .body(InvoicesPageDto.class);
+
+            if (body == null) {
+                return new InvoicesPage(page, pageSize, 0, List.of());
+            }
+
+            int total = body.pagination() != null && body.pagination().totalResults() != null
+                    ? body.pagination().totalResults()
+                    : (body.results() != null ? body.results().size() : 0);
+
+            List<InvoiceSummary> results = new ArrayList<>();
+            if (body.results() != null) {
+                for (InvoiceDto inv : body.results()) {
+                    results.add(toSummary(inv));
+                }
+            }
+            return new InvoicesPage(
+                    body.pagination() != null && body.pagination().page() != null ? body.pagination().page() : page,
+                    body.pagination() != null && body.pagination().pageSize() != null ? body.pagination().pageSize() : pageSize,
+                    total,
+                    results
+            );
+        } catch (RestClientResponseException ex) {
+            log.warn("[Siigo] invoices falló | HTTP {} | {}",
+                    ex.getStatusCode().value(), sanitize(ex.getResponseBodyAsString()));
+            throw new SiigoQueryException(
+                    "Siigo rechazó la consulta de facturas (HTTP " + ex.getStatusCode().value() + ").",
+                    ex
+            );
+        } catch (SiigoQueryException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            log.error("[Siigo] invoices error de red | {}", ex.getMessage());
+            throw new SiigoQueryException("No se pudo consultar facturas en Siigo: " + ex.getMessage(), ex);
+        }
+    }
+
+    private static InvoiceSummary toSummary(InvoiceDto inv) {
+        String due = null;
+        if (inv.payments() != null) {
+            for (PaymentDto p : inv.payments()) {
+                if (p.dueDate() != null && !p.dueDate().isBlank()) {
+                    String d = p.dueDate().length() >= 10 ? p.dueDate().substring(0, 10) : p.dueDate();
+                    if (due == null || d.compareTo(due) < 0) {
+                        due = d;
+                    }
+                }
+            }
+        }
+        String stamp = inv.stamp() != null ? inv.stamp().status() : null;
+        String identification = inv.customer() != null ? inv.customer().identification() : null;
+        String customerId = inv.customer() != null ? inv.customer().id() : null;
+        String date = inv.date() != null && inv.date().length() >= 10 ? inv.date().substring(0, 10) : inv.date();
+        return new InvoiceSummary(
+                inv.id(),
+                inv.name(),
+                inv.prefix(),
+                inv.number(),
+                date,
+                identification,
+                customerId,
+                inv.observations(),
+                inv.total() != null ? inv.total() : BigDecimal.ZERO,
+                inv.balance() != null ? inv.balance() : BigDecimal.ZERO,
+                due,
+                stamp
+        );
+    }
+
     private static String sanitize(String body) {
         if (body == null || body.isBlank()) {
             return "(vacío)";
@@ -160,5 +245,42 @@ public class SiigoQueryAdapter implements SiigoQueryPort {
             String username,
             String email,
             Boolean active
+    ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record InvoicesPageDto(
+            PaginationDto pagination,
+            List<InvoiceDto> results
+    ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record InvoiceDto(
+            String id,
+            String prefix,
+            Integer number,
+            String name,
+            String date,
+            CustomerDto customer,
+            BigDecimal total,
+            BigDecimal balance,
+            String observations,
+            List<PaymentDto> payments,
+            StampDto stamp
+    ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record CustomerDto(
+            String id,
+            String identification
+    ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record PaymentDto(
+            @JsonProperty("due_date") String dueDate
+    ) {}
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    private record StampDto(
+            String status
     ) {}
 }

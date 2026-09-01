@@ -44,8 +44,12 @@ public class OperacionRepositoryAdapter implements OperacionRepository {
 
     @Override
     public Operacion save(Operacion operacion) {
-        OperacionEntity e = new OperacionEntity();
-        e.setId(operacion.id());
+        OperacionEntity e = operacion.id() != null
+                ? operacionJpaRepository.findById(operacion.id()).orElseGet(OperacionEntity::new)
+                : new OperacionEntity();
+        if (operacion.id() != null) {
+            e.setId(operacion.id());
+        }
         e.setUsuarioRegistro(usuarioJpaRepository.getReferenceById(operacion.usuarioRegistroId()));
         e.setLineaNegocio(lineaNegocioJpaRepository.getReferenceById(operacion.lineaNegocioId()));
         e.setVehiculo(vehiculoJpaRepository.getReferenceById(operacion.vehiculoId()));
@@ -57,6 +61,7 @@ public class OperacionRepositoryAdapter implements OperacionRepository {
         e.setMedioPago(operacion.medioPago());
         e.setValor(operacion.valor());
         e.setDescripcion(operacion.descripcion());
+        e.setEstado(operacion.estado() != null ? operacion.estado() : com.rycapp.domain.model.OperacionEstados.REGISTRADA);
 
         var saved = operacionJpaRepository.save(e);
         return operacionJpaRepository.findOneFetched(saved.getId()).map(OperacionMapper::toDomain).orElseThrow();
@@ -70,6 +75,11 @@ public class OperacionRepositoryAdapter implements OperacionRepository {
     @Override
     public List<Operacion> findAll() {
         return operacionJpaRepository.findAllFetched().stream().map(OperacionMapper::toDomain).toList();
+    }
+
+    @Override
+    public List<Operacion> findByEstado(String estado) {
+        return operacionJpaRepository.findByEstadoFetched(estado).stream().map(OperacionMapper::toDomain).toList();
     }
 
     @Override

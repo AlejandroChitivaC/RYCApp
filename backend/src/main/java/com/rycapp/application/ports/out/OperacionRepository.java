@@ -10,6 +10,7 @@ public interface OperacionRepository {
     Operacion save(Operacion operacion);
     Optional<Operacion> findById(Long id);
     List<Operacion> findAll();
+    List<Operacion> findByEstado(String estado);
     List<Operacion> filter(
             Instant fromInclusive,
             Instant toInclusive,

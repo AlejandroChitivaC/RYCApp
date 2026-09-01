@@ -11,6 +11,9 @@ export type Operacion = {
   medioPago: string
   valor: string
   descripcion: string | null
+  estado: string
+  estadoPago: string | null
+  facturaSiigo: string | null
 }
 
 export type OperacionCreate = {

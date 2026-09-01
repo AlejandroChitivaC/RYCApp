@@ -39,9 +39,36 @@ export type SiigoLogLevel = 'success' | 'warning' | 'error' | 'info'
 export type SiigoLogEntry = {
   id: string
   at: string
-  action: 'HEALTH' | 'CONSULTA'
+  action: 'HEALTH' | 'CONSULTA' | 'SYNC'
   level: SiigoLogLevel
   title: string
   message: string
   detail?: string
+}
+
+export type SiigoSyncResult = {
+  ok: boolean
+  configured: boolean
+  message: string
+  leidas: number
+  guardadas: number
+  vinculadas: number
+  omitidasBorrador: number
+}
+
+export type SiigoFactura = {
+  id: number
+  operacionId: number | null
+  siigoInvoiceId: string
+  numero: string | null
+  prefijo: string | null
+  fecha: string | null
+  fechaVencimiento: string | null
+  identificacionCliente: string | null
+  nombreCliente: string | null
+  total: string
+  saldo: string
+  estadoPago: string
+  observaciones: string | null
+  fechaSincronizacion: string
 }

@@ -15,4 +15,4 @@ export const ROLES_TICKETS_CARGA = ['Administrador', 'Conductor'] as const
 export const ROLES_TICKETS_CONSULTA = ['Administrador', 'Contador'] as const
 export const ROLES_TICKETS_AUDITORIA = ['Administrador'] as const
 
-export const ROLES_SIIGO = ['Administrador'] as const
+export const ROLES_SIIGO = ['Administrador', 'Contador'] as const

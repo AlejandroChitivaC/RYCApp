@@ -6,11 +6,13 @@ import { Input } from '../../../shared/ui/Input'
 import { Modal } from '../../../shared/ui/Modal'
 import { PageListToolbar } from '../../../shared/ui/PageListToolbar'
 import { Select } from '../../../shared/ui/Select'
+import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import { Table, TBody, TD, TH, THead } from '../../../shared/ui/Table'
 import { useLineasNegocioStore } from '../../lineasNegocio/store'
 import { useMaterialesStore } from '../../materiales/store'
 import { useProveedoresStore } from '../../proveedores/store'
 import { useAuthStore } from '../../auth/store'
+import { hasRole, ROLES_CONSULTA_HISTORIAL } from '../../auth/roles'
 import { useVehiculosStore } from '../../vehiculos/store'
 import { OperacionForm } from '../components/OperacionForm'
 import type { Operacion } from '../types'
@@ -45,11 +47,13 @@ export function OperacionesPage() {
   const setFilters = useOperacionesStore((s) => s.setFilters)
   const fetchAll = useOperacionesStore((s) => s.fetchAll)
   const create = useOperacionesStore((s) => s.create)
+  const confirmar = useOperacionesStore((s) => s.confirmar)
 
   const lineasItems = useLineasNegocioStore((s) => s.items)
   const fetchLineas = useLineasNegocioStore((s) => s.fetchAll)
 
   const authUser = useAuthStore((s) => s.user)
+  const puedeConfirmar = hasRole(authUser?.rol, ROLES_CONSULTA_HISTORIAL)
 
   const vehiculosItems = useVehiculosStore((s) => s.items)
   const fetchVehiculos = useVehiculosStore((s) => s.fetchAll)
@@ -120,7 +124,7 @@ export function OperacionesPage() {
     <div>
       <PageListToolbar
         title="Operaciones registradas"
-        description="Filtros por fechas de inserción, línea y vehículo; búsqueda en la tabla."
+        description="Filtros por fechas de inserción, línea y vehículo. Confirma una operación para que pueda sincronizarse con la facturación de Siigo."
         tableSearch={{ value: tableQuery, onChange: setTableQuery }}
         action={
           <Button className="rounded-xl px-5" onClick={() => setOpen(true)}>
@@ -219,6 +223,8 @@ export function OperacionesPage() {
                 <TH>Material</TH>
                 <TH>Valor</TH>
                 <TH>Medio pago</TH>
+                <TH>Estado</TH>
+                {puedeConfirmar ? <TH>Acciones</TH> : null}
               </tr>
             </THead>
             <TBody>
@@ -236,6 +242,25 @@ export function OperacionesPage() {
                     <span className="font-extrabold text-brand-dark">{o.valor}</span>
                   </TD>
                   <TD>{o.medioPago}</TD>
+                  <TD>
+                    <StatusBadge>{o.estado ?? 'REGISTRADA'}</StatusBadge>
+                  </TD>
+                  {puedeConfirmar ? (
+                    <TD>
+                      {o.estado !== 'CONFIRMADA' ? (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="rounded-xl border-zinc-200"
+                          onClick={() => void confirmar(o.id)}
+                        >
+                          Confirmar
+                        </Button>
+                      ) : (
+                        <span className="text-xs text-zinc-500">Lista para Siigo</span>
+                      )}
+                    </TD>
+                  ) : null}
                 </tr>
               ))}
             </TBody>

@@ -39,6 +39,18 @@ public interface OperacionJpaRepository extends JpaRepository<OperacionEntity, L
             join fetch o.vehiculo
             join fetch o.material
             join fetch o.proveedor
+            where o.estado = :estado
+            order by o.fechaInsercion desc, o.id desc
+            """)
+    List<OperacionEntity> findByEstadoFetched(@Param("estado") String estado);
+
+    @Query("""
+            select distinct o from OperacionEntity o
+            join fetch o.usuarioRegistro
+            join fetch o.lineaNegocio
+            join fetch o.vehiculo
+            join fetch o.material
+            join fetch o.proveedor
             where (:from is null or o.fechaInsercion >= :from)
               and (:to is null or o.fechaInsercion <= :to)
               and (:lineaNegocioId is null or o.lineaNegocio.id = :lineaNegocioId)

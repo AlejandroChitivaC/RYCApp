@@ -19,6 +19,7 @@ type State = {
   setFilters: (patch: Partial<Filters>) => void
   fetchAll: () => Promise<void>
   create: (payload: OperacionCreate) => Promise<Operacion>
+  confirmar: (id: number) => Promise<Operacion>
 }
 
 export const useOperacionesStore = create<State>((set, get) => ({
@@ -53,6 +54,21 @@ export const useOperacionesStore = create<State>((set, get) => ({
       set({ items: [created, ...get().items] })
       notify.success('Operación registrada.')
       return created
+    } catch (e) {
+      notify.failure(getApiErrorMessage(e))
+      throw e
+    } finally {
+      loading.remove()
+    }
+  },
+
+  confirmar: async (id) => {
+    loading.show('Confirmando operación...')
+    try {
+      const updated = await operacionesApi.confirmar(id)
+      set({ items: get().items.map((x) => (x.id === id ? { ...x, ...updated } : x)) })
+      notify.success('Operación confirmada. Ya puede sincronizarse con Siigo.')
+      return updated
     } catch (e) {
       notify.failure(getApiErrorMessage(e))
       throw e

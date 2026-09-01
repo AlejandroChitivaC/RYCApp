@@ -1,4 +1,4 @@
-import type { SiigoLogEntry } from '../types'
+import type { SiigoLogEntry } from './types'
 
 const STORAGE_KEY = 'rycapp.siigo.activityLog'
 const MAX_ENTRIES = 40

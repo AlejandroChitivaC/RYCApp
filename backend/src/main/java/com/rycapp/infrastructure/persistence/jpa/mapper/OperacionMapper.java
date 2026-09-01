@@ -20,7 +20,8 @@ public final class OperacionMapper {
                 entity.getFechaFin() != null ? TimeMapper.toInstantUtc(entity.getFechaFin()) : null,
                 entity.getMedioPago(),
                 entity.getValor(),
-                entity.getDescripcion()
+                entity.getDescripcion(),
+                entity.getEstado()
         );
     }
 }

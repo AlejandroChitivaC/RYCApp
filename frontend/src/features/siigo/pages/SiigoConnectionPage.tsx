@@ -1,17 +1,18 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getApiErrorMessage } from '../../../app/http/apiError'
 import { Button } from '../../../shared/ui/Button'
 import { PageListToolbar } from '../../../shared/ui/PageListToolbar'
 import { loading, notify } from '../../../shared/notify/notiflix'
 import { siigoApi } from '../api'
 import { SiigoActivityLog } from '../components/SiigoActivityLog'
+import { SiigoFacturasTable } from '../components/SiigoFacturasTable'
 import {
   clearSiigoLogs,
   createSiigoLogEntry,
   loadSiigoLogs,
   saveSiigoLogs,
 } from '../logStorage'
-import type { SiigoConsulta, SiigoHealth, SiigoLogEntry } from '../types'
+import type { SiigoConsulta, SiigoFactura, SiigoHealth, SiigoLogEntry } from '../types'
 
 function healthDetail(result: SiigoHealth) {
   return [
@@ -48,7 +49,16 @@ export function SiigoConnectionPage() {
   const [consulta, setConsulta] = useState<SiigoConsulta | null>(null)
   const [isChecking, setIsChecking] = useState(false)
   const [isConsulting, setIsConsulting] = useState(false)
+  const [isSyncing, setIsSyncing] = useState(false)
+  const [facturas, setFacturas] = useState<SiigoFactura[]>([])
   const [logs, setLogs] = useState<SiigoLogEntry[]>(() => loadSiigoLogs())
+
+  useEffect(() => {
+    void siigoApi
+      .facturas()
+      .then(setFacturas)
+      .catch(() => setFacturas([]))
+  }, [])
 
   function pushLog(entry: SiigoLogEntry) {
     setLogs((prev) => {
@@ -174,14 +184,74 @@ export function SiigoConnectionPage() {
     }
   }
 
+  async function handleSync() {
+    setIsSyncing(true)
+    loading.show('Sincronizando facturas de Siigo...')
+    try {
+      const result = await siigoApi.sincronizar()
+      if (result.ok) {
+        notify.success(result.message)
+        pushLog(
+          createSiigoLogEntry({
+            action: 'SYNC',
+            level: 'success',
+            title: `Sync OK · ${result.vinculadas} vinculadas de ${result.guardadas}`,
+            message: result.message,
+            detail: [
+              `leidas=${result.leidas}`,
+              `guardadas=${result.guardadas}`,
+              `vinculadas=${result.vinculadas}`,
+              `omitidasBorrador=${result.omitidasBorrador}`,
+            ].join('\n'),
+          }),
+        )
+      } else if (!result.configured) {
+        notify.warning(result.message)
+        pushLog(
+          createSiigoLogEntry({
+            action: 'SYNC',
+            level: 'warning',
+            title: 'Credenciales no configuradas',
+            message: result.message,
+          }),
+        )
+      } else {
+        notify.failure(result.message)
+        pushLog(
+          createSiigoLogEntry({
+            action: 'SYNC',
+            level: 'error',
+            title: 'Sincronización fallida',
+            message: result.message,
+          }),
+        )
+      }
+      setFacturas(await siigoApi.facturas())
+    } catch (e) {
+      const msg = getApiErrorMessage(e)
+      notify.failure(msg)
+      pushLog(
+        createSiigoLogEntry({
+          action: 'SYNC',
+          level: 'error',
+          title: 'Error al llamar /api/siigo/sincronizar',
+          message: msg,
+        }),
+      )
+    } finally {
+      loading.remove()
+      setIsSyncing(false)
+    }
+  }
+
   return (
     <div>
       <PageListToolbar
         title="Integración Siigo"
-        description="Autenticación y consulta de solo lectura para verificar que RYCApp habla con la cuenta correcta de Siigo Nube."
+        description="Autenticación, consulta y sincronización de facturas de venta (FV) para ver Pagado / Pendiente / Vencido en operaciones confirmadas."
       />
 
-      <div className="mt-6 grid max-w-4xl gap-4 lg:grid-cols-2">
+      <div className="mt-6 grid items-stretch gap-4 lg:grid-cols-3">
         <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
           <div className="text-sm font-semibold text-zinc-900">1. Autenticación</div>
           <p className="mt-1 text-sm text-zinc-600">
@@ -316,15 +386,38 @@ export function SiigoConnectionPage() {
             </div>
           ) : null}
         </div>
+
+        <SiigoActivityLog
+          className="min-h-[24rem] lg:min-h-0"
+          entries={logs}
+          onClear={() => {
+            clearSiigoLogs()
+            setLogs([])
+          }}
+        />
       </div>
 
-      <SiigoActivityLog
-        entries={logs}
-        onClear={() => {
-          clearSiigoLogs()
-          setLogs([])
-        }}
-      />
+      <div className="mt-4 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <div className="text-sm font-semibold text-zinc-900">3. Sincronizar facturación</div>
+        <p className="mt-1 text-sm text-zinc-600">
+          Trae facturas de Siigo y actualiza el estado de pago. Solo se vinculan operaciones{' '}
+          <strong>confirmadas</strong>. En observaciones de la factura en Siigo puedes poner{' '}
+          <code className="text-xs">OP-12</code> (el ID de la operación) para forzar el enlace.
+        </p>
+        <div className="mt-4">
+          <Button
+            className="rounded-xl px-5"
+            loading={isSyncing}
+            onClick={() => void handleSync()}
+          >
+            Sincronizar ahora
+          </Button>
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <SiigoFacturasTable facturas={facturas} />
+      </div>
     </div>
   )
 }
