@@ -5,9 +5,9 @@ export const operacionesApi = {
   list: async (params?: {
     from?: string
     to?: string
-    lineaNegocioId?: number
-    vehiculoId?: number
-    proveedorId?: number
+    lineaNegocioId?: string
+    vehiculoId?: string
+    proveedorId?: string
   }) =>
     (
       await http.get<Operacion[]>('/api/operaciones', {
@@ -17,18 +17,18 @@ export const operacionesApi = {
   historial: async (params?: {
     from?: string
     to?: string
-    lineaNegocioId?: number
-    proveedorId?: number
+    lineaNegocioId?: string
+    proveedorId?: string
   }) =>
     (
       await http.get<Operacion[]>('/api/operaciones/historial', {
         params,
       })
     ).data,
-  get: async (id: number) =>
+  get: async (id: string) =>
     (await http.get<Operacion>(`/api/operaciones/${id}`)).data,
   create: async (payload: OperacionCreate) =>
     (await http.post<Operacion>('/api/operaciones', payload)).data,
-  confirmar: async (id: number) =>
+  confirmar: async (id: string) =>
     (await http.post<Operacion>(`/api/operaciones/${id}/confirmar`)).data,
 }

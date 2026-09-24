@@ -28,7 +28,7 @@ public class TipoCostoService implements TipoCostoUseCase {
     }
 
     @Override
-    public TipoCosto editar(Long id, String tipoCosto, String flujo, String descripcion, String estado) {
+    public TipoCosto editar(String id, String tipoCosto, String flujo, String descripcion, String estado) {
         repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Tipo de costo no encontrado (id=" + id + ")."));
         var updated = repository.save(new TipoCosto(id, tipoCosto, flujo, descripcion, estado));
@@ -42,7 +42,7 @@ public class TipoCostoService implements TipoCostoUseCase {
     }
 
     @Override
-    public TipoCosto obtener(Long id) {
+    public TipoCosto obtener(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Tipo de costo no encontrado (id=" + id + ")."));
     }

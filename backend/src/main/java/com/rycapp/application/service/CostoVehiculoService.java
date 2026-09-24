@@ -34,9 +34,9 @@ public class CostoVehiculoService implements CostoVehiculoUseCase {
 
     @Override
     public CostoVehiculo crear(
-            Long usuarioRegistroId,
-            Long tipoCostoId,
-            Long vehiculoId,
+            String usuarioRegistroId,
+            String tipoCostoId,
+            String vehiculoId,
             Instant fechaInicio,
             Instant fechaFin,
             String medioPago,
@@ -71,7 +71,7 @@ public class CostoVehiculoService implements CostoVehiculoUseCase {
     }
 
     @Override
-    public CostoVehiculo obtener(Long id) {
+    public CostoVehiculo obtener(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Costo vehículo no encontrado (id=" + id + ")."));
     }

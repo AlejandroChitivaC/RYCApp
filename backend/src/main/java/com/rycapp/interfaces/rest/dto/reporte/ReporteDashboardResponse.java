@@ -19,7 +19,7 @@ public record ReporteDashboardResponse(
     ) {}
 
     public record SerieLineaItem(
-            Long lineaNegocioId,
+            String lineaNegocioId,
             String lineaNegocio,
             long operaciones,
             BigDecimal ingresos

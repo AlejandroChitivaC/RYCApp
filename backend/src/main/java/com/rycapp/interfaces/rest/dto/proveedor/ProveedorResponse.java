@@ -1,7 +1,7 @@
 package com.rycapp.interfaces.rest.dto.proveedor;
 
 public record ProveedorResponse(
-        Long id,
+        String id,
         String nombre,
         String nit,
         String departamento,

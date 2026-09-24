@@ -13,7 +13,6 @@ import com.rycapp.infrastructure.mail.MailAccountNotifications;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +41,7 @@ public class UsuarioService implements UsuarioUseCase {
     }
 
     @Override
-    public Usuario crear(Long rolId, String cedula, String nombre, String apellido) {
+    public Usuario crear(String rolId, String cedula, String nombre, String apellido) {
         rolRepository.findById(rolId)
                 .orElseThrow(() -> new NotFoundException("Rol no encontrado (id=" + rolId + ")."));
         if (usuarioRepository.existsByCedulaIgnoreCase(cedula)) {
@@ -54,7 +53,7 @@ public class UsuarioService implements UsuarioUseCase {
     }
 
     @Override
-    public Usuario editar(Long id, Long rolId, String cedula, String nombre, String apellido, String estado) {
+    public Usuario editar(String id, String rolId, String cedula, String nombre, String apellido, String estado) {
         if (!UsuarioEstados.esPermitidoEnEdicion(estado)) {
             throw new ConflictException(
                     "Estado de usuario no permitido. Use uno de: " + String.join(", ", UsuarioEstados.valoresParaEdicion())
@@ -79,7 +78,7 @@ public class UsuarioService implements UsuarioUseCase {
     }
 
     @Override
-    public Usuario obtener(Long id) {
+    public Usuario obtener(String id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado (id=" + id + ")."));
     }
@@ -90,8 +89,7 @@ public class UsuarioService implements UsuarioUseCase {
     }
 
     @Override
-    @Transactional
-    public void activarCuentaRegistrada(Long usuarioId, Long rolAsignarId) {
+    public void activarCuentaRegistrada(String usuarioId, String rolAsignarId) {
         var u = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado (id=" + usuarioId + ")."));
         if (!ESTADO_PENDIENTE_APROBACION.equalsIgnoreCase(u.estado())) {

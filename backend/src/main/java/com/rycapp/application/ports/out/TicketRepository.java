@@ -7,23 +7,21 @@ import java.util.List;
 import java.util.Optional;
 
 public interface TicketRepository {
-    Ticket save(Ticket ticket, byte[] contenidoPdf);
+    Ticket save(Ticket ticket);
 
-    Optional<Ticket> findById(Long id);
+    Optional<Ticket> findById(String id);
 
     List<Ticket> findAll();
 
-    List<Ticket> findByOperacionId(Long operacionId);
+    List<Ticket> findByOperacionId(String operacionId);
 
     boolean existsByHashSha256(String hashSha256);
 
     boolean existsByNumeroTicket(String numeroTicket);
 
-    Optional<byte[]> findContenidoPdfById(Long id);
-
     void saveAuditoria(TicketAuditoria auditoria);
 
     List<TicketAuditoria> findAllAuditoria();
 
-    List<TicketAuditoria> findAuditoriaByTicketId(Long ticketId);
+    List<TicketAuditoria> findAuditoriaByTicketId(String ticketId);
 }

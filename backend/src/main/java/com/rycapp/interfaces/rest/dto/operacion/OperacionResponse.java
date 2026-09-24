@@ -4,12 +4,12 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 public record OperacionResponse(
-        Long id,
-        Long usuarioRegistroId,
-        Long lineaNegocioId,
-        Long vehiculoId,
-        Long materialId,
-        Long proveedorId,
+        String id,
+        String usuarioRegistroId,
+        String lineaNegocioId,
+        String vehiculoId,
+        String materialId,
+        String proveedorId,
         Instant fechaInsercion,
         Instant fechaInicio,
         Instant fechaFin,

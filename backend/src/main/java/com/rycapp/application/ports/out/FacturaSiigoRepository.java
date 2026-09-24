@@ -13,5 +13,5 @@ public interface FacturaSiigoRepository {
 
     List<FacturaSiigo> findAll();
 
-    List<FacturaSiigo> findByOperacionIds(Collection<Long> operacionIds);
+    List<FacturaSiigo> findByOperacionIds(Collection<String> operacionIds);
 }

@@ -1,7 +1,7 @@
 package com.rycapp.domain.model;
 
 public record Proveedor(
-        Long id,
+        String id,
         String nombre,
         String nit,
         String departamento,

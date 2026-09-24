@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface LineaNegocioRepository {
     LineaNegocio save(LineaNegocio lineaNegocio);
-    Optional<LineaNegocio> findById(Long id);
+    Optional<LineaNegocio> findById(String id);
     List<LineaNegocio> findAll();
     boolean existsByLineaNegocioIgnoreCase(String lineaNegocio);
 }

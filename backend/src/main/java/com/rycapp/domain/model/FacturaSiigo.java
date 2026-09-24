@@ -5,8 +5,8 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 public record FacturaSiigo(
-        Long id,
-        Long operacionId,
+        String id,
+        String operacionId,
         String siigoInvoiceId,
         String numero,
         String prefijo,

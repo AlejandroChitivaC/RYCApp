@@ -1,17 +1,13 @@
 package com.rycapp.infrastructure.persistence.adapter;
 
 import com.rycapp.application.ports.out.OperacionRepository;
+import com.rycapp.application.util.Ids;
 import com.rycapp.domain.model.Operacion;
-import com.rycapp.infrastructure.persistence.jpa.entity.OperacionEntity;
-import com.rycapp.infrastructure.persistence.jpa.mapper.OperacionMapper;
-import com.rycapp.infrastructure.persistence.jpa.mapper.TimeMapper;
-import com.rycapp.infrastructure.persistence.jpa.repository.LineaNegocioJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.MaterialJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.OperacionJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.ProveedorJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.UsuarioJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.VehiculoJpaRepository;
+import com.rycapp.domain.model.OperacionEstados;
+import com.rycapp.infrastructure.persistence.dynamo.DynamoSupport;
+import com.rycapp.infrastructure.persistence.dynamo.item.OperacionItem;
 import org.springframework.stereotype.Repository;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 
 import java.time.Instant;
 import java.util.List;
@@ -19,81 +15,74 @@ import java.util.Optional;
 
 @Repository
 public class OperacionRepositoryAdapter implements OperacionRepository {
-    private final OperacionJpaRepository operacionJpaRepository;
-    private final UsuarioJpaRepository usuarioJpaRepository;
-    private final LineaNegocioJpaRepository lineaNegocioJpaRepository;
-    private final VehiculoJpaRepository vehiculoJpaRepository;
-    private final MaterialJpaRepository materialJpaRepository;
-    private final ProveedorJpaRepository proveedorJpaRepository;
+    private final DynamoDbTable<OperacionItem> table;
 
-    public OperacionRepositoryAdapter(
-            OperacionJpaRepository operacionJpaRepository,
-            UsuarioJpaRepository usuarioJpaRepository,
-            LineaNegocioJpaRepository lineaNegocioJpaRepository,
-            VehiculoJpaRepository vehiculoJpaRepository,
-            MaterialJpaRepository materialJpaRepository,
-            ProveedorJpaRepository proveedorJpaRepository
-    ) {
-        this.operacionJpaRepository = operacionJpaRepository;
-        this.usuarioJpaRepository = usuarioJpaRepository;
-        this.lineaNegocioJpaRepository = lineaNegocioJpaRepository;
-        this.vehiculoJpaRepository = vehiculoJpaRepository;
-        this.materialJpaRepository = materialJpaRepository;
-        this.proveedorJpaRepository = proveedorJpaRepository;
+    public OperacionRepositoryAdapter(DynamoDbTable<OperacionItem> operacionesTable) {
+        this.table = operacionesTable;
     }
 
     @Override
     public Operacion save(Operacion operacion) {
-        OperacionEntity e = operacion.id() != null
-                ? operacionJpaRepository.findById(operacion.id()).orElseGet(OperacionEntity::new)
-                : new OperacionEntity();
-        if (operacion.id() != null) {
-            e.setId(operacion.id());
-        }
-        e.setUsuarioRegistro(usuarioJpaRepository.getReferenceById(operacion.usuarioRegistroId()));
-        e.setLineaNegocio(lineaNegocioJpaRepository.getReferenceById(operacion.lineaNegocioId()));
-        e.setVehiculo(vehiculoJpaRepository.getReferenceById(operacion.vehiculoId()));
-        e.setMaterial(materialJpaRepository.getReferenceById(operacion.materialId()));
-        e.setProveedor(proveedorJpaRepository.getReferenceById(operacion.proveedorId()));
-        e.setFechaInsercion(TimeMapper.toLocalDateTimeUtc(operacion.fechaInsercion()));
-        e.setFechaInicio(operacion.fechaInicio() != null ? TimeMapper.toLocalDateTimeUtc(operacion.fechaInicio()) : null);
-        e.setFechaFin(operacion.fechaFin() != null ? TimeMapper.toLocalDateTimeUtc(operacion.fechaFin()) : null);
-        e.setMedioPago(operacion.medioPago());
-        e.setValor(operacion.valor());
-        e.setDescripcion(operacion.descripcion());
-        e.setEstado(operacion.estado() != null ? operacion.estado() : com.rycapp.domain.model.OperacionEstados.REGISTRADA);
-
-        var saved = operacionJpaRepository.save(e);
-        return operacionJpaRepository.findOneFetched(saved.getId()).map(OperacionMapper::toDomain).orElseThrow();
+        String estado = operacion.estado() != null ? operacion.estado() : OperacionEstados.REGISTRADA;
+        OperacionItem item = OperacionItem.from(new Operacion(
+                Ids.oNuevo(operacion.id()),
+                operacion.usuarioRegistroId(),
+                operacion.lineaNegocioId(),
+                operacion.vehiculoId(),
+                operacion.materialId(),
+                operacion.proveedorId(),
+                operacion.fechaInsercion(),
+                operacion.fechaInicio(),
+                operacion.fechaFin(),
+                operacion.medioPago(),
+                operacion.valor(),
+                operacion.descripcion(),
+                estado
+        ));
+        table.putItem(item);
+        return item.toDomain();
     }
 
     @Override
-    public Optional<Operacion> findById(Long id) {
-        return operacionJpaRepository.findOneFetched(id).map(OperacionMapper::toDomain);
+    public Optional<Operacion> findById(String id) {
+        return DynamoSupport.findOne(table, id).map(OperacionItem::toDomain);
     }
 
     @Override
     public List<Operacion> findAll() {
-        return operacionJpaRepository.findAllFetched().stream().map(OperacionMapper::toDomain).toList();
+        return DynamoSupport.scanAll(table).stream().map(OperacionItem::toDomain).toList();
     }
 
     @Override
     public List<Operacion> findByEstado(String estado) {
-        return operacionJpaRepository.findByEstadoFetched(estado).stream().map(OperacionMapper::toDomain).toList();
+        return DynamoSupport.queryAll(table.index("estado-fecha-index"), estado).stream()
+                .map(OperacionItem::toDomain)
+                .toList();
     }
 
     @Override
     public List<Operacion> filter(
             Instant fromInclusive,
             Instant toInclusive,
-            Long lineaNegocioId,
-            Long vehiculoId,
-            Long proveedorId
+            String lineaNegocioId,
+            String vehiculoId,
+            String proveedorId
     ) {
-        var from = TimeMapper.toLocalDateTimeUtc(fromInclusive);
-        var to = TimeMapper.toLocalDateTimeUtc(toInclusive);
-        return operacionJpaRepository.filterFetched(from, to, lineaNegocioId, vehiculoId, proveedorId).stream()
-                .map(OperacionMapper::toDomain)
+        return findAll().stream()
+                .filter(o -> inRange(o.fechaInsercion(), fromInclusive, toInclusive))
+                .filter(o -> lineaNegocioId == null || lineaNegocioId.equals(o.lineaNegocioId()))
+                .filter(o -> vehiculoId == null || vehiculoId.equals(o.vehiculoId()))
+                .filter(o -> proveedorId == null || proveedorId.equals(o.proveedorId()))
                 .toList();
+    }
+
+    private static boolean inRange(Instant fecha, Instant from, Instant to) {
+        if (fecha == null) {
+            return false;
+        }
+        if (from != null && fecha.isBefore(from)) {
+            return false;
+        }
+        return to == null || !fecha.isAfter(to);
     }
 }

@@ -61,9 +61,9 @@ public class OperacionController {
     public ResponseEntity<List<OperacionResponse>> listar(
             @RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant from,
             @RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant to,
-            @RequestParam(value = "lineaNegocioId", required = false) Long lineaNegocioId,
-            @RequestParam(value = "vehiculoId", required = false) Long vehiculoId,
-            @RequestParam(value = "proveedorId", required = false) Long proveedorId
+            @RequestParam(value = "lineaNegocioId", required = false) String lineaNegocioId,
+            @RequestParam(value = "vehiculoId", required = false) String vehiculoId,
+            @RequestParam(value = "proveedorId", required = false) String proveedorId
     ) {
         var items = useCase.filtrar(from, to, lineaNegocioId, vehiculoId, proveedorId);
         return ResponseEntity.ok(mapWithFacturacion(items));
@@ -74,27 +74,27 @@ public class OperacionController {
     public ResponseEntity<List<OperacionResponse>> historial(
             @RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant from,
             @RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant to,
-            @RequestParam(value = "lineaNegocioId", required = false) Long lineaNegocioId,
-            @RequestParam(value = "proveedorId", required = false) Long proveedorId
+            @RequestParam(value = "lineaNegocioId", required = false) String lineaNegocioId,
+            @RequestParam(value = "proveedorId", required = false) String proveedorId
     ) {
         var items = useCase.filtrar(from, to, lineaNegocioId, null, proveedorId);
         return ResponseEntity.ok(mapWithFacturacion(items));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<OperacionResponse> obtener(@PathVariable Long id) {
+    public ResponseEntity<OperacionResponse> obtener(@PathVariable String id) {
         return ResponseEntity.ok(OperacionDtoMapper.toResponse(useCase.obtener(id)));
     }
 
     @PostMapping("/{id}/confirmar")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
-    public ResponseEntity<OperacionResponse> confirmar(@PathVariable Long id) {
+    public ResponseEntity<OperacionResponse> confirmar(@PathVariable String id) {
         return ResponseEntity.ok(OperacionDtoMapper.toResponse(useCase.confirmar(id)));
     }
 
     private List<OperacionResponse> mapWithFacturacion(List<Operacion> items) {
         var ids = items.stream().map(Operacion::id).toList();
-        Map<Long, FacturaSiigo> porOperacion = new HashMap<>();
+        Map<String, FacturaSiigo> porOperacion = new HashMap<>();
         for (FacturaSiigo f : facturaSiigoRepository.findByOperacionIds(ids)) {
             if (f.operacionId() == null) {
                 continue;

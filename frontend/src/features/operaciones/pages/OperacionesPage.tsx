@@ -22,8 +22,8 @@ import { fmtDateOnly } from '../../../shared/utils/format'
 function matchesOperacion(
   o: Operacion,
   q: string,
-  lineasById: Map<number, string>,
-  materialesById: Map<number, string>,
+  lineasById: Map<string, string>,
+  materialesById: Map<string, string>,
 ) {
   const s = q.trim().toLowerCase()
   if (!s) return true
@@ -96,16 +96,16 @@ export function OperacionesPage() {
     ? `${authUser.nombre} ${authUser.apellido} · ${authUser.correo}`
     : '—'
 
-  const sorted = useMemo(() => [...items].sort((a, b) => b.id - a.id), [items])
+  const sorted = useMemo(() => [...items].sort((a, b) => b.id.localeCompare(a.id)), [items])
 
   const lineasById = useMemo(() => {
-    const map = new Map<number, string>()
+    const map = new Map<string, string>()
     for (const l of lineasItems) map.set(l.id, l.lineaNegocio)
     return map
   }, [lineasItems])
 
   const materialesById = useMemo(() => {
-    const map = new Map<number, string>()
+    const map = new Map<string, string>()
     for (const m of materialesItems) map.set(m.id, m.material)
     return map
   }, [materialesItems])

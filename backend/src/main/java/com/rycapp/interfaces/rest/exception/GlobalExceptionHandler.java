@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -83,19 +82,10 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.SERVICE_UNAVAILABLE, ex, request, null, null);
     }
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ApiErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex, HttpServletRequest request) {
-        return build(HttpStatus.CONFLICT,
-                new ConflictException("El registro viola una restricción de integridad (dato duplicado o referencia inválida)."),
-                request, null, null);
-    }
-
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public ResponseEntity<ApiErrorResponse> handleMaxUploadSize(MaxUploadSizeExceededException ex, HttpServletRequest request) {
         return build(HttpStatus.BAD_REQUEST,
-                new MaxUploadSizeExceededException(ex.getMaxUploadSize()) {
-                    @Override public String getMessage() { return "El archivo excede el tamaño máximo permitido (10 MB)."; }
-                },
+                new IllegalArgumentException("El archivo excede el tamaño máximo permitido (4 MB)."),
                 request, null, null);
     }
 

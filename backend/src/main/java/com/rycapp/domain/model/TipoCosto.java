@@ -1,7 +1,7 @@
 package com.rycapp.domain.model;
 
 public record TipoCosto(
-        Long id,
+        String id,
         String tipoCosto,
         String flujo,
         String descripcion,

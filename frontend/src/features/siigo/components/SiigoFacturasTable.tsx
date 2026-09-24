@@ -31,7 +31,7 @@ export function SiigoFacturasTable({ facturas }: Props) {
       [...facturas].sort((a, b) => {
         const byDate = sortKey(b).localeCompare(sortKey(a))
         if (byDate !== 0) return byDate
-        return b.id - a.id
+        return b.id.localeCompare(a.id)
       }),
     [facturas],
   )

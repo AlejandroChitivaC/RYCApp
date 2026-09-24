@@ -1,7 +1,7 @@
 export type Ticket = {
-  id: number
-  operacionId: number
-  usuarioCargaId: number
+  id: string
+  operacionId: string
+  usuarioCargaId: string
   numeroTicket: string | null
   nombreArchivoOriginal: string
   tipoContenidoOriginal: string
@@ -10,9 +10,9 @@ export type Ticket = {
 }
 
 export type TicketAuditoria = {
-  id: number
-  ticketId: number
-  usuarioId: number
+  id: string
+  ticketId: string
+  usuarioId: string
   usuarioNombre: string
   usuarioApellido: string
   fechaAccion: string

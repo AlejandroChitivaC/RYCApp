@@ -1,101 +1,93 @@
 package com.rycapp.infrastructure.bootstrap;
 
-import com.rycapp.infrastructure.persistence.jpa.entity.CuentaAutenticacionEntity;
-import com.rycapp.infrastructure.persistence.jpa.entity.UsuarioEntity;
-import com.rycapp.infrastructure.persistence.jpa.repository.CuentaAutenticacionJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.RolJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.UsuarioJpaRepository;
+import com.rycapp.application.ports.out.CuentaAutenticacionRepository;
+import com.rycapp.application.ports.out.RolRepository;
+import com.rycapp.application.ports.out.UsuarioRepository;
+import com.rycapp.domain.model.CuentaAutenticacion;
+import com.rycapp.domain.model.Rol;
+import com.rycapp.domain.model.Usuario;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.beans.factory.annotation.Value;
 
-/**
- * Crea la primera cuenta Administrador si no existe ninguna con login.
- * El seed de V1 ({@code Usuario} Sistema/Inicial) no incluye {@code Cuenta_Autenticacion},
- * así que sin esto no hay forma de entrar al panel.
- *
- * Desactivar en producción: {@code APP_BOOTSTRAP_ADMIN_ENABLED=false}.
- */
+import java.util.List;
+
 @Component
 @Order(100)
 @ConditionalOnProperty(prefix = "app.bootstrap.admin", name = "enabled", havingValue = "true")
 public class DevAdminAccountBootstrap implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(DevAdminAccountBootstrap.class);
-    private static final String ROL_ADMIN = "Administrador";
-    private static final String ESTADO_ACTIVO = "ACTIVO";
+    private static final List<String> ROLES_BASE = List.of(
+            "Administrador", "Usuario registrado", "Conductor", "Contador"
+    );
     private static final String CEDULA_SEED = "0000000000";
 
-    private final UsuarioJpaRepository usuarioJpaRepository;
-    private final RolJpaRepository rolJpaRepository;
-    private final CuentaAutenticacionJpaRepository cuentaJpaRepository;
+    private final RolRepository rolRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final CuentaAutenticacionRepository cuentaRepository;
     private final PasswordEncoder passwordEncoder;
     private final String email;
     private final String password;
 
     public DevAdminAccountBootstrap(
-            UsuarioJpaRepository usuarioJpaRepository,
-            RolJpaRepository rolJpaRepository,
-            CuentaAutenticacionJpaRepository cuentaJpaRepository,
+            RolRepository rolRepository,
+            UsuarioRepository usuarioRepository,
+            CuentaAutenticacionRepository cuentaRepository,
             PasswordEncoder passwordEncoder,
             @Value("${app.bootstrap.admin.email}") String email,
             @Value("${app.bootstrap.admin.password}") String password
     ) {
-        this.usuarioJpaRepository = usuarioJpaRepository;
-        this.rolJpaRepository = rolJpaRepository;
-        this.cuentaJpaRepository = cuentaJpaRepository;
+        this.rolRepository = rolRepository;
+        this.usuarioRepository = usuarioRepository;
+        this.cuentaRepository = cuentaRepository;
         this.passwordEncoder = passwordEncoder;
         this.email = email;
         this.password = password;
     }
 
     @Override
-    @Transactional
     public void run(ApplicationArguments args) {
-        if (!cuentaJpaRepository.findCorreosAdministradores().isEmpty()) {
-            log.info("Ya existe al menos un Administrador con cuenta. Bootstrap omitido.");
+        for (String nombre : ROLES_BASE) {
+            if (rolRepository.findByDescripcion(nombre).isEmpty()) {
+                rolRepository.save(new Rol(null, nombre));
+            }
+        }
+
+        if (password == null || password.isBlank()) {
+            log.warn("Bootstrap admin omitido: app.bootstrap.admin.password está vacío.");
             return;
         }
-        if (cuentaJpaRepository.existsByCorreoIgnoreCase(email.trim())) {
-            log.warn("El correo {} ya está en uso y no es Administrador. Bootstrap omitido.", email);
+        if (!usuarioRepository.findCorreosAdministradores().isEmpty()) {
+            log.info("Ya hay un administrador con cuenta. Bootstrap omitido.");
             return;
         }
-
-        var rol = rolJpaRepository.findByDescripcion(ROL_ADMIN)
-                .orElseThrow(() -> new IllegalStateException("Rol Administrador no existe. Revisa migraciones Flyway."));
-
-        UsuarioEntity usuario = usuarioJpaRepository.findByCedulaIgnoreCase(CEDULA_SEED).orElse(null);
-        if (usuario == null) {
-            usuario = new UsuarioEntity();
-            usuario.setCedula(CEDULA_SEED);
-            usuario.setNombre("Sistema");
-            usuario.setApellido("Inicial");
-        }
-        usuario.setRol(rol);
-        usuario.setEstado(ESTADO_ACTIVO);
-        usuario = usuarioJpaRepository.save(usuario);
-
-        if (cuentaJpaRepository.findByUsuario_Id(usuario.getId()).isPresent()) {
-            log.warn("El usuario seed ya tiene cuenta de login. Bootstrap omitido.");
+        if (cuentaRepository.existsByCorreoIgnoreCase(email.trim())) {
+            log.warn("El correo {} ya está en uso. Bootstrap omitido.", email);
             return;
         }
 
-        var cuenta = new CuentaAutenticacionEntity();
-        cuenta.setUsuario(usuario);
-        cuenta.setCorreo(email.trim().toLowerCase());
-        cuenta.setContrasenaHash(passwordEncoder.encode(password));
-        cuenta.setCorreoVerificado(true);
-        cuentaJpaRepository.save(cuenta);
+        var rolAdmin = rolRepository.findByDescripcion("Administrador")
+                .orElseThrow(() -> new IllegalStateException("No se pudo crear el rol Administrador."));
 
-        log.info(
-                "Cuenta Administrador lista para login local. Correo={} (contraseña: app.bootstrap.admin.password)",
-                email.trim().toLowerCase()
-        );
+        var usuario = usuarioRepository.save(new Usuario(
+                null, rolAdmin.id(), CEDULA_SEED, "Sistema", "Inicial", "ACTIVO"
+        ));
+        cuentaRepository.save(new CuentaAutenticacion(
+                usuario.id(),
+                email.trim().toLowerCase(),
+                passwordEncoder.encode(password),
+                true,
+                null,
+                null,
+                null,
+                null
+        ));
+        log.info("Cuenta Administrador lista. Correo={}", email.trim().toLowerCase());
     }
 }

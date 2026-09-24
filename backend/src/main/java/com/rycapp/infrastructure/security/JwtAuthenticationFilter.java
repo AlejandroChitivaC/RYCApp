@@ -36,7 +36,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (!token.isEmpty()) {
                 try {
                     Claims claims = jwtService.parseClaims(token);
-                    long usuarioId = Long.parseLong(claims.getSubject());
+                    String usuarioId = claims.getSubject();
                     String email = claims.get("email", String.class);
                     String nombre = claims.get("nombre", String.class);
                     String apellido = claims.get("apellido", String.class);

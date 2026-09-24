@@ -10,7 +10,7 @@ type State = {
   error: string | null
   fetchAll: () => Promise<void>
   create: (payload: MaterialCreate) => Promise<Material>
-  update: (id: number, payload: MaterialUpdate) => Promise<Material>
+  update: (id: string, payload: MaterialUpdate) => Promise<Material>
 }
 
 export const useMaterialesStore = create<State>((set, get) => ({

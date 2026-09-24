@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 public record CostoVehiculoResponse(
-        Long id,
-        Long usuarioRegistroId,
-        Long tipoCostoId,
-        Long vehiculoId,
+        String id,
+        String usuarioRegistroId,
+        String tipoCostoId,
+        String vehiculoId,
         Instant fechaInsercion,
         Instant fechaInicio,
         Instant fechaFin,

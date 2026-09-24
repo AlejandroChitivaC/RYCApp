@@ -33,7 +33,7 @@ public class MaterialController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<MaterialResponse> editar(@PathVariable Long id, @Valid @RequestBody MaterialUpdateRequest req) {
+    public ResponseEntity<MaterialResponse> editar(@PathVariable String id, @Valid @RequestBody MaterialUpdateRequest req) {
         return ResponseEntity.ok(toRes(useCase.editar(id, req.material(), req.descripcion())));
     }
 
@@ -43,7 +43,7 @@ public class MaterialController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MaterialResponse> obtener(@PathVariable Long id) {
+    public ResponseEntity<MaterialResponse> obtener(@PathVariable String id) {
         return ResponseEntity.ok(toRes(useCase.obtener(id)));
     }
 }

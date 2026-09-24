@@ -53,7 +53,7 @@ export function ProveedoresPage() {
     fetchAll()
   }, [fetchAll])
 
-  const sorted = useMemo(() => [...items].sort((a, b) => b.id - a.id), [items])
+  const sorted = useMemo(() => [...items].sort((a, b) => b.id.localeCompare(a.id)), [items])
 
   const filtered = useMemo(
     () => sorted.filter((x) => matchesProveedor(x, layoutQuery) && matchesProveedor(x, tableQuery)),

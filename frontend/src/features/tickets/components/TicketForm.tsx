@@ -6,7 +6,7 @@ import { Select } from '../../../shared/ui/Select'
 import type { Operacion } from '../../operaciones/types'
 
 const TIPOS_PERMITIDOS = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/bmp']
-const MAX_BYTES = 10 * 1024 * 1024
+const MAX_BYTES = 4 * 1024 * 1024
 
 type Props = {
   operaciones: Operacion[]
@@ -28,7 +28,7 @@ export function TicketForm({ operaciones, onCancel, onSubmit }: Props) {
       return `Solo se permiten imágenes (JPEG, PNG, GIF, BMP). Tipo seleccionado: ${file.type || 'desconocido'}.`
     }
     if (file.size > MAX_BYTES) {
-      return 'El archivo supera el tamaño máximo permitido de 10 MB.'
+      return 'El archivo supera el tamaño máximo permitido de 4 MB.'
     }
     if (file.size === 0) {
       return 'El archivo no puede estar vacío.'
@@ -79,7 +79,7 @@ export function TicketForm({ operaciones, onCancel, onSubmit }: Props) {
     <form onSubmit={handleSubmit}>
       <div className="text-sm font-semibold text-slate-900">Cargar ticket digital</div>
       <div className="mt-1 text-sm text-slate-600">
-        Solo se permiten imágenes (JPEG, PNG, GIF, BMP) de hasta 10 MB. La imagen se convierte automáticamente a PDF.
+        Solo se permiten imágenes (JPEG, PNG, GIF, BMP) de hasta 4 MB. La imagen se convierte automáticamente a PDF.
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -144,7 +144,7 @@ export function TicketForm({ operaciones, onCancel, onSubmit }: Props) {
               ) : (
                 <div>
                   <div className="text-sm font-semibold text-slate-700">Seleccionar imagen</div>
-                  <div className="text-xs text-slate-500">JPEG, PNG, GIF, BMP — máx. 10 MB</div>
+                  <div className="text-xs text-slate-500">JPEG, PNG, GIF, BMP — máx. 4 MB</div>
                 </div>
               )}
             </div>

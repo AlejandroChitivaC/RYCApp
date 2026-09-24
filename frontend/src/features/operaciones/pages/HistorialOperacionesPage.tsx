@@ -18,10 +18,10 @@ import { fmtDateOnly } from '../../../shared/utils/format'
 function matchesHistorial(
   o: Operacion,
   q: string,
-  lineasById: Map<number, string>,
-  proveedoresById: Map<number, string>,
-  materialesById: Map<number, string>,
-  vehiculosById: Map<number, string>,
+  lineasById: Map<string, string>,
+  proveedoresById: Map<string, string>,
+  materialesById: Map<string, string>,
+  vehiculosById: Map<string, string>,
 ) {
   const s = q.trim().toLowerCase()
   if (!s) return true
@@ -75,25 +75,25 @@ export function HistorialOperacionesPage() {
   }, [fetchLineas, fetchProveedores, fetchMateriales, fetchVehiculos, fetchHistorial])
 
   const lineasById = useMemo(() => {
-    const map = new Map<number, string>()
+    const map = new Map<string, string>()
     for (const l of lineasItems) map.set(l.id, l.lineaNegocio)
     return map
   }, [lineasItems])
 
   const proveedoresById = useMemo(() => {
-    const map = new Map<number, string>()
+    const map = new Map<string, string>()
     for (const p of proveedoresItems) map.set(p.id, p.nombre)
     return map
   }, [proveedoresItems])
 
   const materialesById = useMemo(() => {
-    const map = new Map<number, string>()
+    const map = new Map<string, string>()
     for (const m of materialesItems) map.set(m.id, m.material)
     return map
   }, [materialesItems])
 
   const vehiculosById = useMemo(() => {
-    const map = new Map<number, string>()
+    const map = new Map<string, string>()
     for (const v of vehiculosItems) map.set(v.id, v.placa)
     return map
   }, [vehiculosItems])

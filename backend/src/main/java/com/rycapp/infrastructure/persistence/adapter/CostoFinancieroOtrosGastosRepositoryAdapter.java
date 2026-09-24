@@ -2,54 +2,43 @@ package com.rycapp.infrastructure.persistence.adapter;
 
 import com.rycapp.application.ports.out.CostoFinancieroOtrosGastosRepository;
 import com.rycapp.domain.model.CostoFinancieroOtrosGastos;
-import com.rycapp.infrastructure.persistence.jpa.entity.CostoFinancieroOtrosGastosEntity;
-import com.rycapp.infrastructure.persistence.jpa.mapper.CostoFinancieroOtrosGastosMapper;
-import com.rycapp.infrastructure.persistence.jpa.mapper.TimeMapper;
-import com.rycapp.infrastructure.persistence.jpa.repository.CostoFinancieroOtrosGastosJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.TipoCostoJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.UsuarioJpaRepository;
+import com.rycapp.infrastructure.persistence.dynamo.item.CostoItem;
 import org.springframework.stereotype.Repository;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class CostoFinancieroOtrosGastosRepositoryAdapter implements CostoFinancieroOtrosGastosRepository {
-    private final CostoFinancieroOtrosGastosJpaRepository jpaRepository;
-    private final UsuarioJpaRepository usuarioJpaRepository;
-    private final TipoCostoJpaRepository tipoCostoJpaRepository;
+    private final CostoTableSupport costos;
 
-    public CostoFinancieroOtrosGastosRepositoryAdapter(
-            CostoFinancieroOtrosGastosJpaRepository jpaRepository,
-            UsuarioJpaRepository usuarioJpaRepository,
-            TipoCostoJpaRepository tipoCostoJpaRepository
-    ) {
-        this.jpaRepository = jpaRepository;
-        this.usuarioJpaRepository = usuarioJpaRepository;
-        this.tipoCostoJpaRepository = tipoCostoJpaRepository;
+    public CostoFinancieroOtrosGastosRepositoryAdapter(DynamoDbTable<CostoItem> costosTable) {
+        this.costos = new CostoTableSupport(costosTable);
     }
 
     @Override
-    public CostoFinancieroOtrosGastos save(CostoFinancieroOtrosGastos c) {
-        var e = new CostoFinancieroOtrosGastosEntity();
-        e.setId(c.id());
-        e.setUsuarioRegistro(usuarioJpaRepository.getReferenceById(c.usuarioRegistroId()));
-        e.setTipoCosto(tipoCostoJpaRepository.getReferenceById(c.tipoCostoId()));
-        e.setFechaInsercion(TimeMapper.toLocalDateTimeUtc(c.fechaInsercion()));
-        e.setMedioPago(c.medioPago());
-        e.setValor(c.valor());
-        e.setDescripcion(c.descripcion());
-        var saved = jpaRepository.save(e);
-        return jpaRepository.findOneFetched(saved.getId()).map(CostoFinancieroOtrosGastosMapper::toDomain).orElseThrow();
+    public CostoFinancieroOtrosGastos save(CostoFinancieroOtrosGastos entity) {
+        return costos.save(CostoItem.from(entity)).toFinanciero();
     }
 
     @Override
-    public Optional<CostoFinancieroOtrosGastos> findById(Long id) {
-        return jpaRepository.findOneFetched(id).map(CostoFinancieroOtrosGastosMapper::toDomain);
+    public Optional<CostoFinancieroOtrosGastos> findById(String id) {
+        return costos.findById(id)
+                .filter(i -> CostoItem.FINANCIERO.equals(i.getCategoria()))
+                .map(CostoItem::toFinanciero);
     }
 
     @Override
     public List<CostoFinancieroOtrosGastos> findAll() {
-        return jpaRepository.findAllFetched().stream().map(CostoFinancieroOtrosGastosMapper::toDomain).toList();
+        return costos.mapCategoria(CostoItem.FINANCIERO, CostoItem::toFinanciero);
+    }
+
+    @Override
+    public List<CostoFinancieroOtrosGastos> findByFechaInsercionBetween(Instant from, Instant to) {
+        return costos.findByCategoriaAndFecha(CostoItem.FINANCIERO, from, to).stream()
+                .map(CostoItem::toFinanciero)
+                .toList();
     }
 }

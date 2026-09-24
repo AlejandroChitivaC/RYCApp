@@ -1,3 +1,3 @@
 package com.rycapp.domain.model;
 
-public record Material(Long id, String material, String descripcion) {}
+public record Material(String id, String material, String descripcion) {}

@@ -8,8 +8,8 @@ import java.util.List;
 
 public interface CostoAdministrativoUseCase {
     CostoAdministrativo crear(
-            Long usuarioRegistroId,
-            Long tipoCostoId,
+            String usuarioRegistroId,
+            String tipoCostoId,
             Instant fechaInicio,
             Instant fechaFin,
             String medioPago,
@@ -19,5 +19,5 @@ public interface CostoAdministrativoUseCase {
 
     List<CostoAdministrativo> listar();
 
-    CostoAdministrativo obtener(Long id);
+    CostoAdministrativo obtener(String id);
 }

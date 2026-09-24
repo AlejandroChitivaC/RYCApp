@@ -57,7 +57,7 @@ public class NominaController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<NominaResponse> obtener(@PathVariable Long id) {
+    public ResponseEntity<NominaResponse> obtener(@PathVariable String id) {
         return ResponseEntity.ok(toRes(useCase.obtener(id)));
     }
 }

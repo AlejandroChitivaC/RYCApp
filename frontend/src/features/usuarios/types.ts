@@ -1,11 +1,11 @@
 export type Rol = {
-  id: number
+  id: string
   descripcion: string
 }
 
 export type Usuario = {
-  id: number
-  rolId: number
+  id: string
+  rolId: string
   cedula: string
   nombre: string
   apellido: string
@@ -13,14 +13,14 @@ export type Usuario = {
 }
 
 export type UsuarioCreate = {
-  rolId: number
+  rolId: string
   cedula: string
   nombre: string
   apellido: string
 }
 
 export type UsuarioUpdate = {
-  rolId: number
+  rolId: string
   cedula: string
   nombre: string
   apellido: string
@@ -28,7 +28,7 @@ export type UsuarioUpdate = {
 }
 
 export type UsuarioPendienteActivacion = {
-  id: number
+  id: string
   cedula: string
   nombre: string
   apellido: string

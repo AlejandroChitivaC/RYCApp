@@ -47,11 +47,11 @@ public class OperacionService implements OperacionUseCase {
 
     @Override
     public Operacion crear(
-            Long usuarioRegistroId,
-            Long lineaNegocioId,
-            Long vehiculoId,
-            Long materialId,
-            Long proveedorId,
+            String usuarioRegistroId,
+            String lineaNegocioId,
+            String vehiculoId,
+            String materialId,
+            String proveedorId,
             Instant fechaInicio,
             Instant fechaFin,
             String medioPago,
@@ -109,7 +109,7 @@ public class OperacionService implements OperacionUseCase {
     }
 
     @Override
-    public Operacion obtener(Long id) {
+    public Operacion obtener(String id) {
         return operacionRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Operación no encontrada (id=" + id + ")."));
     }
@@ -123,15 +123,15 @@ public class OperacionService implements OperacionUseCase {
     public List<Operacion> filtrar(
             Instant fromInclusive,
             Instant toInclusive,
-            Long lineaNegocioId,
-            Long vehiculoId,
-            Long proveedorId
+            String lineaNegocioId,
+            String vehiculoId,
+            String proveedorId
     ) {
         return operacionRepository.filter(fromInclusive, toInclusive, lineaNegocioId, vehiculoId, proveedorId);
     }
 
     @Override
-    public Operacion confirmar(Long id) {
+    public Operacion confirmar(String id) {
         var actual = obtener(id);
         if (OperacionEstados.esConfirmada(actual.estado())) {
             return actual;

@@ -9,10 +9,10 @@ import java.math.BigDecimal;
 
 public record CostoFinancieroCreateRequest(
         @NotNull(message = "usuarioRegistroId es obligatorio.")
-        Long usuarioRegistroId,
+        String usuarioRegistroId,
 
         @NotNull(message = "tipoCostoId es obligatorio.")
-        Long tipoCostoId,
+        String tipoCostoId,
 
         @NotBlank(message = "Medio_Pago es obligatorio.")
         @Size(max = 60, message = "Medio_Pago no debe exceder 60 caracteres.")

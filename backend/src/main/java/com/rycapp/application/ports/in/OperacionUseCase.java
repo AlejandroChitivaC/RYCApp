@@ -8,11 +8,11 @@ import java.util.List;
 
 public interface OperacionUseCase {
     Operacion crear(
-            Long usuarioRegistroId,
-            Long lineaNegocioId,
-            Long vehiculoId,
-            Long materialId,
-            Long proveedorId,
+            String usuarioRegistroId,
+            String lineaNegocioId,
+            String vehiculoId,
+            String materialId,
+            String proveedorId,
             Instant fechaInicio,
             Instant fechaFin,
             String medioPago,
@@ -20,17 +20,17 @@ public interface OperacionUseCase {
             String descripcion
     );
 
-    Operacion obtener(Long id);
+    Operacion obtener(String id);
 
     List<Operacion> listar();
 
     List<Operacion> filtrar(
             Instant fromInclusive,
             Instant toInclusive,
-            Long lineaNegocioId,
-            Long vehiculoId,
-            Long proveedorId
+            String lineaNegocioId,
+            String vehiculoId,
+            String proveedorId
     );
 
-    Operacion confirmar(Long id);
+    Operacion confirmar(String id);
 }

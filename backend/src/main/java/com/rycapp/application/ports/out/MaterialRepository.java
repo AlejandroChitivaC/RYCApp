@@ -7,7 +7,7 @@ import java.util.Optional;
 
 public interface MaterialRepository {
     Material save(Material material);
-    Optional<Material> findById(Long id);
+    Optional<Material> findById(String id);
     List<Material> findAll();
     boolean existsByMaterialIgnoreCase(String material);
 }

@@ -110,8 +110,8 @@ export function DashboardPage() {
         const data = await reportesApi.dashboard({
           from: applied.from ? isoStart(applied.from) : undefined,
           to: applied.to ? isoEnd(applied.to) : undefined,
-          lineaNegocioId: applied.lineaNegocioId ? Number(applied.lineaNegocioId) : undefined,
-          proveedorId: applied.proveedorId ? Number(applied.proveedorId) : undefined,
+          lineaNegocioId: applied.lineaNegocioId || undefined,
+          proveedorId: applied.proveedorId || undefined,
         })
         if (!active) return
         setReport(data)

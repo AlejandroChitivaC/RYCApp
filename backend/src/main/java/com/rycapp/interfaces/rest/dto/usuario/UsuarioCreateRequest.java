@@ -6,7 +6,7 @@ import jakarta.validation.constraints.Size;
 
 public record UsuarioCreateRequest(
         @NotNull(message = "rolId es obligatorio.")
-        Long rolId,
+        String rolId,
 
         @NotBlank(message = "La cédula es obligatoria.")
         @Size(max = 20, message = "La cédula no debe exceder 20 caracteres.")

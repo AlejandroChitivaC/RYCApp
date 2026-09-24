@@ -1,7 +1,7 @@
 package com.rycapp.domain.model;
 
 public record UsuarioPendienteActivacion(
-        Long id,
+        String id,
         String cedula,
         String nombre,
         String apellido,

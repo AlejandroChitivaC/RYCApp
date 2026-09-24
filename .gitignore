@@ -7,9 +7,19 @@ backend/target/
 # Frontend
 frontend/node_modules/
 frontend/dist/
+frontend/.env
+frontend/.env.production
+
+# Infra CDK
+infra/node_modules/
+infra/cdk.out/
+infra/dist/
 
 # AI tools (local only)
 ai-brain/
 ai-tools/
+
+# DynamoDB Local (descarga)
+tools/dynamodb-local/
 
 *.log

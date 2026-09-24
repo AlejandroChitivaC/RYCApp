@@ -1,10 +1,10 @@
 export type Operacion = {
-  id: number
-  usuarioRegistroId: number
-  lineaNegocioId: number
-  vehiculoId: number
-  materialId: number
-  proveedorId: number
+  id: string
+  usuarioRegistroId: string
+  lineaNegocioId: string
+  vehiculoId: string
+  materialId: string
+  proveedorId: string
   fechaInsercion: string
   fechaInicio: string | null
   fechaFin: string | null
@@ -17,10 +17,10 @@ export type Operacion = {
 }
 
 export type OperacionCreate = {
-  lineaNegocioId: number
-  vehiculoId: number
-  materialId: number
-  proveedorId: number
+  lineaNegocioId: string
+  vehiculoId: string
+  materialId: string
+  proveedorId: string
   fechaInicio: string
   fechaFin: string
   medioPago: string

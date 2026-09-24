@@ -1,6 +1,6 @@
 package com.rycapp.infrastructure.mail;
 
-import com.rycapp.infrastructure.persistence.jpa.repository.CuentaAutenticacionJpaRepository;
+import com.rycapp.application.ports.out.UsuarioRepository;
 import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,22 +16,22 @@ public class MailAccountNotifications {
 
     private final ObjectProvider<JavaMailSender> mailSenderProvider;
     private final String fromAddress;
-    private final CuentaAutenticacionJpaRepository cuentaJpaRepository;
+    private final UsuarioRepository usuarioRepository;
 
     public MailAccountNotifications(
             ObjectProvider<JavaMailSender> mailSenderProvider,
             @Value("${app.mail.from:noreply@rycapp.local}") String fromAddress,
-            CuentaAutenticacionJpaRepository cuentaJpaRepository
+            UsuarioRepository usuarioRepository
     ) {
         this.mailSenderProvider = mailSenderProvider;
         this.fromAddress = fromAddress;
-        this.cuentaJpaRepository = cuentaJpaRepository;
+        this.usuarioRepository = usuarioRepository;
     }
 
     public void notificarAdminsCuentaEsperandoAprobacion(String nombre, String apellido, String correo, String cedula) {
-        var destinos = cuentaJpaRepository.findCorreosAdministradores();
+        var destinos = usuarioRepository.findCorreosAdministradores();
         if (destinos.isEmpty()) {
-            log.warn("[Cuenta] Sin correos de administrador para notificar (ninguna cuenta con rol Administrador).");
+            log.warn("No hay correos de administrador para avisar de una cuenta pendiente.");
             return;
         }
         String subject = "RYC App - Cuenta verificada pendiente de activación";
@@ -61,11 +61,13 @@ public class MailAccountNotifications {
     private void sendBulk(Iterable<String> tos, String subject, String plain, String html) {
         JavaMailSender sender = mailSenderProvider.getIfAvailable();
         if (sender == null) {
-            log.warn("[Cuenta] JavaMailSender no configurado. Asunto: {}", subject);
+            log.warn("JavaMailSender no configurado. Asunto: {}", subject);
             return;
         }
         for (String to : tos) {
-            if (to == null || to.isBlank()) continue;
+            if (to == null || to.isBlank()) {
+                continue;
+            }
             try {
                 sendWithSender(sender, fromAddress, to.trim(), subject, plain, html);
             } catch (Exception e) {
@@ -77,7 +79,7 @@ public class MailAccountNotifications {
     private void sendOne(String toEmail, String subject, String plain, String html) {
         JavaMailSender sender = mailSenderProvider.getIfAvailable();
         if (sender == null) {
-            log.warn("[Cuenta] JavaMailSender no configurado. Correo usuario: {}", toEmail);
+            log.warn("JavaMailSender no configurado. Correo usuario: {}", toEmail);
             return;
         }
         try {
@@ -106,7 +108,9 @@ public class MailAccountNotifications {
     }
 
     private static String escape(String s) {
-        if (s == null) return "";
+        if (s == null) {
+            return "";
+        }
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
     }
 }

@@ -32,7 +32,7 @@ public class ProveedorService implements ProveedorUseCase {
     }
 
     @Override
-    public Proveedor editar(Long id, String nombre, String nit, String departamento, String municipio, String descripcion) {
+    public Proveedor editar(String id, String nombre, String nit, String departamento, String municipio, String descripcion) {
         var current = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Proveedor no encontrado (id=" + id + ")."));
         var nitChanged = !current.nit().equalsIgnoreCase(nit);
@@ -46,7 +46,7 @@ public class ProveedorService implements ProveedorUseCase {
     }
 
     @Override
-    public Proveedor cambiarEstado(Long id, String estado) {
+    public Proveedor cambiarEstado(String id, String estado) {
         var current = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Proveedor no encontrado (id=" + id + ")."));
         var normalizado = normalizarEstado(estado);
@@ -69,7 +69,7 @@ public class ProveedorService implements ProveedorUseCase {
     }
 
     @Override
-    public Proveedor obtener(Long id) {
+    public Proveedor obtener(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Proveedor no encontrado (id=" + id + ")."));
     }

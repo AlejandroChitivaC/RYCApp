@@ -29,7 +29,7 @@ public class JwtService {
     }
 
     public String createAccessToken(
-            long usuarioId,
+            String usuarioId,
             String email,
             String nombre,
             String apellido,

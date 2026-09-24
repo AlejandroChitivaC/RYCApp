@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface CostoVehiculoUseCase {
     CostoVehiculo crear(
-            Long usuarioRegistroId,
-            Long tipoCostoId,
-            Long vehiculoId,
+            String usuarioRegistroId,
+            String tipoCostoId,
+            String vehiculoId,
             Instant fechaInicio,
             Instant fechaFin,
             String medioPago,
@@ -21,5 +21,5 @@ public interface CostoVehiculoUseCase {
 
     List<CostoVehiculo> listar();
 
-    CostoVehiculo obtener(Long id);
+    CostoVehiculo obtener(String id);
 }

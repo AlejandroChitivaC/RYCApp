@@ -37,7 +37,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UsuarioResponse> editar(@PathVariable Long id, @Valid @RequestBody UsuarioUpdateRequest req) {
+    public ResponseEntity<UsuarioResponse> editar(@PathVariable String id, @Valid @RequestBody UsuarioUpdateRequest req) {
         var updated = useCase.editar(id, req.rolId(), req.cedula(), req.nombre(), req.apellido(), req.estado());
         return ResponseEntity.ok(toResponse(updated));
     }
@@ -48,7 +48,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UsuarioResponse> obtener(@PathVariable Long id) {
+    public ResponseEntity<UsuarioResponse> obtener(@PathVariable String id) {
         return ResponseEntity.ok(toResponse(useCase.obtener(id)));
     }
 
@@ -83,7 +83,7 @@ public class UsuarioController {
     @PostMapping("/{id}/activar")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<UsuarioResponse> activarCuenta(
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody UsuarioActivarRequest req
     ) {
         useCase.activarCuentaRegistrada(id, req.rolId());

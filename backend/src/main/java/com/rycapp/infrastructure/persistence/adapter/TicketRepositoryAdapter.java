@@ -1,119 +1,114 @@
 package com.rycapp.infrastructure.persistence.adapter;
 
 import com.rycapp.application.ports.out.TicketRepository;
+import com.rycapp.application.util.Ids;
 import com.rycapp.domain.model.Ticket;
 import com.rycapp.domain.model.TicketAuditoria;
-import com.rycapp.infrastructure.persistence.jpa.entity.TicketAuditoriaEntity;
-import com.rycapp.infrastructure.persistence.jpa.entity.TicketContenidoEntity;
-import com.rycapp.infrastructure.persistence.jpa.entity.TicketEntity;
-import com.rycapp.infrastructure.persistence.jpa.mapper.TicketAuditoriaMapper;
-import com.rycapp.infrastructure.persistence.jpa.mapper.TicketMapper;
-import com.rycapp.infrastructure.persistence.jpa.mapper.TimeMapper;
-import com.rycapp.infrastructure.persistence.jpa.repository.OperacionJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.TicketAuditoriaJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.TicketContenidoJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.TicketJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.UsuarioJpaRepository;
+import com.rycapp.infrastructure.persistence.dynamo.DynamoSupport;
+import com.rycapp.infrastructure.persistence.dynamo.item.TicketAuditoriaItem;
+import com.rycapp.infrastructure.persistence.dynamo.item.TicketItem;
+import com.rycapp.infrastructure.persistence.dynamo.item.UsuarioItem;
 import org.springframework.stereotype.Repository;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
+import software.amazon.awssdk.enhanced.dynamodb.model.QueryConditional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class TicketRepositoryAdapter implements TicketRepository {
-
-    private final TicketJpaRepository ticketJpaRepository;
-    private final TicketContenidoJpaRepository ticketContenidoJpaRepository;
-    private final TicketAuditoriaJpaRepository ticketAuditoriaJpaRepository;
-    private final OperacionJpaRepository operacionJpaRepository;
-    private final UsuarioJpaRepository usuarioJpaRepository;
+    private final DynamoDbTable<TicketItem> tickets;
+    private final DynamoDbTable<TicketAuditoriaItem> auditoria;
+    private final DynamoDbTable<UsuarioItem> usuarios;
 
     public TicketRepositoryAdapter(
-            TicketJpaRepository ticketJpaRepository,
-            TicketContenidoJpaRepository ticketContenidoJpaRepository,
-            TicketAuditoriaJpaRepository ticketAuditoriaJpaRepository,
-            OperacionJpaRepository operacionJpaRepository,
-            UsuarioJpaRepository usuarioJpaRepository
+            DynamoDbTable<TicketItem> ticketsTable,
+            DynamoDbTable<TicketAuditoriaItem> ticketAuditoriaTable,
+            DynamoDbTable<UsuarioItem> usuariosTable
     ) {
-        this.ticketJpaRepository = ticketJpaRepository;
-        this.ticketContenidoJpaRepository = ticketContenidoJpaRepository;
-        this.ticketAuditoriaJpaRepository = ticketAuditoriaJpaRepository;
-        this.operacionJpaRepository = operacionJpaRepository;
-        this.usuarioJpaRepository = usuarioJpaRepository;
+        this.tickets = ticketsTable;
+        this.auditoria = ticketAuditoriaTable;
+        this.usuarios = usuariosTable;
     }
 
     @Override
-    public Ticket save(Ticket ticket, byte[] contenidoPdf) {
-        TicketEntity e = new TicketEntity();
-        e.setOperacion(operacionJpaRepository.getReferenceById(ticket.operacionId()));
-        e.setUsuarioCarga(usuarioJpaRepository.getReferenceById(ticket.usuarioCargaId()));
-        e.setNumeroTicket(ticket.numeroTicket());
-        e.setNombreArchivoOriginal(ticket.nombreArchivoOriginal());
-        e.setHashSha256(ticket.hashSha256());
-        e.setTipoContenidoOriginal(ticket.tipoContenidoOriginal());
-        e.setTamanoBytesOriginal(ticket.tamanoBytesOriginal());
-        e.setFechaCarga(TimeMapper.toLocalDateTimeUtc(ticket.fechaCarga()));
-
-        var saved = ticketJpaRepository.save(e);
-
-        TicketContenidoEntity contenido = new TicketContenidoEntity();
-        contenido.setId(saved.getId());
-        contenido.setContenidoPdf(contenidoPdf);
-        ticketContenidoJpaRepository.save(contenido);
-
-        return ticketJpaRepository.findOneFetched(saved.getId()).map(TicketMapper::toDomain).orElseThrow();
+    public Ticket save(Ticket ticket) {
+        TicketItem item = TicketItem.from(new Ticket(
+                Ids.oNuevo(ticket.id()),
+                ticket.operacionId(),
+                ticket.usuarioCargaId(),
+                ticket.numeroTicket(),
+                ticket.nombreArchivoOriginal(),
+                ticket.hashSha256(),
+                ticket.tipoContenidoOriginal(),
+                ticket.tamanoBytesOriginal(),
+                ticket.fechaCarga()
+        ));
+        tickets.putItem(item);
+        return item.toDomain();
     }
 
     @Override
-    public Optional<Ticket> findById(Long id) {
-        return ticketJpaRepository.findOneFetched(id).map(TicketMapper::toDomain);
+    public Optional<Ticket> findById(String id) {
+        return DynamoSupport.findOne(tickets, id).map(TicketItem::toDomain);
     }
 
     @Override
     public List<Ticket> findAll() {
-        return ticketJpaRepository.findAllFetched().stream().map(TicketMapper::toDomain).toList();
+        return DynamoSupport.scanAll(tickets).stream().map(TicketItem::toDomain).toList();
     }
 
     @Override
-    public List<Ticket> findByOperacionId(Long operacionId) {
-        return ticketJpaRepository.findByOperacionIdFetched(operacionId).stream()
-                .map(TicketMapper::toDomain).toList();
+    public List<Ticket> findByOperacionId(String operacionId) {
+        return DynamoSupport.queryAll(tickets.index("operacion-index"), operacionId).stream()
+                .map(TicketItem::toDomain)
+                .toList();
     }
 
     @Override
     public boolean existsByHashSha256(String hashSha256) {
-        return ticketJpaRepository.existsByHashSha256(hashSha256);
+        return DynamoSupport.exists(tickets.index("hash-index"), hashSha256);
     }
 
     @Override
     public boolean existsByNumeroTicket(String numeroTicket) {
-        return ticketJpaRepository.existsByNumeroTicket(numeroTicket);
+        return DynamoSupport.exists(tickets.index("numero-index"), numeroTicket);
     }
 
     @Override
-    public Optional<byte[]> findContenidoPdfById(Long id) {
-        return ticketContenidoJpaRepository.findById(id).map(TicketContenidoEntity::getContenidoPdf);
-    }
-
-    @Override
-    public void saveAuditoria(TicketAuditoria auditoria) {
-        TicketAuditoriaEntity a = new TicketAuditoriaEntity();
-        a.setTicket(ticketJpaRepository.getReferenceById(auditoria.ticketId()));
-        a.setUsuario(usuarioJpaRepository.getReferenceById(auditoria.usuarioId()));
-        a.setFechaAccion(TimeMapper.toLocalDateTimeUtc(auditoria.fechaAccion()));
-        a.setAccion(auditoria.accion());
-        ticketAuditoriaJpaRepository.save(a);
+    public void saveAuditoria(TicketAuditoria entrada) {
+        String id = Ids.oNuevo(entrada.id());
+        String nombre = entrada.usuarioNombre();
+        String apellido = entrada.usuarioApellido();
+        if ((nombre == null || apellido == null) && entrada.usuarioId() != null) {
+            var usuario = DynamoSupport.findOne(usuarios, entrada.usuarioId());
+            if (usuario.isPresent()) {
+                if (nombre == null) {
+                    nombre = usuario.get().getNombre();
+                }
+                if (apellido == null) {
+                    apellido = usuario.get().getApellido();
+                }
+            }
+        }
+        TicketAuditoria completa = new TicketAuditoria(
+                id, entrada.ticketId(), entrada.usuarioId(), nombre, apellido, entrada.fechaAccion(), entrada.accion()
+        );
+        auditoria.putItem(TicketAuditoriaItem.from(completa));
     }
 
     @Override
     public List<TicketAuditoria> findAllAuditoria() {
-        return ticketAuditoriaJpaRepository.findAllFetched().stream()
-                .map(TicketAuditoriaMapper::toDomain).toList();
+        return DynamoSupport.scanAll(auditoria).stream().map(TicketAuditoriaItem::toDomain).toList();
     }
 
     @Override
-    public List<TicketAuditoria> findAuditoriaByTicketId(Long ticketId) {
-        return ticketAuditoriaJpaRepository.findByTicketIdFetched(ticketId).stream()
-                .map(TicketAuditoriaMapper::toDomain).toList();
+    public List<TicketAuditoria> findAuditoriaByTicketId(String ticketId) {
+        List<TicketAuditoriaItem> out = new ArrayList<>();
+        auditoria.query(r -> r.queryConditional(
+                QueryConditional.keyEqualTo(k -> k.partitionValue(ticketId))
+        )).items().forEach(out::add);
+        return out.stream().map(TicketAuditoriaItem::toDomain).toList();
     }
 }

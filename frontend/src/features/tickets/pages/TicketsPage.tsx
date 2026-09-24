@@ -62,7 +62,7 @@ export function TicketsPage() {
   const fetchOperaciones = useOperacionesStore((s) => s.fetchAll)
 
   const [open, setOpen] = useState(false)
-  const [detailTicketId, setDetailTicketId] = useState<number | null>(null)
+  const [detailTicketId, setDetailTicketId] = useState<string | null>(null)
   const [tab, setTab] = useState<'tickets' | 'auditoria'>('tickets')
   const { query: layoutQuery } = useLayoutSearch()
   const [tableQuery, setTableQuery] = useState('')

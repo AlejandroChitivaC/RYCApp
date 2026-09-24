@@ -8,23 +8,23 @@ import java.util.List;
 public interface TicketUseCase {
 
     Ticket cargar(
-            Long usuarioCargaId,
-            Long operacionId,
+            String usuarioCargaId,
+            String operacionId,
             String numeroTicket,
             String nombreArchivoOriginal,
             String tipoContenidoOriginal,
             byte[] contenidoImagen
     );
 
-    Ticket obtener(Long id, Long usuarioId);
+    Ticket obtener(String id, String usuarioId);
 
-    List<Ticket> listar(Long operacionId);
+    List<Ticket> listar(String operacionId);
 
-    byte[] obtenerContenidoPdf(Long id, Long usuarioId, String accionAuditoria);
+    record TicketPdfEnlace(String url, String nombreArchivo) {}
 
-    record TicketPdfContenido(byte[] contenido, String nombreArchivoDescarga) {}
+    TicketPdfEnlace obtenerPdf(String id, String usuarioId, String accionAuditoria);
 
-    TicketPdfContenido obtenerPdf(Long id, Long usuarioId, String accionAuditoria);
+    byte[] leerArchivo(String id, String usuarioId);
 
-    List<TicketAuditoria> listarAuditoria(Long ticketId);
+    List<TicketAuditoria> listarAuditoria(String ticketId);
 }

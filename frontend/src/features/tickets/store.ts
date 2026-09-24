@@ -15,7 +15,7 @@ type State = {
   fetchAll: () => Promise<void>
   fetchAuditoria: () => Promise<void>
   cargar: (formData: FormData) => Promise<Ticket>
-  descargarPdf: (id: number, nombreArchivo: string) => Promise<void>
+  descargarPdf: (id: string, nombreArchivo: string) => Promise<void>
 }
 
 export const useTicketsStore = create<State>((set, get) => ({
@@ -32,7 +32,7 @@ export const useTicketsStore = create<State>((set, get) => ({
     try {
       set({ isLoading: true, error: null })
       const f = get().filterOperacionId
-      const params = f ? { operacionId: Number(f) } : undefined
+      const params = f ? { operacionId: f } : undefined
       set({ items: await ticketsApi.list(params) })
     } catch (e) {
       set({ error: getApiErrorMessage(e) })

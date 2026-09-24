@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 public interface CostoFinancieroOtrosGastosUseCase {
-    CostoFinancieroOtrosGastos crear(Long usuarioRegistroId, Long tipoCostoId, String medioPago, BigDecimal valor, String descripcion);
+    CostoFinancieroOtrosGastos crear(String usuarioRegistroId, String tipoCostoId, String medioPago, BigDecimal valor, String descripcion);
     List<CostoFinancieroOtrosGastos> listar();
-    CostoFinancieroOtrosGastos obtener(Long id);
+    CostoFinancieroOtrosGastos obtener(String id);
 }

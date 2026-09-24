@@ -10,8 +10,8 @@ type State = {
   error: string | null
   fetchAll: () => Promise<void>
   create: (payload: ProveedorCreate) => Promise<Proveedor>
-  update: (id: number, payload: ProveedorUpdate) => Promise<Proveedor>
-  setEstado: (id: number, estado: string) => Promise<Proveedor>
+  update: (id: string, payload: ProveedorUpdate) => Promise<Proveedor>
+  setEstado: (id: string, estado: string) => Promise<Proveedor>
 }
 
 export const useProveedoresStore = create<State>((set, get) => ({

@@ -59,7 +59,7 @@ public class CostoVehiculoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CostoVehiculoResponse> obtener(@PathVariable Long id) {
+    public ResponseEntity<CostoVehiculoResponse> obtener(@PathVariable String id) {
         return ResponseEntity.ok(toRes(useCase.obtener(id)));
     }
 }

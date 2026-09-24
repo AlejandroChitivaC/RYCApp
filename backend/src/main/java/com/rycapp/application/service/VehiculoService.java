@@ -26,7 +26,7 @@ public class VehiculoService implements VehiculoUseCase {
     }
 
     @Override
-    public Vehiculo crear(String placa, String clase, String marca, String modelo, Long conductorId) {
+    public Vehiculo crear(String placa, String clase, String marca, String modelo, String conductorId) {
         if (repository.existsByPlacaIgnoreCase(placa)) {
             throw new ConflictException("Ya existe un vehículo con la placa '" + placa + "'.");
         }
@@ -37,7 +37,7 @@ public class VehiculoService implements VehiculoUseCase {
     }
 
     @Override
-    public Vehiculo editar(Long id, String placa, String clase, String marca, String modelo, Long conductorId) {
+    public Vehiculo editar(String id, String placa, String clase, String marca, String modelo, String conductorId) {
         var current = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Vehículo no encontrado (id=" + id + ")."));
 
@@ -62,7 +62,7 @@ public class VehiculoService implements VehiculoUseCase {
     }
 
     @Override
-    public Vehiculo cambiarEstado(Long id, String estado) {
+    public Vehiculo cambiarEstado(String id, String estado) {
         var current = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Vehículo no encontrado (id=" + id + ")."));
         var normalizado = estado == null ? "" : estado.trim().toUpperCase();
@@ -90,12 +90,12 @@ public class VehiculoService implements VehiculoUseCase {
     }
 
     @Override
-    public Vehiculo obtener(Long id) {
+    public Vehiculo obtener(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Vehículo no encontrado (id=" + id + ")."));
     }
 
-    private void validarConductor(Long conductorId, Long excluirVehiculoId) {
+    private void validarConductor(String conductorId, String excluirVehiculoId) {
         if (conductorId == null) {
             throw new IllegalArgumentException("El vehículo debe tener un conductor asignado.");
         }
