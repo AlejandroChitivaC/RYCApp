@@ -1,15 +1,33 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useLayoutSearch } from '../../../app/shell/LayoutSearchContext'
+import { esActivo, esAdministrador } from '../../auth/roles'
+import { useAuthStore } from '../../auth/store'
 import { Button } from '../../../shared/ui/Button'
 import { EmptyState } from '../../../shared/ui/EmptyState'
 import { Modal } from '../../../shared/ui/Modal'
 import { PageListToolbar } from '../../../shared/ui/PageListToolbar'
+import { StatMiniCard } from '../../../shared/ui/StatMiniCard'
 import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import { Table, TBody, TD, TH, THead } from '../../../shared/ui/Table'
 import { useUsuariosStore } from '../../usuarios/store'
 import type { Vehiculo } from '../types'
 import { useVehiculosStore } from '../store'
 import { VehiculoForm } from '../components/VehiculoForm'
+
+function IconTruck({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="none">
+      <path
+        d="M3 7h11v9H3V7Zm11 3h4l3 3v3h-7V10Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <circle cx="7" cy="18" r="1.6" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="17" cy="18" r="1.6" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
 
 function matchesVehiculo(x: Vehiculo, q: string) {
   const s = q.trim().toLowerCase()
@@ -27,7 +45,9 @@ function matchesVehiculo(x: Vehiculo, q: string) {
 }
 
 export function VehiculosPage() {
-  const { items, isLoading, error, fetchAll, create, update } = useVehiculosStore()
+  const { items, isLoading, error, fetchAll, create, update, setEstado } = useVehiculosStore()
+  const authUser = useAuthStore((s) => s.user)
+  const esAdmin = esAdministrador(authUser?.rol)
   const conductores = useUsuariosStore((s) => s.conductores)
   const fetchConductores = useUsuariosStore((s) => s.fetchConductores)
   const { query: layoutQuery } = useLayoutSearch()
@@ -47,8 +67,32 @@ export function VehiculosPage() {
     [sorted, layoutQuery, tableQuery],
   )
 
+  const total = sorted.length
+  const activos = sorted.filter((x) => esActivo(x.estado)).length
+  const inactivos = total - activos
+
   return (
     <div>
+      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <StatMiniCard
+          icon={<IconTruck className="h-6 w-6" />}
+          label="Total vehículos"
+          value={total}
+        />
+        <StatMiniCard
+          icon={<span className="h-2.5 w-2.5 rounded-full bg-brand-success" />}
+          label="Activos"
+          value={activos}
+          iconBgClass="bg-brand-success-soft text-emerald-800"
+        />
+        <StatMiniCard
+          icon={<span className="h-2.5 w-2.5 rounded-full bg-zinc-400" />}
+          label="Inactivos"
+          value={inactivos}
+          iconBgClass="bg-zinc-100 text-zinc-600"
+        />
+      </div>
+
       <PageListToolbar
         title="Catálogo de vehículos"
         description="Placas, clase, marca y conductor asignado."
@@ -102,17 +146,31 @@ export function VehiculosPage() {
                   </TD>
                   <TD className="text-brand-muted">{x.conductorNombre ?? '—'}</TD>
                   <TD className="text-right">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      className="rounded-xl border-zinc-200"
-                      onClick={() => {
-                        setEditing(x)
-                        setOpen(true)
-                      }}
-                    >
-                      Editar
-                    </Button>
+                    <div className="flex flex-wrap items-center justify-end gap-2">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        className="rounded-xl border-zinc-200"
+                        onClick={() => {
+                          setEditing(x)
+                          setOpen(true)
+                        }}
+                      >
+                        Editar
+                      </Button>
+                      {esAdmin ? (
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          className="rounded-xl border-zinc-200"
+                          onClick={() =>
+                            setEstado(x.id, esActivo(x.estado) ? 'INACTIVO' : 'ACTIVO')
+                          }
+                        >
+                          {esActivo(x.estado) ? 'Desactivar' : 'Activar'}
+                        </Button>
+                      ) : null}
+                    </div>
                   </TD>
                 </tr>
               ))}

@@ -9,4 +9,5 @@ public interface MaterialRepository {
     Material save(Material material);
     Optional<Material> findById(Long id);
     List<Material> findAll();
+    boolean existsByMaterialIgnoreCase(String material);
 }

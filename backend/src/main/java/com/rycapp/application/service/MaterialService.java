@@ -1,5 +1,6 @@
 package com.rycapp.application.service;
 
+import com.rycapp.application.exception.ConflictException;
 import com.rycapp.application.exception.NotFoundException;
 import com.rycapp.application.ports.in.MaterialUseCase;
 import com.rycapp.application.ports.out.MaterialRepository;
@@ -22,6 +23,9 @@ public class MaterialService implements MaterialUseCase {
 
     @Override
     public Material crear(String material, String descripcion) {
+        if (repository.existsByMaterialIgnoreCase(material)) {
+            throw new ConflictException("Ya existe un material con el nombre '" + material + "'.");
+        }
         var created = repository.save(new Material(null, material, descripcion));
         log.info("Material creado id={}", created.id());
         return created;
@@ -29,8 +33,12 @@ public class MaterialService implements MaterialUseCase {
 
     @Override
     public Material editar(Long id, String material, String descripcion) {
-        repository.findById(id)
+        var current = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Material no encontrado (id=" + id + ")."));
+        var renamed = !current.material().equalsIgnoreCase(material);
+        if (renamed && repository.existsByMaterialIgnoreCase(material)) {
+            throw new ConflictException("Ya existe un material con el nombre '" + material + "'.");
+        }
         var updated = repository.save(new Material(id, material, descripcion));
         log.info("Material actualizado id={}", updated.id());
         return updated;

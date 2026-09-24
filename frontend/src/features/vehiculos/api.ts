@@ -7,5 +7,7 @@ export const vehiculosApi = {
     (await http.post<Vehiculo>('/api/vehiculos', payload)).data,
   update: async (id: number, payload: VehiculoUpdate) =>
     (await http.put<Vehiculo>(`/api/vehiculos/${id}`, payload)).data,
+  setEstado: async (id: number, estado: string) =>
+    (await http.patch<Vehiculo>(`/api/vehiculos/${id}/estado`, { estado })).data,
 }
 

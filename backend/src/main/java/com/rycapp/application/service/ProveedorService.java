@@ -26,7 +26,7 @@ public class ProveedorService implements ProveedorUseCase {
         if (repository.existsByNitIgnoreCase(nit)) {
             throw new ConflictException("Ya existe un proveedor con el NIT '" + nit + "'.");
         }
-        var created = repository.save(new Proveedor(null, nombre, nit, departamento, municipio, descripcion));
+        var created = repository.save(new Proveedor(null, nombre, nit, departamento, municipio, descripcion, "ACTIVO"));
         log.info("Proveedor creado id={}", created.id());
         return created;
     }
@@ -39,8 +39,27 @@ public class ProveedorService implements ProveedorUseCase {
         if (nitChanged && repository.existsByNitIgnoreCase(nit)) {
             throw new ConflictException("Ya existe un proveedor con el NIT '" + nit + "'.");
         }
-        var updated = repository.save(new Proveedor(id, nombre, nit, departamento, municipio, descripcion));
+        var updated = repository.save(new Proveedor(
+                id, nombre, nit, departamento, municipio, descripcion, current.estado()));
         log.info("Proveedor actualizado id={}", updated.id());
+        return updated;
+    }
+
+    @Override
+    public Proveedor cambiarEstado(Long id, String estado) {
+        var current = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Proveedor no encontrado (id=" + id + ")."));
+        var normalizado = normalizarEstado(estado);
+        var updated = repository.save(new Proveedor(
+                current.id(),
+                current.nombre(),
+                current.nit(),
+                current.departamento(),
+                current.municipio(),
+                current.descripcion(),
+                normalizado
+        ));
+        log.info("Proveedor estado cambiado id={} estado={}", updated.id(), updated.estado());
         return updated;
     }
 
@@ -53,5 +72,13 @@ public class ProveedorService implements ProveedorUseCase {
     public Proveedor obtener(Long id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Proveedor no encontrado (id=" + id + ")."));
+    }
+
+    private static String normalizarEstado(String estado) {
+        var n = estado == null ? "" : estado.trim().toUpperCase();
+        if (!n.equals("ACTIVO") && !n.equals("INACTIVO")) {
+            throw new IllegalArgumentException("El estado debe ser ACTIVO o INACTIVO.");
+        }
+        return n;
     }
 }

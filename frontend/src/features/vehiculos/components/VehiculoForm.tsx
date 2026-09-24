@@ -15,7 +15,7 @@ type Props = {
     clase: string
     marca: string
     modelo: string
-    conductorId: number | null
+    conductorId: number
   }) => Promise<void>
 }
 
@@ -50,12 +50,16 @@ export function VehiculoForm({ initial, conductores, onCancel, onSubmit }: Props
         try {
           setIsSubmitting(true)
           setFieldErrors({})
+          if (!conductorId) {
+            setFieldErrors({ conductorId: 'El vehículo debe tener un conductor asignado.' })
+            return
+          }
           await onSubmit({
             placa: placa.trim(),
             clase: clase.trim(),
             marca: marca.trim(),
             modelo: modelo.trim(),
-            conductorId: conductorId ? Number(conductorId) : null,
+            conductorId: Number(conductorId),
           })
         } catch (err) {
           const fe = getFieldErrors(err)
@@ -68,7 +72,7 @@ export function VehiculoForm({ initial, conductores, onCancel, onSubmit }: Props
       <div className="text-sm font-semibold text-slate-900">{title}</div>
       <div className="mt-1 text-sm text-slate-600">
         El conductor debe ser un usuario con rol <strong className="text-slate-800">Conductor</strong> (relación 1:1
-        opcional: un conductor solo puede estar en un vehículo).
+        obligatoria: un conductor solo puede estar en un vehículo).
       </div>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input
@@ -102,7 +106,7 @@ export function VehiculoForm({ initial, conductores, onCancel, onSubmit }: Props
             onChange={(e) => setConductorId(e.target.value)}
             error={fieldErrors.conductorId}
           >
-            <option value="">Sin conductor asignado</option>
+            <option value="">Seleccione un conductor...</option>
             {conductores.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.nombre} {c.apellido} · {c.cedula}

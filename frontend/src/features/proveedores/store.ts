@@ -11,6 +11,7 @@ type State = {
   fetchAll: () => Promise<void>
   create: (payload: ProveedorCreate) => Promise<Proveedor>
   update: (id: number, payload: ProveedorUpdate) => Promise<Proveedor>
+  setEstado: (id: number, estado: string) => Promise<Proveedor>
 }
 
 export const useProveedoresStore = create<State>((set, get) => ({
@@ -50,6 +51,21 @@ export const useProveedoresStore = create<State>((set, get) => ({
       const updated = await proveedoresApi.update(id, payload)
       set({ items: get().items.map((x) => (x.id === id ? updated : x)) })
       notify.success('Proveedor actualizado.')
+      return updated
+    } catch (e) {
+      notify.failure(getApiErrorMessage(e))
+      throw e
+    } finally {
+      loading.remove()
+    }
+  },
+
+  setEstado: async (id, estado) => {
+    loading.show('Actualizando estado...')
+    try {
+      const updated = await proveedoresApi.setEstado(id, estado)
+      set({ items: get().items.map((x) => (x.id === id ? updated : x)) })
+      notify.success('Estado actualizado.')
       return updated
     } catch (e) {
       notify.failure(getApiErrorMessage(e))

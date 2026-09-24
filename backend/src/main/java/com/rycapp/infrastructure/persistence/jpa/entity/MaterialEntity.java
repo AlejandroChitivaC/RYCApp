@@ -10,7 +10,7 @@ public class MaterialEntity {
     @Column(name = "ID_Material")
     private Long id;
 
-    @Column(name = "Material", nullable = false, length = 120)
+    @Column(name = "Material", nullable = false, length = 120, unique = true)
     private String material;
 
     @Column(name = "Descripcion", length = 500)

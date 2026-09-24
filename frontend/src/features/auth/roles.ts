@@ -5,6 +5,14 @@ export function hasRole(rol: string | undefined | null, roles: readonly string[]
   return roles.includes(rol)
 }
 
+export function esAdministrador(rol: string | undefined | null) {
+  return rol === 'Administrador'
+}
+
+export function esActivo(estado: string | undefined | null) {
+  return String(estado ?? '').toUpperCase() === 'ACTIVO'
+}
+
 export function puedeConsultarHistorial(rol: string | undefined | null) {
   return hasRole(rol, ROLES_HISTORIAL)
 }

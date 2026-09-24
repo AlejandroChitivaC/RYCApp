@@ -7,4 +7,6 @@ export const proveedoresApi = {
     (await http.post<Proveedor>('/api/proveedores', payload)).data,
   update: async (id: number, payload: ProveedorUpdate) =>
     (await http.put<Proveedor>(`/api/proveedores/${id}`, payload)).data,
+  setEstado: async (id: number, estado: string) =>
+    (await http.patch<Proveedor>(`/api/proveedores/${id}/estado`, { estado })).data,
 }

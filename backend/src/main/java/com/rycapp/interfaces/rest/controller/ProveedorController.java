@@ -2,10 +2,12 @@ package com.rycapp.interfaces.rest.controller;
 
 import com.rycapp.application.ports.in.ProveedorUseCase;
 import com.rycapp.interfaces.rest.dto.proveedor.ProveedorCreateRequest;
+import com.rycapp.interfaces.rest.dto.proveedor.ProveedorEstadoRequest;
 import com.rycapp.interfaces.rest.dto.proveedor.ProveedorResponse;
 import com.rycapp.interfaces.rest.dto.proveedor.ProveedorUpdateRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -22,7 +24,7 @@ public class ProveedorController {
     }
 
     private static ProveedorResponse toRes(com.rycapp.domain.model.Proveedor p) {
-        return new ProveedorResponse(p.id(), p.nombre(), p.nit(), p.departamento(), p.municipio(), p.descripcion());
+        return new ProveedorResponse(p.id(), p.nombre(), p.nit(), p.departamento(), p.municipio(), p.descripcion(), p.estado());
     }
 
     @PostMapping
@@ -35,6 +37,15 @@ public class ProveedorController {
     @PutMapping("/{id}")
     public ResponseEntity<ProveedorResponse> editar(@PathVariable Long id, @Valid @RequestBody ProveedorUpdateRequest req) {
         return ResponseEntity.ok(toRes(useCase.editar(id, req.nombre(), req.nit(), req.departamento(), req.municipio(), req.descripcion())));
+    }
+
+    @PatchMapping("/{id}/estado")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<ProveedorResponse> cambiarEstado(
+            @PathVariable Long id,
+            @Valid @RequestBody ProveedorEstadoRequest req
+    ) {
+        return ResponseEntity.ok(toRes(useCase.cambiarEstado(id, req.estado())));
     }
 
     @GetMapping

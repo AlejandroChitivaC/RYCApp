@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react'
 import { getFieldErrors } from '../../../app/http/apiError'
+import { DEPARTAMENTOS_COLOMBIA, municipiosDe } from '../../../shared/data/colombia'
 import { Button } from '../../../shared/ui/Button'
 import { Input } from '../../../shared/ui/Input'
+import { Select } from '../../../shared/ui/Select'
 import { Textarea } from '../../../shared/ui/Textarea'
 import type { Proveedor } from '../types'
 
@@ -27,6 +29,20 @@ export function ProveedorForm({ initial, onCancel, onSubmit }: Props) {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   const title = useMemo(() => (initial ? 'Editar proveedor' : 'Nuevo proveedor'), [initial])
+  const municipios = useMemo(() => {
+    const list = municipiosDe(departamento)
+    if (municipio && !list.includes(municipio)) {
+      return [municipio, ...list]
+    }
+    return list
+  }, [departamento, municipio])
+  const departamentos = useMemo(() => {
+    const names = DEPARTAMENTOS_COLOMBIA.map((d) => d.nombre)
+    if (departamento && !names.includes(departamento)) {
+      return [departamento, ...names]
+    }
+    return names
+  }, [departamento])
 
   return (
     <form
@@ -54,18 +70,36 @@ export function ProveedorForm({ initial, onCancel, onSubmit }: Props) {
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Input label="Nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} error={fieldErrors.nombre} />
         <Input label="NIT" value={nit} onChange={(e) => setNit(e.target.value)} error={fieldErrors.nit} />
-        <Input
+        <Select
           label="Departamento"
           value={departamento}
-          onChange={(e) => setDepartamento(e.target.value)}
+          onChange={(e) => {
+            setDepartamento(e.target.value)
+            setMunicipio('')
+          }}
           error={fieldErrors.departamento}
-        />
-        <Input
+        >
+          <option value="">Seleccione...</option>
+          {departamentos.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
+        </Select>
+        <Select
           label="Municipio"
           value={municipio}
           onChange={(e) => setMunicipio(e.target.value)}
           error={fieldErrors.municipio}
-        />
+          disabled={!departamento}
+        >
+          <option value="">{departamento ? 'Seleccione...' : 'Elija primero un departamento'}</option>
+          {municipios.map((m) => (
+            <option key={m} value={m}>
+              {m}
+            </option>
+          ))}
+        </Select>
         <div className="sm:col-span-2">
           <Textarea
             label="Descripción"

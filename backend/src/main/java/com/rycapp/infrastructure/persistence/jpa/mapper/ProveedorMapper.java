@@ -14,7 +14,8 @@ public final class ProveedorMapper {
                 entity.getNit(),
                 entity.getDepartamento(),
                 entity.getMunicipio(),
-                entity.getDescripcion()
+                entity.getDescripcion(),
+                entity.getEstado()
         );
     }
 
@@ -27,6 +28,7 @@ public final class ProveedorMapper {
         e.setDepartamento(domain.departamento());
         e.setMunicipio(domain.municipio());
         e.setDescripcion(domain.descripcion());
+        e.setEstado(domain.estado());
         return e;
     }
 }

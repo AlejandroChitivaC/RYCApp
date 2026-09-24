@@ -60,14 +60,33 @@ public class OperacionService implements OperacionUseCase {
     ) {
         usuarioRepository.findById(usuarioRegistroId)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado (id=" + usuarioRegistroId + ")."));
-        lineaNegocioRepository.findById(lineaNegocioId)
+        var linea = lineaNegocioRepository.findById(lineaNegocioId)
                 .orElseThrow(() -> new NotFoundException("Línea de negocio no encontrada (id=" + lineaNegocioId + ")."));
-        vehiculoRepository.findById(vehiculoId)
+        if (!esActivo(linea.estado())) {
+            throw new IllegalArgumentException("La línea de negocio está inactiva y no puede usarse en una operación.");
+        }
+        var vehiculo = vehiculoRepository.findById(vehiculoId)
                 .orElseThrow(() -> new NotFoundException("Vehículo no encontrado (id=" + vehiculoId + ")."));
+        if (!esActivo(vehiculo.estado())) {
+            throw new IllegalArgumentException("El vehículo está inactivo y no puede usarse en una operación.");
+        }
+        if (vehiculo.conductorId() == null) {
+            throw new IllegalArgumentException("El vehículo debe tener un conductor asignado.");
+        }
         materialRepository.findById(materialId)
                 .orElseThrow(() -> new NotFoundException("Material no encontrado (id=" + materialId + ")."));
-        proveedorRepository.findById(proveedorId)
+        var proveedor = proveedorRepository.findById(proveedorId)
                 .orElseThrow(() -> new NotFoundException("Proveedor no encontrado (id=" + proveedorId + ")."));
+        if (!esActivo(proveedor.estado())) {
+            throw new IllegalArgumentException("El proveedor está inactivo y no puede usarse en una operación.");
+        }
+
+        if (fechaInicio == null || fechaFin == null) {
+            throw new IllegalArgumentException("Las fechas de inicio y fin son obligatorias.");
+        }
+        if (fechaInicio.isAfter(fechaFin)) {
+            throw new IllegalArgumentException("La fecha de inicio no puede ser posterior a la fecha fin.");
+        }
 
         var now = Instant.now();
         var created = operacionRepository.save(new Operacion(
@@ -134,5 +153,9 @@ public class OperacionService implements OperacionUseCase {
         ));
         log.info("Operación confirmada id={}", confirmada.id());
         return confirmada;
+    }
+
+    private static boolean esActivo(String estado) {
+        return estado != null && estado.equalsIgnoreCase("ACTIVO");
     }
 }

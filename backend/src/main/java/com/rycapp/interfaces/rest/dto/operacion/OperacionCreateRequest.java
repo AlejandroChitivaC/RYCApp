@@ -21,7 +21,10 @@ public record OperacionCreateRequest(
         @NotNull(message = "proveedorId es obligatorio.")
         Long proveedorId,
 
+        @NotNull(message = "La fecha de inicio es obligatoria.")
         Instant fechaInicio,
+
+        @NotNull(message = "La fecha fin es obligatoria.")
         Instant fechaFin,
 
         @NotBlank(message = "Medio_Pago es obligatorio.")

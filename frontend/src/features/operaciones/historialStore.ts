@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { getApiErrorMessage } from '../../app/http/apiError'
 import { loading, notify } from '../../shared/notify/notiflix'
+import { isoEndOfDay, isoStartOfDay } from '../../shared/utils/format'
 import { operacionesApi } from './api'
 import type { Operacion } from './types'
 
@@ -33,8 +34,8 @@ export const useHistorialOperacionesStore = create<State>((set, get) => ({
       set({ isLoading: true, error: null })
       const f = get().filters
       const params = {
-        from: f.from ? new Date(f.from).toISOString() : undefined,
-        to: f.to ? new Date(f.to).toISOString() : undefined,
+        from: f.from ? isoStartOfDay(f.from) : undefined,
+        to: f.to ? isoEndOfDay(f.to) : undefined,
         lineaNegocioId: f.lineaNegocioId ? Number(f.lineaNegocioId) : undefined,
         proveedorId: f.proveedorId ? Number(f.proveedorId) : undefined,
       }

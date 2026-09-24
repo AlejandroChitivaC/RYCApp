@@ -14,7 +14,7 @@ export type VehiculoCreate = {
   clase: string
   marca: string
   modelo: string
-  conductorId?: number | null
+  conductorId: number
 }
 
 export type VehiculoUpdate = VehiculoCreate

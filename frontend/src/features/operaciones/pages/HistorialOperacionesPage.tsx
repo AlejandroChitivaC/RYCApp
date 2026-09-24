@@ -13,7 +13,7 @@ import { useProveedoresStore } from '../../proveedores/store'
 import { useVehiculosStore } from '../../vehiculos/store'
 import { useHistorialOperacionesStore } from '../historialStore'
 import type { Operacion } from '../types'
-import { fmtDate } from '../../../shared/utils/format'
+import { fmtDateOnly } from '../../../shared/utils/format'
 
 function matchesHistorial(
   o: Operacion,
@@ -31,7 +31,7 @@ function matchesHistorial(
   const vehiculo = (vehiculosById.get(o.vehiculoId) ?? '').toLowerCase()
   return (
     String(o.id).includes(s) ||
-    fmtDate(o.fechaInsercion).toLowerCase().includes(s) ||
+    fmtDateOnly(o.fechaInsercion).toLowerCase().includes(s) ||
     linea.includes(s) ||
     proveedor.includes(s) ||
     material.includes(s) ||
@@ -142,7 +142,7 @@ export function HistorialOperacionesPage() {
         <div className="lg:col-span-3">
           <Input
             label="Desde"
-            type="datetime-local"
+            type="date"
             value={filters.from}
             onChange={(e) => setFilters({ from: e.target.value })}
           />
@@ -150,7 +150,7 @@ export function HistorialOperacionesPage() {
         <div className="lg:col-span-3">
           <Input
             label="Hasta"
-            type="datetime-local"
+            type="date"
             value={filters.to}
             onChange={(e) => setFilters({ to: e.target.value })}
           />
@@ -248,7 +248,7 @@ export function HistorialOperacionesPage() {
               {filteredOps.map((o) => (
                 <tr key={o.id} className="hover:bg-brand-yellow/[0.06]">
                   <TD>{o.id}</TD>
-                  <TD>{fmtDate(o.fechaInsercion)}</TD>
+                  <TD>{fmtDateOnly(o.fechaInsercion)}</TD>
                   <TD>
                     <span className="inline-flex rounded-full bg-brand-yellow/20 px-2 py-1 text-xs font-bold text-brand-dark ring-1 ring-brand-yellow/50">
                       {lineasById.get(o.lineaNegocioId) ?? `#${o.lineaNegocioId}`}
@@ -257,8 +257,8 @@ export function HistorialOperacionesPage() {
                   <TD>{proveedoresById.get(o.proveedorId) ?? `#${o.proveedorId}`}</TD>
                   <TD>{materialesById.get(o.materialId) ?? `#${o.materialId}`}</TD>
                   <TD>{vehiculosById.get(o.vehiculoId) ?? `#${o.vehiculoId}`}</TD>
-                  <TD>{fmtDate(o.fechaInicio)}</TD>
-                  <TD>{fmtDate(o.fechaFin)}</TD>
+                  <TD>{fmtDateOnly(o.fechaInicio)}</TD>
+                  <TD>{fmtDateOnly(o.fechaFin)}</TD>
                   <TD>
                     <span className="font-extrabold text-brand-dark">{o.valor}</span>
                   </TD>

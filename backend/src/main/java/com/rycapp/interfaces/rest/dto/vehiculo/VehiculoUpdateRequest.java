@@ -1,6 +1,7 @@
 package com.rycapp.interfaces.rest.dto.vehiculo;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public record VehiculoUpdateRequest(
@@ -20,5 +21,6 @@ public record VehiculoUpdateRequest(
         @Size(max = 60, message = "El modelo no debe exceder 60 caracteres.")
         String modelo,
 
+        @NotNull(message = "El vehículo debe tener un conductor asignado.")
         Long conductorId
 ) {}

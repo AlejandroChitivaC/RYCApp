@@ -37,11 +37,11 @@ function matchesMaterial(m: Material, q: string) {
 
 function exportMaterialesCsv(rows: Material[]) {
   const esc = (v: string) => `"${v.replace(/"/g, '""')}"`
-  const header = ['ID', 'Material', 'Descripción', 'Categoría', 'Estado']
+  const header = ['ID', 'Material', 'Descripción', 'Estado']
   const lines = [
     header.join(','),
     ...rows.map((r) =>
-      [r.id, r.material, r.descripcion ?? '', '—', 'Activo'].map((c) => esc(String(c))).join(','),
+      [r.id, r.material, r.descripcion ?? '', 'Activo'].map((c) => esc(String(c))).join(','),
     ),
   ]
   const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
@@ -162,7 +162,6 @@ export function MaterialesPage() {
                     </span>
                   </TH>
                   <TH>Descripción</TH>
-                  <TH>Categoría</TH>
                   <TH>Estado</TH>
                   <TH className="text-right">Acciones</TH>
                 </tr>
@@ -180,7 +179,6 @@ export function MaterialesPage() {
                       </span>
                     </TD>
                     <TD className="max-w-xs truncate text-brand-muted">{x.descripcion ?? '—'}</TD>
-                    <TD className="text-brand-muted">—</TD>
                     <TD>
                       <StatusBadge>Activo</StatusBadge>
                     </TD>

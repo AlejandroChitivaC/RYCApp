@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import { getFieldErrors } from '../../../app/http/apiError'
+import { isoStartOfDay } from '../../../shared/utils/format'
 import { Button } from '../../../shared/ui/Button'
 import { Input } from '../../../shared/ui/Input'
 import { Select } from '../../../shared/ui/Select'
@@ -23,8 +24,8 @@ type Props = {
     vehiculoId: number
     materialId: number
     proveedorId: number
-    fechaInicio?: string
-    fechaFin?: string
+    fechaInicio: string
+    fechaFin: string
     medioPago: string
     valor: number
     descripcion?: string
@@ -53,6 +54,11 @@ export function OperacionForm({ catalogos, usuarioRegistroLabel, onCancel, onSub
     )
   }, [catalogos])
 
+  const vehiculoSeleccionado = useMemo(
+    () => catalogos.vehiculos.find((v) => String(v.id) === vehiculoId) ?? null,
+    [catalogos.vehiculos, vehiculoId],
+  )
+
   return (
     <form
       onSubmit={async (e) => {
@@ -60,15 +66,27 @@ export function OperacionForm({ catalogos, usuarioRegistroLabel, onCancel, onSub
         try {
           setIsSubmitting(true)
           setFieldErrors({})
+          const errores: Record<string, string> = {}
+          if (!fechaInicio) {
+            errores.fechaInicio = 'La fecha de inicio es obligatoria.'
+          }
+          if (!fechaFin) {
+            errores.fechaFin = 'La fecha fin es obligatoria.'
+          }
+          if (fechaInicio && fechaFin && new Date(fechaInicio) > new Date(fechaFin)) {
+            errores.fechaFin = 'La fecha fin debe ser posterior o igual a la fecha de inicio.'
+          }
+          if (Object.keys(errores).length > 0) {
+            setFieldErrors(errores)
+            return
+          }
           await onSubmit({
             lineaNegocioId: Number(lineaNegocioId),
             vehiculoId: Number(vehiculoId),
             materialId: Number(materialId),
             proveedorId: Number(proveedorId),
-            fechaInicio: fechaInicio
-              ? new Date(fechaInicio).toISOString()
-              : undefined,
-            fechaFin: fechaFin ? new Date(fechaFin).toISOString() : undefined,
+            fechaInicio: isoStartOfDay(fechaInicio),
+            fechaFin: isoStartOfDay(fechaFin),
             medioPago: medioPago.trim(),
             valor,
             descripcion: descripcion.trim() || undefined,
@@ -85,13 +103,14 @@ export function OperacionForm({ catalogos, usuarioRegistroLabel, onCancel, onSub
         Registrar operación (Operaciones_Lineas_Negocio)
       </div>
       <div className="mt-1 text-sm text-slate-600">
-        El usuario de registro se toma automáticamente de tu sesión. Línea, vehículo, material y proveedor son
-        obligatorios en el modelo ER.
+        El usuario de registro se toma automáticamente de tu sesión. Línea, vehículo, material, proveedor y las
+        fechas de inicio y fin son obligatorios. La fecha fin no puede ser anterior a la de inicio.
       </div>
 
       {!hasCatalogos ? (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Completa catálogos: al menos una línea de negocio, vehículo, material y proveedor.
+          Completa catálogos activos: al menos una línea de negocio, un vehículo con conductor, un material y
+          un proveedor. Los registros desactivados no aparecen aquí.
         </div>
       ) : null}
 
@@ -128,6 +147,16 @@ export function OperacionForm({ catalogos, usuarioRegistroLabel, onCancel, onSub
             </option>
           ))}
         </Select>
+
+        <div className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2">
+          <div className="text-xs font-bold uppercase tracking-wide text-slate-500">
+            Conductor del vehículo
+          </div>
+          <div className="mt-1 text-sm font-semibold text-slate-900">
+            {vehiculoSeleccionado?.conductorNombre ??
+              (vehiculoId ? 'Sin conductor asignado' : 'Seleccione un vehículo')}
+          </div>
+        </div>
 
         <Select
           label="Material (catálogo)"
@@ -174,16 +203,16 @@ export function OperacionForm({ catalogos, usuarioRegistroLabel, onCancel, onSub
         />
 
         <Input
-          label="Fecha inicio (opcional)"
-          type="datetime-local"
+          label="Fecha inicio"
+          type="date"
           value={fechaInicio}
           onChange={(e) => setFechaInicio(e.target.value)}
           error={fieldErrors.fechaInicio}
         />
 
         <Input
-          label="Fecha fin (opcional)"
-          type="datetime-local"
+          label="Fecha fin"
+          type="date"
           value={fechaFin}
           onChange={(e) => setFechaFin(e.target.value)}
           error={fieldErrors.fechaFin}

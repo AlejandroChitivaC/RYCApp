@@ -31,4 +31,9 @@ public class MaterialRepositoryAdapter implements MaterialRepository {
     public List<Material> findAll() {
         return jpaRepository.findAll().stream().map(MaterialMapper::toDomain).toList();
     }
+
+    @Override
+    public boolean existsByMaterialIgnoreCase(String material) {
+        return jpaRepository.existsByMaterialIgnoreCase(material);
+    }
 }

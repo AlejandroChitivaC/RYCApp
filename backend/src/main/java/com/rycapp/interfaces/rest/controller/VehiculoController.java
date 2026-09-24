@@ -4,11 +4,13 @@ import com.rycapp.application.ports.in.VehiculoUseCase;
 import com.rycapp.application.ports.out.UsuarioRepository;
 import com.rycapp.domain.model.Vehiculo;
 import com.rycapp.interfaces.rest.dto.vehiculo.VehiculoCreateRequest;
+import com.rycapp.interfaces.rest.dto.vehiculo.VehiculoEstadoRequest;
 import com.rycapp.interfaces.rest.dto.vehiculo.VehiculoResponse;
 import com.rycapp.interfaces.rest.dto.vehiculo.VehiculoUpdateRequest;
 import com.rycapp.interfaces.rest.mapper.VehiculoDtoMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -47,6 +49,15 @@ public class VehiculoController {
     public ResponseEntity<VehiculoResponse> editar(@PathVariable Long id, @Valid @RequestBody VehiculoUpdateRequest req) {
         var updated = useCase.editar(id, req.placa(), req.clase(), req.marca(), req.modelo(), req.conductorId());
         return ResponseEntity.ok(toResponse(updated));
+    }
+
+    @PatchMapping("/{id}/estado")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    public ResponseEntity<VehiculoResponse> cambiarEstado(
+            @PathVariable Long id,
+            @Valid @RequestBody VehiculoEstadoRequest req
+    ) {
+        return ResponseEntity.ok(toResponse(useCase.cambiarEstado(id, req.estado())));
     }
 
     @GetMapping

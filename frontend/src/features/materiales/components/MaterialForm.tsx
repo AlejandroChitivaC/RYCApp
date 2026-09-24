@@ -4,6 +4,7 @@ import { Button } from '../../../shared/ui/Button'
 import { Input } from '../../../shared/ui/Input'
 import { Textarea } from '../../../shared/ui/Textarea'
 import type { Material } from '../types'
+import { useMaterialesStore } from '../store'
 
 type Props = {
   initial?: Material | null
@@ -16,6 +17,7 @@ export function MaterialForm({ initial, onCancel, onSubmit }: Props) {
   const [descripcion, setDescripcion] = useState(initial?.descripcion ?? '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const existentes = useMaterialesStore((s) => s.items)
 
   const title = useMemo(() => (initial ? 'Editar material' : 'Nuevo material'), [initial])
 
@@ -26,8 +28,18 @@ export function MaterialForm({ initial, onCancel, onSubmit }: Props) {
         try {
           setIsSubmitting(true)
           setFieldErrors({})
+          const nombre = material.trim()
+          const duplicado = existentes.some(
+            (x) =>
+              x.material.trim().toLowerCase() === nombre.toLowerCase() &&
+              x.id !== initial?.id,
+          )
+          if (duplicado) {
+            setFieldErrors({ material: 'Ya existe un material con ese nombre.' })
+            return
+          }
           await onSubmit({
-            material: material.trim(),
+            material: nombre,
             descripcion: descripcion.trim() || undefined,
           })
         } catch (err) {

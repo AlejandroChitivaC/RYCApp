@@ -7,6 +7,29 @@ export function fmtDate(iso: string | null | undefined) {
   }
 }
 
+/** Fecha calendario en Colombia: dd/mm/aaaa. */
+export function fmtDateOnly(iso: string | null | undefined) {
+  if (!iso) return '—'
+  try {
+    return new Intl.DateTimeFormat('es-CO', {
+      timeZone: 'America/Bogota',
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    }).format(new Date(iso))
+  } catch {
+    return iso
+  }
+}
+
+export function isoStartOfDay(date: string) {
+  return new Date(`${date}T00:00:00`).toISOString()
+}
+
+export function isoEndOfDay(date: string) {
+  return new Date(`${date}T23:59:59.999`).toISOString()
+}
+
 /** Fecha ISO `yyyy-MM-dd` sin desfase de zona horaria. */
 export function fmtDay(iso: string | null | undefined) {
   if (!iso) return '—'

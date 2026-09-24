@@ -21,8 +21,8 @@ export type OperacionCreate = {
   vehiculoId: number
   materialId: number
   proveedorId: number
-  fechaInicio?: string
-  fechaFin?: string
+  fechaInicio: string
+  fechaFin: string
   medioPago: string
   valor: number
   descripcion?: string

@@ -25,6 +25,9 @@ public class ProveedorEntity {
     @Column(name = "Descripcion", length = 500)
     private String descripcion;
 
+    @Column(name = "Estado", nullable = false, length = 32)
+    private String estado;
+
     public Long getId() {
         return id;
     }
@@ -71,5 +74,13 @@ public class ProveedorEntity {
 
     public void setDescripcion(String descripcion) {
         this.descripcion = descripcion;
+    }
+
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
     }
 }

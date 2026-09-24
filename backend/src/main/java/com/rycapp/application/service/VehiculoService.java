@@ -62,6 +62,29 @@ public class VehiculoService implements VehiculoUseCase {
     }
 
     @Override
+    public Vehiculo cambiarEstado(Long id, String estado) {
+        var current = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Vehículo no encontrado (id=" + id + ")."));
+        var normalizado = estado == null ? "" : estado.trim().toUpperCase();
+        if (!normalizado.equals("ACTIVO") && !normalizado.equals("INACTIVO")) {
+            throw new IllegalArgumentException("El estado debe ser ACTIVO o INACTIVO.");
+        }
+        var conductorId = normalizado.equals("INACTIVO") ? null : current.conductorId();
+        var updated = repository.save(new Vehiculo(
+                current.id(),
+                current.placa(),
+                current.clase(),
+                current.marca(),
+                current.modelo(),
+                normalizado,
+                conductorId
+        ));
+        log.info("Vehículo estado cambiado id={} estado={} conductorId={}",
+                updated.id(), updated.estado(), updated.conductorId());
+        return updated;
+    }
+
+    @Override
     public List<Vehiculo> listar() {
         return repository.findAll();
     }
@@ -74,7 +97,7 @@ public class VehiculoService implements VehiculoUseCase {
 
     private void validarConductor(Long conductorId, Long excluirVehiculoId) {
         if (conductorId == null) {
-            return;
+            throw new IllegalArgumentException("El vehículo debe tener un conductor asignado.");
         }
         usuarioRepository.findById(conductorId)
                 .orElseThrow(() -> new NotFoundException("Conductor no encontrado (id=" + conductorId + ")."));

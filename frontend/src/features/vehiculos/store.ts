@@ -11,6 +11,7 @@ type State = {
   fetchAll: () => Promise<void>
   create: (payload: VehiculoCreate) => Promise<Vehiculo>
   update: (id: number, payload: VehiculoUpdate) => Promise<Vehiculo>
+  setEstado: (id: number, estado: string) => Promise<Vehiculo>
 }
 
 export const useVehiculosStore = create<State>((set, get) => ({
@@ -50,6 +51,25 @@ export const useVehiculosStore = create<State>((set, get) => ({
       const updated = await vehiculosApi.update(id, payload)
       set({ items: get().items.map((x) => (x.id === id ? updated : x)) })
       notify.success('Vehículo actualizado.')
+      return updated
+    } catch (e) {
+      notify.failure(getApiErrorMessage(e))
+      throw e
+    } finally {
+      loading.remove()
+    }
+  },
+
+  setEstado: async (id, estado) => {
+    loading.show('Actualizando estado...')
+    try {
+      const updated = await vehiculosApi.setEstado(id, estado)
+      set({ items: get().items.map((x) => (x.id === id ? updated : x)) })
+      notify.success(
+        updated.estado.toUpperCase() === 'INACTIVO'
+          ? 'Vehículo desactivado. El conductor quedó libre.'
+          : 'Vehículo activado.',
+      )
       return updated
     } catch (e) {
       notify.failure(getApiErrorMessage(e))

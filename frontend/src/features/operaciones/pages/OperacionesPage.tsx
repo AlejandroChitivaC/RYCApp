@@ -12,12 +12,12 @@ import { useLineasNegocioStore } from '../../lineasNegocio/store'
 import { useMaterialesStore } from '../../materiales/store'
 import { useProveedoresStore } from '../../proveedores/store'
 import { useAuthStore } from '../../auth/store'
-import { hasRole, ROLES_CONSULTA_HISTORIAL } from '../../auth/roles'
+import { esActivo, hasRole, ROLES_CONSULTA_HISTORIAL } from '../../auth/roles'
 import { useVehiculosStore } from '../../vehiculos/store'
 import { OperacionForm } from '../components/OperacionForm'
 import type { Operacion } from '../types'
 import { useOperacionesStore } from '../store'
-import { fmtDate } from '../../../shared/utils/format'
+import { fmtDateOnly } from '../../../shared/utils/format'
 
 function matchesOperacion(
   o: Operacion,
@@ -31,7 +31,7 @@ function matchesOperacion(
   const mat = (materialesById.get(o.materialId) ?? '').toLowerCase()
   return (
     String(o.id).includes(s) ||
-    fmtDate(o.fechaInsercion).toLowerCase().includes(s) ||
+    fmtDateOnly(o.fechaInsercion).toLowerCase().includes(s) ||
     linea.includes(s) ||
     mat.includes(s) ||
     String(o.valor).toLowerCase().includes(s) ||
@@ -84,10 +84,10 @@ export function OperacionesPage() {
 
   const catalogos = useMemo(
     () => ({
-      lineas: lineasItems,
-      vehiculos: vehiculosItems,
+      lineas: lineasItems.filter((x) => esActivo(x.estado)),
+      vehiculos: vehiculosItems.filter((x) => esActivo(x.estado) && x.conductorId != null),
       materiales: materialesItems,
-      proveedores: proveedoresItems,
+      proveedores: proveedoresItems.filter((x) => esActivo(x.estado)),
     }),
     [lineasItems, vehiculosItems, materialesItems, proveedoresItems],
   )
@@ -137,7 +137,7 @@ export function OperacionesPage() {
         <div className="lg:col-span-3">
           <Input
             label="Desde (Fecha_Inserción)"
-            type="datetime-local"
+            type="date"
             value={filters.from}
             onChange={(e) => setFilters({ from: e.target.value })}
           />
@@ -145,7 +145,7 @@ export function OperacionesPage() {
         <div className="lg:col-span-3">
           <Input
             label="Hasta"
-            type="datetime-local"
+            type="date"
             value={filters.to}
             onChange={(e) => setFilters({ to: e.target.value })}
           />
@@ -231,7 +231,7 @@ export function OperacionesPage() {
               {filteredOps.map((o) => (
                 <tr key={o.id} className="hover:bg-brand-yellow/[0.06]">
                   <TD>{o.id}</TD>
-                  <TD>{fmtDate(o.fechaInsercion)}</TD>
+                  <TD>{fmtDateOnly(o.fechaInsercion)}</TD>
                   <TD>
                     <span className="inline-flex rounded-full bg-brand-yellow/20 px-2 py-1 text-xs font-bold text-brand-dark ring-1 ring-brand-yellow/50">
                       {lineasById.get(o.lineaNegocioId) ?? `#${o.lineaNegocioId}`}

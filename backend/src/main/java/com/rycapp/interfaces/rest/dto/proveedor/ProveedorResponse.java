@@ -6,5 +6,6 @@ public record ProveedorResponse(
         String nit,
         String departamento,
         String municipio,
-        String descripcion
+        String descripcion,
+        String estado
 ) {}
