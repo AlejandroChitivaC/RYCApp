@@ -34,7 +34,7 @@ public class SiigoFacturaSyncService implements SiigoFacturaSyncUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(SiigoFacturaSyncService.class);
     private static final Pattern OP_REF = Pattern.compile(
-            "(?i)(?:OP-|operaci[oó]n\\s*#?\\s*)(\\d+)"
+            "(?i)(?:OP-|operaci[oó]n\\s*#?\\s*)([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12})"
     );
     private static final AtomicBoolean RUNNING = new AtomicBoolean(false);
 
@@ -93,7 +93,7 @@ public class SiigoFacturaSyncService implements SiigoFacturaSyncUseCase {
                         omitidasBorrador++;
                         continue;
                     }
-                    Long operacionId = resolverOperacion(inv, confirmadas);
+                    String operacionId = resolverOperacion(inv, confirmadas);
                     FacturaSiigo guardada = upsert(inv, operacionId);
                     guardadas++;
                     if (guardada.operacionId() != null) {
@@ -126,15 +126,15 @@ public class SiigoFacturaSyncService implements SiigoFacturaSyncUseCase {
         return facturaSiigoRepository.findAll();
     }
 
-    private FacturaSiigo upsert(InvoiceSummary inv, Long operacionId) {
+    private FacturaSiigo upsert(InvoiceSummary inv, String operacionId) {
         LocalDate fecha = parseDate(inv.date());
         LocalDate vencimiento = parseDate(inv.dueDate());
         LocalDate hoy = LocalDate.now(ZoneOffset.UTC);
         String estadoPago = EstadoPagoFactura.calcular(inv.balance(), vencimiento, hoy);
         Instant now = Instant.now();
 
-        Long id = null;
-        Long operacionFinal = operacionId;
+        String id = null;
+        String operacionFinal = operacionId;
         var existente = facturaSiigoRepository.findBySiigoInvoiceId(inv.id());
         if (existente.isPresent()) {
             id = existente.get().id();
@@ -165,10 +165,10 @@ public class SiigoFacturaSyncService implements SiigoFacturaSyncUseCase {
         ));
     }
 
-    private Long resolverOperacion(InvoiceSummary inv, List<Operacion> confirmadas) {
-        Optional<Long> porTexto = extraerOperacionId(inv.observations(), inv.name());
+    private String resolverOperacion(InvoiceSummary inv, List<Operacion> confirmadas) {
+        Optional<String> porTexto = extraerOperacionId(inv.observations(), inv.name());
         if (porTexto.isPresent()) {
-            Long id = porTexto.get();
+            String id = porTexto.get();
             boolean confirmada = confirmadas.stream().anyMatch(o -> o.id().equals(id));
             return confirmada ? id : null;
         }
@@ -191,7 +191,7 @@ public class SiigoFacturaSyncService implements SiigoFacturaSyncUseCase {
         if (proveedor.isEmpty()) {
             return null;
         }
-        Long proveedorId = proveedor.get().id();
+        String proveedorId = proveedor.get().id();
         BigDecimal total = inv.total() != null ? inv.total() : BigDecimal.ZERO;
         LocalDate fechaFactura = parseDate(inv.date());
 
@@ -214,14 +214,14 @@ public class SiigoFacturaSyncService implements SiigoFacturaSyncUseCase {
         return null;
     }
 
-    static Optional<Long> extraerOperacionId(String observations, String name) {
+    static Optional<String> extraerOperacionId(String observations, String name) {
         for (String text : new String[]{observations, name}) {
             if (text == null || text.isBlank()) {
                 continue;
             }
             Matcher m = OP_REF.matcher(text);
             if (m.find()) {
-                return Optional.of(Long.parseLong(m.group(1)));
+                return Optional.of(m.group(1));
             }
         }
         return Optional.empty();

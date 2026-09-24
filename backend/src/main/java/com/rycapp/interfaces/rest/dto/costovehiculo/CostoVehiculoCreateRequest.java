@@ -10,13 +10,13 @@ import java.time.Instant;
 
 public record CostoVehiculoCreateRequest(
         @NotNull(message = "usuarioRegistroId es obligatorio.")
-        Long usuarioRegistroId,
+        String usuarioRegistroId,
 
         @NotNull(message = "tipoCostoId es obligatorio.")
-        Long tipoCostoId,
+        String tipoCostoId,
 
         @NotNull(message = "vehiculoId es obligatorio.")
-        Long vehiculoId,
+        String vehiculoId,
 
         Instant fechaInicio,
         Instant fechaFin,

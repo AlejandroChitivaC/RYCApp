@@ -30,8 +30,8 @@ public class CostoAdministrativoService implements CostoAdministrativoUseCase {
 
     @Override
     public CostoAdministrativo crear(
-            Long usuarioRegistroId,
-            Long tipoCostoId,
+            String usuarioRegistroId,
+            String tipoCostoId,
             Instant fechaInicio,
             Instant fechaFin,
             String medioPago,
@@ -61,7 +61,7 @@ public class CostoAdministrativoService implements CostoAdministrativoUseCase {
     }
 
     @Override
-    public CostoAdministrativo obtener(Long id) {
+    public CostoAdministrativo obtener(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Costo administrativo no encontrado (id=" + id + ")."));
     }

@@ -1,3 +1,3 @@
 package com.rycapp.domain.model;
 
-public record Rol(Long id, String descripcion) {}
+public record Rol(String id, String descripcion) {}

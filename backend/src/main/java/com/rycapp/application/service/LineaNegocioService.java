@@ -32,7 +32,7 @@ public class LineaNegocioService implements LineaNegocioUseCase {
     }
 
     @Override
-    public LineaNegocio editar(Long id, String lineaNegocio, String descripcion) {
+    public LineaNegocio editar(String id, String lineaNegocio, String descripcion) {
         var current = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Línea de negocio no encontrada (id=" + id + ")."));
 
@@ -57,7 +57,7 @@ public class LineaNegocioService implements LineaNegocioUseCase {
     }
 
     @Override
-    public LineaNegocio cambiarEstado(Long id, String estado) {
+    public LineaNegocio cambiarEstado(String id, String estado) {
         var current = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Línea de negocio no encontrada (id=" + id + ")."));
 
@@ -72,7 +72,7 @@ public class LineaNegocioService implements LineaNegocioUseCase {
     }
 
     @Override
-    public LineaNegocio obtener(Long id) {
+    public LineaNegocio obtener(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Línea de negocio no encontrada (id=" + id + ")."));
     }

@@ -57,8 +57,8 @@ export type SiigoSyncResult = {
 }
 
 export type SiigoFactura = {
-  id: number
-  operacionId: number | null
+  id: string
+  operacionId: string | null
   siigoInvoiceId: string
   numero: string | null
   prefijo: string | null

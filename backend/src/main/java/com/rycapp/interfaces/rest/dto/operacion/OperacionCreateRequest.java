@@ -10,16 +10,16 @@ import java.time.Instant;
 
 public record OperacionCreateRequest(
         @NotNull(message = "lineaNegocioId es obligatorio.")
-        Long lineaNegocioId,
+        String lineaNegocioId,
 
         @NotNull(message = "vehiculoId es obligatorio.")
-        Long vehiculoId,
+        String vehiculoId,
 
         @NotNull(message = "materialId es obligatorio.")
-        Long materialId,
+        String materialId,
 
         @NotNull(message = "proveedorId es obligatorio.")
-        Long proveedorId,
+        String proveedorId,
 
         @NotNull(message = "La fecha de inicio es obligatoria.")
         Instant fechaInicio,

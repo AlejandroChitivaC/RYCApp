@@ -1,88 +1,97 @@
 package com.rycapp.infrastructure.persistence.adapter;
 
 import com.rycapp.application.ports.out.UsuarioRepository;
+import com.rycapp.application.util.Ids;
 import com.rycapp.domain.model.Usuario;
 import com.rycapp.domain.model.UsuarioPendienteActivacion;
-import com.rycapp.infrastructure.persistence.jpa.mapper.UsuarioMapper;
-import com.rycapp.infrastructure.persistence.jpa.repository.CuentaAutenticacionJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.RolJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.UsuarioJpaRepository;
+import com.rycapp.infrastructure.persistence.dynamo.DynamoSupport;
+import com.rycapp.infrastructure.persistence.dynamo.item.RolItem;
+import com.rycapp.infrastructure.persistence.dynamo.item.UsuarioItem;
 import org.springframework.stereotype.Repository;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class UsuarioRepositoryAdapter implements UsuarioRepository {
-    private final UsuarioJpaRepository usuarioJpaRepository;
-    private final RolJpaRepository rolJpaRepository;
-    private final CuentaAutenticacionJpaRepository cuentaAutenticacionJpaRepository;
+    private final DynamoDbTable<UsuarioItem> table;
+    private final DynamoDbTable<RolItem> roles;
 
     public UsuarioRepositoryAdapter(
-            UsuarioJpaRepository usuarioJpaRepository,
-            RolJpaRepository rolJpaRepository,
-            CuentaAutenticacionJpaRepository cuentaAutenticacionJpaRepository
+            DynamoDbTable<UsuarioItem> usuariosTable,
+            DynamoDbTable<RolItem> rolesTable
     ) {
-        this.usuarioJpaRepository = usuarioJpaRepository;
-        this.rolJpaRepository = rolJpaRepository;
-        this.cuentaAutenticacionJpaRepository = cuentaAutenticacionJpaRepository;
+        this.table = usuariosTable;
+        this.roles = rolesTable;
     }
 
     @Override
     public Usuario save(Usuario usuario) {
-        var rol = rolJpaRepository.getReferenceById(usuario.rolId());
-        var saved = usuarioJpaRepository.save(UsuarioMapper.toEntity(usuario, rol));
-        return usuarioJpaRepository.findOneFetched(saved.getId()).map(UsuarioMapper::toDomain).orElseThrow();
+        UsuarioItem item = usuario.id() == null
+                ? new UsuarioItem()
+                : DynamoSupport.findOne(table, usuario.id()).orElseGet(UsuarioItem::new);
+        if (item.getId() == null) {
+            item.setId(Ids.oNuevo(usuario.id()));
+        }
+        item.applyUsuario(usuario);
+        DynamoSupport.findOne(roles, usuario.rolId()).ifPresent(r -> item.setRolDescripcion(r.getDescripcion()));
+        table.putItem(item);
+        return item.toUsuario();
     }
 
     @Override
-    public Optional<Usuario> findById(Long id) {
-        return usuarioJpaRepository.findOneFetched(id).map(UsuarioMapper::toDomain);
+    public Optional<Usuario> findById(String id) {
+        return DynamoSupport.findOne(table, id).map(UsuarioItem::toUsuario);
     }
 
     @Override
     public List<Usuario> findAll() {
-        return usuarioJpaRepository.findAllFetched().stream().map(UsuarioMapper::toDomain).toList();
+        return DynamoSupport.scanAll(table).stream().map(UsuarioItem::toUsuario).toList();
     }
 
     @Override
     public boolean existsByCedulaIgnoreCase(String cedula) {
-        return usuarioJpaRepository.existsByCedulaIgnoreCase(cedula);
+        return DynamoSupport.exists(table.index("cedula-index"), DynamoSupport.lower(cedula));
     }
 
     @Override
-    public boolean tieneRolDescripcion(Long usuarioId, String rolDescripcion) {
-        return usuarioJpaRepository.findOneFetched(usuarioId)
-                .map(u -> rolDescripcion.equalsIgnoreCase(u.getRol().getDescripcion()))
+    public boolean tieneRolDescripcion(String usuarioId, String rolDescripcion) {
+        return DynamoSupport.findOne(table, usuarioId)
+                .map(u -> rolDescripcion != null && rolDescripcion.equalsIgnoreCase(u.getRolDescripcion()))
                 .orElse(false);
     }
 
     @Override
     public List<Usuario> findByRolDescripcion(String rolDescripcion) {
-        return usuarioJpaRepository.findAllByRolDescripcion(rolDescripcion).stream()
-                .map(UsuarioMapper::toDomain)
+        String wanted = DynamoSupport.lower(rolDescripcion);
+        return DynamoSupport.scanAll(table).stream()
+                .filter(u -> u.getRolDescripcion() != null && wanted.equals(u.getRolDescripcion().toLowerCase()))
+                .map(UsuarioItem::toUsuario)
                 .toList();
     }
 
     @Override
     public List<UsuarioPendienteActivacion> listarPendientesActivacionCorreoVerificado() {
-        return cuentaAutenticacionJpaRepository.findCuentasPendientesActivacion().stream()
-                .map(c -> {
-                    var u = c.getUsuario();
-                    return new UsuarioPendienteActivacion(
-                            u.getId(),
-                            u.getCedula(),
-                            u.getNombre(),
-                            u.getApellido(),
-                            c.getCorreo()
-                    );
-                })
+        return DynamoSupport.queryAll(table.index("estado-index"), "PENDIENTE_APROBACION").stream()
+                .filter(u -> Boolean.TRUE.equals(u.getCorreoVerificado()))
+                .map(u -> new UsuarioPendienteActivacion(u.getId(), u.getCedula(), u.getNombre(), u.getApellido(), u.getCorreo()))
                 .toList();
     }
 
     @Override
-    public Optional<String> findCorreoCuentaByUsuarioId(Long usuarioId) {
-        return cuentaAutenticacionJpaRepository.findByUsuario_Id(usuarioId)
-                .map(c -> c.getCorreo());
+    public Optional<String> findCorreoCuentaByUsuarioId(String usuarioId) {
+        return DynamoSupport.findOne(table, usuarioId)
+                .map(UsuarioItem::getCorreo)
+                .filter(c -> c != null && !c.isBlank());
+    }
+
+    @Override
+    public List<String> findCorreosAdministradores() {
+        return DynamoSupport.scanAll(table).stream()
+                .filter(u -> u.getRolDescripcion() != null && "Administrador".equalsIgnoreCase(u.getRolDescripcion()))
+                .map(UsuarioItem::getCorreo)
+                .filter(c -> c != null && !c.isBlank())
+                .toList();
     }
 }

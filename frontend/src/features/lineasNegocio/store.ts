@@ -10,8 +10,8 @@ type State = {
   error: string | null
   fetchAll: () => Promise<void>
   create: (payload: LineaNegocioCreate) => Promise<LineaNegocio>
-  update: (id: number, payload: LineaNegocioUpdate) => Promise<LineaNegocio>
-  setEstado: (id: number, estado: string) => Promise<LineaNegocio>
+  update: (id: string, payload: LineaNegocioUpdate) => Promise<LineaNegocio>
+  setEstado: (id: string, estado: string) => Promise<LineaNegocio>
 }
 
 export const useLineasNegocioStore = create<State>((set, get) => ({

@@ -5,15 +5,16 @@ import com.rycapp.application.exception.NotFoundException;
 import com.rycapp.application.ports.in.TicketUseCase;
 import com.rycapp.application.ports.out.OperacionRepository;
 import com.rycapp.application.ports.out.PdfConversionPort;
+import com.rycapp.application.ports.out.TicketArchivoStorage;
 import com.rycapp.application.ports.out.TicketRepository;
 import com.rycapp.application.ports.out.UsuarioRepository;
+import com.rycapp.application.util.Ids;
+import com.rycapp.application.util.Sha256Hasher;
 import com.rycapp.domain.model.Ticket;
 import com.rycapp.domain.model.TicketAuditoria;
-import com.rycapp.application.util.Sha256Hasher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -21,37 +22,36 @@ import java.util.Set;
 
 @Service
 public class TicketService implements TicketUseCase {
-
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
-
-    private static final Set<String> TIPOS_IMAGEN_PERMITIDOS = Set.of(
+    private static final Set<String> TIPOS_IMAGEN = Set.of(
             "image/jpeg", "image/jpg", "image/png", "image/gif", "image/bmp"
     );
-
-    private static final long TAMANO_MAXIMO_BYTES = 10L * 1024 * 1024;
+    private static final long TAMANO_MAXIMO = 4L * 1024 * 1024;
 
     private final TicketRepository ticketRepository;
+    private final TicketArchivoStorage archivoStorage;
     private final OperacionRepository operacionRepository;
     private final UsuarioRepository usuarioRepository;
     private final PdfConversionPort pdfConversionPort;
 
     public TicketService(
             TicketRepository ticketRepository,
+            TicketArchivoStorage archivoStorage,
             OperacionRepository operacionRepository,
             UsuarioRepository usuarioRepository,
             PdfConversionPort pdfConversionPort
     ) {
         this.ticketRepository = ticketRepository;
+        this.archivoStorage = archivoStorage;
         this.operacionRepository = operacionRepository;
         this.usuarioRepository = usuarioRepository;
         this.pdfConversionPort = pdfConversionPort;
     }
 
     @Override
-    @Transactional
     public Ticket cargar(
-            Long usuarioCargaId,
-            Long operacionId,
+            String usuarioCargaId,
+            String operacionId,
             String numeroTicket,
             String nombreArchivoOriginal,
             String tipoContenidoOriginal,
@@ -60,14 +60,12 @@ public class TicketService implements TicketUseCase {
         if (contenidoImagen == null || contenidoImagen.length == 0) {
             throw new IllegalArgumentException("El archivo no puede estar vacío.");
         }
-        if (contenidoImagen.length > TAMANO_MAXIMO_BYTES) {
-            throw new IllegalArgumentException("El archivo supera el tamaño máximo permitido de 10 MB.");
+        if (contenidoImagen.length > TAMANO_MAXIMO) {
+            throw new IllegalArgumentException("El archivo supera el tamaño máximo de 4 MB.");
         }
-
         String tipo = tipoContenidoOriginal != null ? tipoContenidoOriginal.toLowerCase().trim() : "";
-        if (!TIPOS_IMAGEN_PERMITIDOS.contains(tipo)) {
-            throw new IllegalArgumentException(
-                    "Solo se permiten imágenes (JPEG, PNG, GIF, BMP). Tipo recibido: " + tipoContenidoOriginal + ".");
+        if (!TIPOS_IMAGEN.contains(tipo)) {
+            throw new IllegalArgumentException("Solo se permiten imágenes (JPEG, PNG, GIF, BMP).");
         }
 
         usuarioRepository.findById(usuarioCargaId)
@@ -77,39 +75,36 @@ public class TicketService implements TicketUseCase {
 
         String hash = Sha256Hasher.hex(contenidoImagen);
         if (ticketRepository.existsByHashSha256(hash)) {
-            throw new ConflictException("Ya existe un ticket con el mismo contenido (duplicado por hash).");
+            throw new ConflictException("Ya existe un ticket con el mismo contenido.");
         }
-
-        String numeroNormalizado = (numeroTicket != null && !numeroTicket.isBlank())
-                ? numeroTicket.trim() : null;
-        if (numeroNormalizado != null && ticketRepository.existsByNumeroTicket(numeroNormalizado)) {
-            throw new ConflictException("Ya existe un ticket con el número '" + numeroNormalizado + "'.");
+        String numero = (numeroTicket != null && !numeroTicket.isBlank()) ? numeroTicket.trim() : null;
+        if (numero != null && ticketRepository.existsByNumeroTicket(numero)) {
+            throw new ConflictException("Ya existe un ticket con el número '" + numero + "'.");
         }
 
         byte[] pdf = pdfConversionPort.imagenAPdf(contenidoImagen, tipoContenidoOriginal);
-
+        String id = Ids.nuevo();
+        archivoStorage.guardarPdf(id, pdf);
         var ticket = ticketRepository.save(new Ticket(
-                null,
+                id,
                 operacionId,
                 usuarioCargaId,
-                numeroNormalizado,
+                numero,
                 nombreArchivoOriginal != null ? nombreArchivoOriginal : "ticket",
                 hash,
                 tipoContenidoOriginal,
                 (long) contenidoImagen.length,
                 Instant.now()
-        ), pdf);
-
+        ));
         ticketRepository.saveAuditoria(new TicketAuditoria(
                 null, ticket.id(), usuarioCargaId, null, null, Instant.now(), "CARGA"
         ));
-
-        log.info("Ticket cargado id={} operacionId={} usuarioCargaId={}", ticket.id(), operacionId, usuarioCargaId);
+        log.info("Ticket cargado id={} operacionId={}", ticket.id(), operacionId);
         return ticket;
     }
 
     @Override
-    public Ticket obtener(Long id, Long usuarioId) {
+    public Ticket obtener(String id, String usuarioId) {
         var ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Ticket no encontrado (id=" + id + ")."));
         registrarAuditoria(ticket.id(), usuarioId, "CONSULTA");
@@ -117,7 +112,7 @@ public class TicketService implements TicketUseCase {
     }
 
     @Override
-    public List<Ticket> listar(Long operacionId) {
+    public List<Ticket> listar(String operacionId) {
         if (operacionId != null) {
             return ticketRepository.findByOperacionId(operacionId);
         }
@@ -125,33 +120,33 @@ public class TicketService implements TicketUseCase {
     }
 
     @Override
-    public byte[] obtenerContenidoPdf(Long id, Long usuarioId, String accionAuditoria) {
-        return obtenerPdf(id, usuarioId, accionAuditoria).contenido();
-    }
-
-    @Override
-    public TicketPdfContenido obtenerPdf(Long id, Long usuarioId, String accionAuditoria) {
+    public TicketPdfEnlace obtenerPdf(String id, String usuarioId, String accionAuditoria) {
         var ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Ticket no encontrado (id=" + id + ")."));
-        var pdf = ticketRepository.findContenidoPdfById(id)
-                .orElseThrow(() -> new NotFoundException("Contenido PDF no encontrado para el ticket (id=" + id + ")."));
         registrarAuditoria(ticket.id(), usuarioId, accionAuditoria);
         String nombreBase = ticket.nombreArchivoOriginal().replaceAll("\\.[^.]+$", "");
-        return new TicketPdfContenido(pdf, nombreBase + ".pdf");
-    }
-
-    private void registrarAuditoria(Long ticketId, Long usuarioId, String accion) {
-        ticketRepository.saveAuditoria(new TicketAuditoria(
-                null, ticketId, usuarioId, null, null, Instant.now(), accion
-        ));
-        log.info("Auditoría ticket id={} usuarioId={} accion={}", ticketId, usuarioId, accion);
+        return new TicketPdfEnlace(archivoStorage.urlPrefirmada(id), nombreBase + ".pdf");
     }
 
     @Override
-    public List<TicketAuditoria> listarAuditoria(Long ticketId) {
+    public byte[] leerArchivo(String id, String usuarioId) {
+        ticketRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Ticket no encontrado (id=" + id + ")."));
+        registrarAuditoria(id, usuarioId, "DESCARGA");
+        return archivoStorage.leerPdf(id);
+    }
+
+    @Override
+    public List<TicketAuditoria> listarAuditoria(String ticketId) {
         if (ticketId != null) {
             return ticketRepository.findAuditoriaByTicketId(ticketId);
         }
         return ticketRepository.findAllAuditoria();
+    }
+
+    private void registrarAuditoria(String ticketId, String usuarioId, String accion) {
+        ticketRepository.saveAuditoria(new TicketAuditoria(
+                null, ticketId, usuarioId, null, null, Instant.now(), accion
+        ));
     }
 }

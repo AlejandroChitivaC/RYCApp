@@ -3,6 +3,7 @@ package com.rycapp.interfaces.rest.controller;
 import com.rycapp.application.ports.in.TicketUseCase;
 import com.rycapp.infrastructure.security.JwtPrincipal;
 import com.rycapp.interfaces.rest.dto.ticket.TicketAuditoriaResponse;
+import com.rycapp.interfaces.rest.dto.ticket.TicketPdfResponse;
 import com.rycapp.interfaces.rest.dto.ticket.TicketResponse;
 import com.rycapp.interfaces.rest.mapper.TicketDtoMapper;
 import org.springframework.http.HttpHeaders;
@@ -32,7 +33,7 @@ public class TicketController {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONDUCTOR')")
     public ResponseEntity<TicketResponse> cargar(
             @AuthenticationPrincipal JwtPrincipal principal,
-            @RequestParam("operacionId") Long operacionId,
+            @RequestParam("operacionId") String operacionId,
             @RequestParam(value = "numeroTicket", required = false) String numeroTicket,
             @RequestParam("archivo") MultipartFile archivo
     ) throws IOException {
@@ -52,7 +53,7 @@ public class TicketController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
     public ResponseEntity<List<TicketResponse>> listar(
-            @RequestParam(value = "operacionId", required = false) Long operacionId
+            @RequestParam(value = "operacionId", required = false) String operacionId
     ) {
         var items = useCase.listar(operacionId).stream()
                 .map(TicketDtoMapper::toResponse)
@@ -63,7 +64,7 @@ public class TicketController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
     public ResponseEntity<TicketResponse> obtener(
-            @PathVariable Long id,
+            @PathVariable String id,
             @AuthenticationPrincipal JwtPrincipal principal
     ) {
         return ResponseEntity.ok(TicketDtoMapper.toResponse(useCase.obtener(id, principal.usuarioId())));
@@ -71,21 +72,28 @@ public class TicketController {
 
     @GetMapping("/{id}/pdf")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
-    public ResponseEntity<byte[]> descargarPdf(
-            @PathVariable Long id,
+    public ResponseEntity<TicketPdfResponse> enlacePdf(
+            @PathVariable String id,
             @AuthenticationPrincipal JwtPrincipal principal,
             @RequestParam(value = "disposition", defaultValue = "attachment") String disposition
     ) {
         boolean inline = "inline".equalsIgnoreCase(disposition);
         String accion = inline ? "VISUALIZACION" : "DESCARGA";
         var pdf = useCase.obtenerPdf(id, principal.usuarioId(), accion);
-        String contentDisposition = inline
-                ? "inline; filename=\"" + pdf.nombreArchivoDescarga() + "\""
-                : "attachment; filename=\"" + pdf.nombreArchivoDescarga() + "\"";
+        return ResponseEntity.ok(new TicketPdfResponse(pdf.url(), pdf.nombreArchivo()));
+    }
+
+    @GetMapping("/{id}/archivo")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
+    public ResponseEntity<byte[]> archivo(
+            @PathVariable String id,
+            @AuthenticationPrincipal JwtPrincipal principal
+    ) {
+        byte[] pdf = useCase.leerArchivo(id, principal.usuarioId());
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"ticket.pdf\"")
                 .contentType(MediaType.APPLICATION_PDF)
-                .body(pdf.contenido());
+                .body(pdf);
     }
 
     @GetMapping("/auditoria")
@@ -99,7 +107,7 @@ public class TicketController {
 
     @GetMapping("/{id}/auditoria")
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN')")
-    public ResponseEntity<List<TicketAuditoriaResponse>> auditoriaPorTicket(@PathVariable Long id) {
+    public ResponseEntity<List<TicketAuditoriaResponse>> auditoriaPorTicket(@PathVariable String id) {
         var items = useCase.listarAuditoria(id).stream()
                 .map(TicketDtoMapper::toAuditoriaResponse)
                 .toList();

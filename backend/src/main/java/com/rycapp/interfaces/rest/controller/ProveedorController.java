@@ -35,14 +35,14 @@ public class ProveedorController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProveedorResponse> editar(@PathVariable Long id, @Valid @RequestBody ProveedorUpdateRequest req) {
+    public ResponseEntity<ProveedorResponse> editar(@PathVariable String id, @Valid @RequestBody ProveedorUpdateRequest req) {
         return ResponseEntity.ok(toRes(useCase.editar(id, req.nombre(), req.nit(), req.departamento(), req.municipio(), req.descripcion())));
     }
 
     @PatchMapping("/{id}/estado")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ProveedorResponse> cambiarEstado(
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody ProveedorEstadoRequest req
     ) {
         return ResponseEntity.ok(toRes(useCase.cambiarEstado(id, req.estado())));
@@ -54,7 +54,7 @@ public class ProveedorController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProveedorResponse> obtener(@PathVariable Long id) {
+    public ResponseEntity<ProveedorResponse> obtener(@PathVariable String id) {
         return ResponseEntity.ok(toRes(useCase.obtener(id)));
     }
 }

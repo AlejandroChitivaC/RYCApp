@@ -7,6 +7,6 @@ import java.util.Optional;
 
 public interface TipoCostoRepository {
     TipoCosto save(TipoCosto tipoCosto);
-    Optional<TipoCosto> findById(Long id);
+    Optional<TipoCosto> findById(String id);
     List<TipoCosto> findAll();
 }

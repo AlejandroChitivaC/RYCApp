@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
-# Levanta backend (Spring Boot) y frontend (Vite) en desarrollo local.
+# Levanta DynamoDB Local, backend (Spring Boot) y frontend (Vite).
 #
 # Uso:
 #   ./run-local.sh           # OTP solo en logs del backend
 #   ./run-local.sh --local   # Perfil Spring local (SMTP en application-local.yml)
 #
-# Requisitos: Java 21, Maven, Node.js, npm, MySQL con base rycapp en localhost:3306
+# Requisitos: Java 21, Maven, Node.js, npm, Docker
 
 set -uo pipefail
 
@@ -24,7 +24,7 @@ Uso: $(basename "$0") [--local]
   -h, --help  Muestra esta ayuda
 
 Requisitos:
-  - MySQL en localhost:3306, base de datos "rycapp"
+  - Docker (DynamoDB Local en el puerto 8000)
   - Java 21, Maven, Node.js y npm en PATH
 EOF
 }
@@ -55,7 +55,7 @@ kill_process_tree() {
   fi
 
   if command -v taskkill >/dev/null 2>&1 && [[ "${OSTYPE:-}" == msys* || "${OSTYPE:-}" == cygwin* || "${OS:-}" == Windows_NT ]]; then
-    taskkill //F //T //PID "$pid" >/dev/null 2>&1 || true
+    taskkill //F //T //PID "$pid" >/dev/null 2>/dev/null || true
     return
   fi
 
@@ -64,7 +64,7 @@ kill_process_tree() {
   fi
 
   if command -v pkill >/dev/null 2>&1; then
-    pkill -P "$pid" >/dev/null 2>&1 || true
+    pkill -P "$pid" >/dev/null 2>/dev/null || true
   fi
 }
 
@@ -86,16 +86,29 @@ require_cmd java
 require_cmd mvn
 require_cmd node
 require_cmd npm
+require_cmd docker
 
 if [[ ! -d "$BACKEND_DIR" || ! -d "$FRONTEND_DIR" ]]; then
   echo "Error: ejecuta este script desde la raíz del repositorio." >&2
   exit 1
 fi
 
+echo "Levantando DynamoDB Local..."
+(cd "$ROOT" && docker compose up -d dynamodb)
+
 if [[ ! -d "$FRONTEND_DIR/node_modules" ]]; then
   echo "Instalando dependencias del frontend..."
   (cd "$FRONTEND_DIR" && npm install)
 fi
+
+export AWS_ACCESS_KEY_ID=local
+export AWS_SECRET_ACCESS_KEY=local
+export AWS_REGION=us-east-1
+export DYNAMODB_ENDPOINT=http://localhost:8000
+export RYCAPP_CREATE_LOCAL_TABLES=true
+export APP_BOOTSTRAP_ADMIN_ENABLED=true
+export APP_BOOTSTRAP_ADMIN_EMAIL=admin@rycapp.local
+export APP_BOOTSTRAP_ADMIN_PASSWORD=Admin1234!
 
 MAVEN_ARGS=(spring-boot:run)
 if [[ "$USE_LOCAL" == true ]]; then
@@ -127,6 +140,7 @@ echo ""
 echo "Proyecto en marcha. Pulsa Ctrl+C para detener todo."
 echo "  Frontend → http://localhost:5173"
 echo "  Backend  → http://localhost:8080"
+echo "  DynamoDB → localhost:8000"
 if [[ "$USE_LOCAL" == false ]]; then
   echo "  OTP sin correo: revisa los logs del backend."
 fi

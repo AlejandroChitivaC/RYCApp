@@ -34,7 +34,7 @@ export function LineasNegocioPage() {
   }, [fetchAll])
 
   const sorted = useMemo(() => {
-    return [...items].sort((a, b) => b.id - a.id)
+    return [...items].sort((a, b) => b.id.localeCompare(a.id))
   }, [items])
 
   const filtered = useMemo(

@@ -10,8 +10,8 @@ type State = {
   error: string | null
   fetchAll: () => Promise<void>
   create: (payload: VehiculoCreate) => Promise<Vehiculo>
-  update: (id: number, payload: VehiculoUpdate) => Promise<Vehiculo>
-  setEstado: (id: number, estado: string) => Promise<Vehiculo>
+  update: (id: string, payload: VehiculoUpdate) => Promise<Vehiculo>
+  setEstado: (id: string, estado: string) => Promise<Vehiculo>
 }
 
 export const useVehiculosStore = create<State>((set, get) => ({

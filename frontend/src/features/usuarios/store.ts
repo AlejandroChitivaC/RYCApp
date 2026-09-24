@@ -19,9 +19,9 @@ type State = {
   fetchRolesActivacionRegistro: () => Promise<void>
   fetchConductores: () => Promise<void>
   fetchPendientesActivacion: () => Promise<void>
-  activarCuenta: (id: number, rolId: number) => Promise<void>
+  activarCuenta: (id: string, rolId: string) => Promise<void>
   create: (payload: UsuarioCreate) => Promise<Usuario>
-  update: (id: number, payload: UsuarioUpdate) => Promise<Usuario>
+  update: (id: string, payload: UsuarioUpdate) => Promise<Usuario>
 }
 
 export const useUsuariosStore = create<State>((set, get) => ({

@@ -1,8 +1,8 @@
 package com.rycapp.interfaces.rest.dto.usuario;
 
 public record UsuarioResponse(
-        Long id,
-        Long rolId,
+        String id,
+        String rolId,
         String cedula,
         String nombre,
         String apellido,

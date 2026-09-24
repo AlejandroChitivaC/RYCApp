@@ -4,10 +4,10 @@ import java.math.BigDecimal;
 import java.time.Instant;
 
 public record Nomina(
-        Long id,
-        Long usuarioRegistroId,
-        Long tipoCostoId,
-        Long usuarioDebitadoId,
+        String id,
+        String usuarioRegistroId,
+        String tipoCostoId,
+        String usuarioDebitadoId,
         Instant fechaInsercion,
         Instant fechaInicio,
         Instant fechaFin,

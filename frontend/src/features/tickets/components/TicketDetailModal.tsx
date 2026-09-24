@@ -7,10 +7,10 @@ import { ticketsApi } from '../api'
 import type { Ticket, TicketAuditoria } from '../types'
 
 type Props = {
-  ticketId: number | null
+  ticketId: string | null
   puedeVerAuditoria: boolean
   onClose: () => void
-  onDescargar: (id: number, nombreArchivo: string) => Promise<void>
+  onDescargar: (id: string, nombreArchivo: string) => Promise<void>
 }
 
 export function TicketDetailModal({ ticketId, puedeVerAuditoria, onClose, onDescargar }: Props) {
@@ -24,30 +24,25 @@ export function TicketDetailModal({ ticketId, puedeVerAuditoria, onClose, onDesc
     if (ticketId == null) {
       setTicket(null)
       setAuditoria([])
-      setPdfUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev)
-        return null
-      })
+      setPdfUrl(null)
       return
     }
 
     const id = ticketId
     let cancelled = false
-    let objectUrl: string | null = null
 
     async function load() {
       setIsLoading(true)
       setError('')
       try {
-        const [detail, blob, historial] = await Promise.all([
+        const [detail, pdf, historial] = await Promise.all([
           ticketsApi.get(id),
-          ticketsApi.obtenerPdfBlob(id, 'inline'),
+          ticketsApi.obtenerPdf(id, 'inline'),
           puedeVerAuditoria ? ticketsApi.auditoriaPorTicket(id) : Promise.resolve([]),
         ])
         if (cancelled) return
-        objectUrl = URL.createObjectURL(blob)
         setTicket(detail)
-        setPdfUrl(objectUrl)
+        setPdfUrl(pdf.url)
         setAuditoria(historial)
       } catch (e) {
         if (!cancelled) setError(getApiErrorMessage(e))
@@ -57,10 +52,8 @@ export function TicketDetailModal({ ticketId, puedeVerAuditoria, onClose, onDesc
     }
 
     void load()
-
     return () => {
       cancelled = true
-      if (objectUrl) URL.revokeObjectURL(objectUrl)
     }
   }, [ticketId, puedeVerAuditoria])
 
@@ -79,7 +72,7 @@ export function TicketDetailModal({ ticketId, puedeVerAuditoria, onClose, onDesc
         <div className="h-1.5 w-full bg-brand-yellow" />
         <div className="flex items-center justify-between border-b border-zinc-100 px-4 py-3 sm:px-5">
           <div className="text-sm font-extrabold uppercase tracking-wide text-brand-dark">
-            Ticket #{ticketId}
+            Ticket
           </div>
           <div className="flex items-center gap-2">
             {ticket ? (
@@ -114,7 +107,7 @@ export function TicketDetailModal({ ticketId, puedeVerAuditoria, onClose, onDesc
               <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
                 <div>
                   <div className="text-xs font-semibold uppercase text-zinc-500">Operación</div>
-                  <div className="font-semibold text-zinc-900">#{ticket.operacionId}</div>
+                  <div className="font-semibold text-zinc-900">{ticket.operacionId}</div>
                 </div>
                 <div>
                   <div className="text-xs font-semibold uppercase text-zinc-500">N° ticket</div>

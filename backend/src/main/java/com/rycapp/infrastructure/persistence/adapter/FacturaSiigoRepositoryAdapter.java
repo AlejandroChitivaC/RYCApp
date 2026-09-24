@@ -1,84 +1,68 @@
 package com.rycapp.infrastructure.persistence.adapter;
 
 import com.rycapp.application.ports.out.FacturaSiigoRepository;
+import com.rycapp.application.util.Ids;
 import com.rycapp.domain.model.FacturaSiigo;
-import com.rycapp.infrastructure.persistence.jpa.entity.FacturaSiigoEntity;
-import com.rycapp.infrastructure.persistence.jpa.mapper.FacturaSiigoMapper;
-import com.rycapp.infrastructure.persistence.jpa.mapper.TimeMapper;
-import com.rycapp.infrastructure.persistence.jpa.repository.FacturaSiigoJpaRepository;
-import com.rycapp.infrastructure.persistence.jpa.repository.OperacionJpaRepository;
+import com.rycapp.infrastructure.persistence.dynamo.DynamoSupport;
+import com.rycapp.infrastructure.persistence.dynamo.item.FacturaSiigoItem;
 import org.springframework.stereotype.Repository;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public class FacturaSiigoRepositoryAdapter implements FacturaSiigoRepository {
+    private final DynamoDbTable<FacturaSiigoItem> table;
 
-    private final FacturaSiigoJpaRepository facturaSiigoJpaRepository;
-    private final OperacionJpaRepository operacionJpaRepository;
-
-    public FacturaSiigoRepositoryAdapter(
-            FacturaSiigoJpaRepository facturaSiigoJpaRepository,
-            OperacionJpaRepository operacionJpaRepository
-    ) {
-        this.facturaSiigoJpaRepository = facturaSiigoJpaRepository;
-        this.operacionJpaRepository = operacionJpaRepository;
+    public FacturaSiigoRepositoryAdapter(DynamoDbTable<FacturaSiigoItem> facturasSiigoTable) {
+        this.table = facturasSiigoTable;
     }
 
     @Override
     public FacturaSiigo save(FacturaSiigo factura) {
-        FacturaSiigoEntity e = factura.id() != null
-                ? facturaSiigoJpaRepository.findById(factura.id()).orElseGet(FacturaSiigoEntity::new)
-                : facturaSiigoJpaRepository.findBySiigoInvoiceId(factura.siigoInvoiceId())
-                .orElseGet(FacturaSiigoEntity::new);
-
-        e.setSiigoInvoiceId(factura.siigoInvoiceId());
-        e.setNumero(factura.numero());
-        e.setPrefijo(factura.prefijo());
-        e.setFecha(factura.fecha());
-        e.setFechaVencimiento(factura.fechaVencimiento());
-        e.setIdentificacionCliente(factura.identificacionCliente());
-        e.setNombreCliente(factura.nombreCliente());
-        e.setTotal(factura.total());
-        e.setSaldo(factura.saldo());
-        e.setEstadoPago(factura.estadoPago());
-        e.setObservaciones(truncate(factura.observaciones(), 1000));
-        e.setFechaSincronizacion(TimeMapper.toLocalDateTimeUtc(factura.fechaSincronizacion()));
-        if (factura.operacionId() != null) {
-            e.setOperacion(operacionJpaRepository.getReferenceById(factura.operacionId()));
-        } else {
-            e.setOperacion(null);
+        String id = factura.id() != null ? factura.id() : factura.siigoInvoiceId();
+        if (id == null || id.isBlank()) {
+            id = Ids.nuevo();
         }
-        var saved = facturaSiigoJpaRepository.save(e);
-        return FacturaSiigoMapper.toDomain(saved);
+        FacturaSiigoItem item = FacturaSiigoItem.from(new FacturaSiigo(
+                id,
+                factura.operacionId(),
+                factura.siigoInvoiceId() != null ? factura.siigoInvoiceId() : id,
+                factura.numero(),
+                factura.prefijo(),
+                factura.fecha(),
+                factura.fechaVencimiento(),
+                factura.identificacionCliente(),
+                factura.nombreCliente(),
+                factura.total(),
+                factura.saldo(),
+                factura.estadoPago(),
+                factura.observaciones(),
+                factura.fechaSincronizacion()
+        ));
+        table.putItem(item);
+        return item.toDomain();
     }
 
     @Override
     public Optional<FacturaSiigo> findBySiigoInvoiceId(String siigoInvoiceId) {
-        return facturaSiigoJpaRepository.findBySiigoInvoiceId(siigoInvoiceId).map(FacturaSiigoMapper::toDomain);
+        return DynamoSupport.findOne(table, siigoInvoiceId).map(FacturaSiigoItem::toDomain);
     }
 
     @Override
     public List<FacturaSiigo> findAll() {
-        return facturaSiigoJpaRepository.findAllFetched().stream().map(FacturaSiigoMapper::toDomain).toList();
+        return DynamoSupport.scanAll(table).stream().map(FacturaSiigoItem::toDomain).toList();
     }
 
     @Override
-    public List<FacturaSiigo> findByOperacionIds(Collection<Long> operacionIds) {
-        if (operacionIds == null || operacionIds.isEmpty()) {
-            return List.of();
-        }
-        return facturaSiigoJpaRepository.findByOperacionIdInFetched(operacionIds).stream()
-                .map(FacturaSiigoMapper::toDomain)
+    public List<FacturaSiigo> findByOperacionIds(Collection<String> operacionIds) {
+        Set<String> wanted = new HashSet<>(operacionIds);
+        return findAll().stream()
+                .filter(f -> f.operacionId() != null && wanted.contains(f.operacionId()))
                 .toList();
-    }
-
-    private static String truncate(String value, int max) {
-        if (value == null || value.length() <= max) {
-            return value;
-        }
-        return value.substring(0, max);
     }
 }

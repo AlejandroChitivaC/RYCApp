@@ -1,5 +1,5 @@
 export type Proveedor = {
-  id: number
+  id: string
   nombre: string
   nit: string
   departamento: string | null

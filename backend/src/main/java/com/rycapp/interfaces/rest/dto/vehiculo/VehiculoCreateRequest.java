@@ -22,5 +22,5 @@ public record VehiculoCreateRequest(
         String modelo,
 
         @NotNull(message = "El vehículo debe tener un conductor asignado.")
-        Long conductorId
+        String conductorId
 ) {}

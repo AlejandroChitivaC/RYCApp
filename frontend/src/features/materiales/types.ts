@@ -1,5 +1,5 @@
 export type Material = {
-  id: number
+  id: string
   material: string
   descripcion: string | null
 }

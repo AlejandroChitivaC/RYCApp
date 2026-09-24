@@ -9,8 +9,8 @@ public interface ReporteUseCase {
     DashboardReport resumen(
             Instant fromInclusive,
             Instant toInclusive,
-            Long lineaNegocioId,
-            Long proveedorId
+            String lineaNegocioId,
+            String proveedorId
     );
 
     record DashboardReport(
@@ -30,7 +30,7 @@ public interface ReporteUseCase {
     ) {}
 
     record SerieLinea(
-            Long lineaNegocioId,
+            String lineaNegocioId,
             String lineaNegocio,
             long operaciones,
             BigDecimal ingresos

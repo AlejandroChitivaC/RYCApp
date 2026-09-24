@@ -11,7 +11,7 @@ type Props = {
   estadosEdicion: string[]
   onCancel: () => void
   onSubmit: (payload: {
-    rolId: number
+    rolId: string
     cedula: string
     nombre: string
     apellido: string
@@ -58,7 +58,7 @@ export function UsuarioForm({ initial, roles, estadosEdicion, onCancel, onSubmit
           setIsSubmitting(true)
           setFieldErrors({})
           await onSubmit({
-            rolId: Number(rolId),
+            rolId: rolId,
             cedula: cedula.trim(),
             nombre: nombre.trim(),
             apellido: apellido.trim(),

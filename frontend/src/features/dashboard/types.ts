@@ -6,7 +6,7 @@ export type SerieMensual = {
 }
 
 export type SerieLinea = {
-  lineaNegocioId: number
+  lineaNegocioId: string
   lineaNegocio: string
   operaciones: number
   ingresos: string

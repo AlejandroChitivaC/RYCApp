@@ -46,7 +46,7 @@ public class VehiculoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<VehiculoResponse> editar(@PathVariable Long id, @Valid @RequestBody VehiculoUpdateRequest req) {
+    public ResponseEntity<VehiculoResponse> editar(@PathVariable String id, @Valid @RequestBody VehiculoUpdateRequest req) {
         var updated = useCase.editar(id, req.placa(), req.clase(), req.marca(), req.modelo(), req.conductorId());
         return ResponseEntity.ok(toResponse(updated));
     }
@@ -54,7 +54,7 @@ public class VehiculoController {
     @PatchMapping("/{id}/estado")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<VehiculoResponse> cambiarEstado(
-            @PathVariable Long id,
+            @PathVariable String id,
             @Valid @RequestBody VehiculoEstadoRequest req
     ) {
         return ResponseEntity.ok(toResponse(useCase.cambiarEstado(id, req.estado())));
@@ -67,7 +67,7 @@ public class VehiculoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<VehiculoResponse> obtener(@PathVariable Long id) {
+    public ResponseEntity<VehiculoResponse> obtener(@PathVariable String id) {
         return ResponseEntity.ok(toResponse(useCase.obtener(id)));
     }
 }

@@ -7,14 +7,14 @@ import com.rycapp.domain.model.UsuarioPendienteActivacion;
 import java.util.List;
 
 public interface UsuarioUseCase {
-    Usuario crear(Long rolId, String cedula, String nombre, String apellido);
-    Usuario editar(Long id, Long rolId, String cedula, String nombre, String apellido, String estado);
+    Usuario crear(String rolId, String cedula, String nombre, String apellido);
+    Usuario editar(String id, String rolId, String cedula, String nombre, String apellido, String estado);
     List<Usuario> listar();
-    Usuario obtener(Long id);
+    Usuario obtener(String id);
 
     List<UsuarioPendienteActivacion> listarPendientesActivacion();
 
-    void activarCuentaRegistrada(Long usuarioId, Long rolAsignarId);
+    void activarCuentaRegistrada(String usuarioId, String rolAsignarId);
 
     List<Usuario> listarConductores();
 

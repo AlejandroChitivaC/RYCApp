@@ -7,11 +7,11 @@ import java.util.Optional;
 
 public interface VehiculoRepository {
     Vehiculo save(Vehiculo vehiculo);
-    Optional<Vehiculo> findById(Long id);
+    Optional<Vehiculo> findById(String id);
     List<Vehiculo> findAll();
     boolean existsByPlacaIgnoreCase(String placa);
 
     /** true si otro vehículo (distinto de excluirVehiculoId, si no es null) ya usa este conductor */
-    boolean conductorAsignadoOtroVehiculo(Long conductorId, Long excluirVehiculoId);
+    boolean conductorAsignadoOtroVehiculo(String conductorId, String excluirVehiculoId);
 }
 

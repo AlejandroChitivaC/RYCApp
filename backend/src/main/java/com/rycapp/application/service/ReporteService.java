@@ -20,7 +20,6 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 public class ReporteService implements ReporteUseCase {
@@ -52,8 +51,8 @@ public class ReporteService implements ReporteUseCase {
     public DashboardReport resumen(
             Instant fromInclusive,
             Instant toInclusive,
-            Long lineaNegocioId,
-            Long proveedorId
+            String lineaNegocioId,
+            String proveedorId
     ) {
         List<Operacion> operaciones = operacionRepository.filter(
                 fromInclusive, toInclusive, lineaNegocioId, null, proveedorId
@@ -63,62 +62,44 @@ public class ReporteService implements ReporteUseCase {
                 .map(o -> o.valor() != null ? o.valor() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        List<Instant> costosFechas = new ArrayList<>();
-        List<BigDecimal> costosValores = new ArrayList<>();
-        collectCostos(fromInclusive, toInclusive, costosFechas, costosValores);
-        BigDecimal costos = costosValores.stream().reduce(BigDecimal.ZERO, BigDecimal::add);
+        List<CostoPunto> costos = collectCostos(fromInclusive, toInclusive);
+        BigDecimal totalCostos = costos.stream()
+                .map(CostoPunto::valor)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        Map<String, LineaNegocio> lineas = lineaNegocioRepository.findAll().stream()
-                .filter(l -> l.id() != null)
-                .collect(Collectors.toMap(l -> String.valueOf(l.id()), l -> l, (a, b) -> a));
+        Map<String, String> nombresLinea = new LinkedHashMap<>();
+        for (LineaNegocio linea : lineaNegocioRepository.findAll()) {
+            if (linea.id() != null) {
+                nombresLinea.put(linea.id(), linea.lineaNegocio());
+            }
+        }
 
         return new DashboardReport(
                 operaciones.size(),
                 ingresos,
-                costos,
-                ingresos.subtract(costos),
-                serieMensual(operaciones, costosFechas, costosValores, fromInclusive, toInclusive),
-                porLinea(operaciones, lineas)
+                totalCostos,
+                ingresos.subtract(totalCostos),
+                serieMensual(operaciones, costos, fromInclusive, toInclusive),
+                porLinea(operaciones, nombresLinea)
         );
     }
 
-    private void collectCostos(
-            Instant from,
-            Instant to,
-            List<Instant> fechas,
-            List<BigDecimal> valores
-    ) {
-        nominaRepository.findAll().forEach(n -> addIfInRange(n.fechaInsercion(), n.valor(), from, to, fechas, valores));
-        costoAdministrativoRepository.findAll().forEach(c -> addIfInRange(c.fechaInsercion(), c.valor(), from, to, fechas, valores));
-        costoVehiculoRepository.findAll().forEach(c -> addIfInRange(c.fechaInsercion(), c.valor(), from, to, fechas, valores));
-        costoFinancieroRepository.findAll().forEach(c -> addIfInRange(c.fechaInsercion(), c.valor(), from, to, fechas, valores));
-    }
-
-    private static void addIfInRange(
-            Instant fecha,
-            BigDecimal valor,
-            Instant from,
-            Instant to,
-            List<Instant> fechas,
-            List<BigDecimal> valores
-    ) {
-        if (fecha == null) {
-            return;
-        }
-        if (from != null && fecha.isBefore(from)) {
-            return;
-        }
-        if (to != null && fecha.isAfter(to)) {
-            return;
-        }
-        fechas.add(fecha);
-        valores.add(valor != null ? valor : BigDecimal.ZERO);
+    private List<CostoPunto> collectCostos(Instant from, Instant to) {
+        List<CostoPunto> out = new ArrayList<>();
+        nominaRepository.findByFechaInsercionBetween(from, to)
+                .forEach(n -> out.add(new CostoPunto(n.fechaInsercion(), n.valor())));
+        costoAdministrativoRepository.findByFechaInsercionBetween(from, to)
+                .forEach(c -> out.add(new CostoPunto(c.fechaInsercion(), c.valor())));
+        costoVehiculoRepository.findByFechaInsercionBetween(from, to)
+                .forEach(c -> out.add(new CostoPunto(c.fechaInsercion(), c.valor())));
+        costoFinancieroRepository.findByFechaInsercionBetween(from, to)
+                .forEach(c -> out.add(new CostoPunto(c.fechaInsercion(), c.valor())));
+        return out;
     }
 
     private static List<SerieMensual> serieMensual(
             List<Operacion> operaciones,
-            List<Instant> costosFechas,
-            List<BigDecimal> costosValores,
+            List<CostoPunto> costos,
             Instant from,
             Instant to
     ) {
@@ -137,13 +118,9 @@ public class ReporteService implements ReporteUseCase {
             end = tmp;
         }
 
-        Map<YearMonth, long[]> ops = new LinkedHashMap<>();
-        Map<YearMonth, BigDecimal> ing = new LinkedHashMap<>();
-        Map<YearMonth, BigDecimal> cos = new LinkedHashMap<>();
+        Map<YearMonth, Acumulado> meses = new LinkedHashMap<>();
         for (YearMonth ym = start; !ym.isAfter(end); ym = ym.plusMonths(1)) {
-            ops.put(ym, new long[]{0});
-            ing.put(ym, BigDecimal.ZERO);
-            cos.put(ym, BigDecimal.ZERO);
+            meses.put(ym, new Acumulado());
         }
 
         for (Operacion o : operaciones) {
@@ -151,47 +128,56 @@ public class ReporteService implements ReporteUseCase {
                 continue;
             }
             YearMonth ym = YearMonth.from(o.fechaInsercion().atZone(ZoneOffset.UTC));
-            if (!ops.containsKey(ym)) {
+            Acumulado acc = meses.get(ym);
+            if (acc == null) {
                 continue;
             }
-            ops.get(ym)[0]++;
-            ing.put(ym, ing.get(ym).add(o.valor() != null ? o.valor() : BigDecimal.ZERO));
+            acc.operaciones++;
+            acc.ingresos = acc.ingresos.add(o.valor() != null ? o.valor() : BigDecimal.ZERO);
         }
-        for (int i = 0; i < costosFechas.size(); i++) {
-            YearMonth ym = YearMonth.from(costosFechas.get(i).atZone(ZoneOffset.UTC));
-            if (!cos.containsKey(ym)) {
+        for (CostoPunto c : costos) {
+            if (c.fecha() == null) {
                 continue;
             }
-            cos.put(ym, cos.get(ym).add(costosValores.get(i)));
+            YearMonth ym = YearMonth.from(c.fecha().atZone(ZoneOffset.UTC));
+            Acumulado acc = meses.get(ym);
+            if (acc == null) {
+                continue;
+            }
+            acc.costos = acc.costos.add(c.valor() != null ? c.valor() : BigDecimal.ZERO);
         }
 
         List<SerieMensual> serie = new ArrayList<>();
-        for (YearMonth ym : ops.keySet()) {
-            serie.add(new SerieMensual(
-                    ym.toString(),
-                    ops.get(ym)[0],
-                    ing.get(ym),
-                    cos.get(ym)
-            ));
+        for (Map.Entry<YearMonth, Acumulado> e : meses.entrySet()) {
+            Acumulado acc = e.getValue();
+            serie.add(new SerieMensual(e.getKey().toString(), acc.operaciones, acc.ingresos, acc.costos));
         }
         return serie;
     }
 
-    private static List<SerieLinea> porLinea(List<Operacion> operaciones, Map<String, LineaNegocio> lineas) {
-        Map<Long, long[]> counts = new LinkedHashMap<>();
-        Map<Long, BigDecimal> ingresos = new LinkedHashMap<>();
+    private static List<SerieLinea> porLinea(List<Operacion> operaciones, Map<String, String> nombres) {
+        Map<String, Acumulado> porId = new LinkedHashMap<>();
         for (Operacion o : operaciones) {
-            Long id = o.lineaNegocioId();
-            counts.computeIfAbsent(id, k -> new long[]{0})[0]++;
-            ingresos.merge(id, o.valor() != null ? o.valor() : BigDecimal.ZERO, BigDecimal::add);
+            Acumulado acc = porId.computeIfAbsent(o.lineaNegocioId(), k -> new Acumulado());
+            acc.operaciones++;
+            acc.ingresos = acc.ingresos.add(o.valor() != null ? o.valor() : BigDecimal.ZERO);
         }
-        return counts.entrySet().stream()
-                .map(e -> {
-                    LineaNegocio ln = lineas.get(String.valueOf(e.getKey()));
-                    String nombre = ln != null ? ln.lineaNegocio() : ("Línea #" + e.getKey());
-                    return new SerieLinea(e.getKey(), nombre, e.getValue()[0], ingresos.getOrDefault(e.getKey(), BigDecimal.ZERO));
-                })
+        return porId.entrySet().stream()
+                .map(e -> new SerieLinea(
+                        e.getKey(),
+                        nombres.getOrDefault(e.getKey(), "Línea " + e.getKey()),
+                        e.getValue().operaciones,
+                        e.getValue().ingresos
+                ))
                 .sorted(Comparator.comparing(SerieLinea::ingresos).reversed())
                 .toList();
+    }
+
+    private record CostoPunto(Instant fecha, BigDecimal valor) {}
+
+    private static final class Acumulado {
+        long operaciones;
+        BigDecimal ingresos = BigDecimal.ZERO;
+        BigDecimal costos = BigDecimal.ZERO;
     }
 }

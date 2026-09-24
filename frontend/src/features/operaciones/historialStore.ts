@@ -19,7 +19,7 @@ type State = {
   filters: HistorialFilters
   setFilters: (patch: Partial<HistorialFilters>) => void
   fetchHistorial: () => Promise<void>
-  confirmar: (id: number) => Promise<void>
+  confirmar: (id: string) => Promise<void>
 }
 
 export const useHistorialOperacionesStore = create<State>((set, get) => ({
@@ -36,8 +36,8 @@ export const useHistorialOperacionesStore = create<State>((set, get) => ({
       const params = {
         from: f.from ? isoStartOfDay(f.from) : undefined,
         to: f.to ? isoEndOfDay(f.to) : undefined,
-        lineaNegocioId: f.lineaNegocioId ? Number(f.lineaNegocioId) : undefined,
-        proveedorId: f.proveedorId ? Number(f.proveedorId) : undefined,
+        lineaNegocioId: f.lineaNegocioId || undefined,
+        proveedorId: f.proveedorId || undefined,
       }
       set({ items: await operacionesApi.historial(params) })
     } catch (e) {

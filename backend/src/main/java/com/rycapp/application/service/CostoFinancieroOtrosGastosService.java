@@ -29,7 +29,7 @@ public class CostoFinancieroOtrosGastosService implements CostoFinancieroOtrosGa
     }
 
     @Override
-    public CostoFinancieroOtrosGastos crear(Long usuarioRegistroId, Long tipoCostoId, String medioPago, BigDecimal valor, String descripcion) {
+    public CostoFinancieroOtrosGastos crear(String usuarioRegistroId, String tipoCostoId, String medioPago, BigDecimal valor, String descripcion) {
         usuarioRepository.findById(usuarioRegistroId)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado (id=" + usuarioRegistroId + ")."));
         tipoCostoRepository.findById(tipoCostoId)
@@ -45,7 +45,7 @@ public class CostoFinancieroOtrosGastosService implements CostoFinancieroOtrosGa
     }
 
     @Override
-    public CostoFinancieroOtrosGastos obtener(Long id) {
+    public CostoFinancieroOtrosGastos obtener(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Registro no encontrado (id=" + id + ")."));
     }

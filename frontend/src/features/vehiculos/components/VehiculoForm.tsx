@@ -15,7 +15,7 @@ type Props = {
     clase: string
     marca: string
     modelo: string
-    conductorId: number
+    conductorId: string
   }) => Promise<void>
 }
 
@@ -59,7 +59,7 @@ export function VehiculoForm({ initial, conductores, onCancel, onSubmit }: Props
             clase: clase.trim(),
             marca: marca.trim(),
             modelo: modelo.trim(),
-            conductorId: Number(conductorId),
+            conductorId: conductorId,
           })
         } catch (err) {
           const fe = getFieldErrors(err)

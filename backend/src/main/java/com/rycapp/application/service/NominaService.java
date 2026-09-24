@@ -30,9 +30,9 @@ public class NominaService implements NominaUseCase {
 
     @Override
     public Nomina crear(
-            Long usuarioRegistroId,
-            Long tipoCostoId,
-            Long usuarioDebitadoId,
+            String usuarioRegistroId,
+            String tipoCostoId,
+            String usuarioDebitadoId,
             Instant fechaInicio,
             Instant fechaFin,
             String medioPago,
@@ -65,7 +65,7 @@ public class NominaService implements NominaUseCase {
     }
 
     @Override
-    public Nomina obtener(Long id) {
+    public Nomina obtener(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Nómina no encontrada (id=" + id + ")."));
     }

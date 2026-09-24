@@ -8,9 +8,9 @@ import java.util.List;
 
 public interface NominaUseCase {
     Nomina crear(
-            Long usuarioRegistroId,
-            Long tipoCostoId,
-            Long usuarioDebitadoId,
+            String usuarioRegistroId,
+            String tipoCostoId,
+            String usuarioDebitadoId,
             Instant fechaInicio,
             Instant fechaFin,
             String medioPago,
@@ -20,5 +20,5 @@ public interface NominaUseCase {
 
     List<Nomina> listar();
 
-    Nomina obtener(Long id);
+    Nomina obtener(String id);
 }

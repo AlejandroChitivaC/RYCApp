@@ -1,39 +1,39 @@
 import { http } from '../../app/http/httpClient'
 import type { Ticket, TicketAuditoria } from './types'
 
+type TicketPdfLink = {
+  url: string
+  nombreArchivo: string
+}
+
 export const ticketsApi = {
-  list: async (params?: { operacionId?: number }) =>
+  list: async (params?: { operacionId?: string }) =>
     (await http.get<Ticket[]>('/api/tickets', { params })).data,
 
-  get: async (id: number) =>
+  get: async (id: string) =>
     (await http.get<Ticket>(`/api/tickets/${id}`)).data,
 
-  obtenerPdfBlob: async (id: number, disposition: 'inline' | 'attachment' = 'attachment') =>
-    (
-      await http.get<Blob>(`/api/tickets/${id}/pdf`, {
-        params: { disposition },
-        responseType: 'blob',
-      })
-    ).data,
+  obtenerPdf: async (id: string, disposition: 'inline' | 'attachment' = 'attachment') =>
+    (await http.get<TicketPdfLink>(`/api/tickets/${id}/pdf`, { params: { disposition } })).data,
 
   cargar: async (formData: FormData) =>
     (await http.post<Ticket>('/api/tickets', formData)).data,
 
-  descargarPdf: async (id: number, nombreArchivo: string) => {
-    const blob = await ticketsApi.obtenerPdfBlob(id, 'attachment')
-    const url = URL.createObjectURL(blob)
+  descargarPdf: async (id: string, nombreArchivo: string) => {
+    const { url, nombreArchivo: nombre } = await ticketsApi.obtenerPdf(id, 'attachment')
     const a = document.createElement('a')
     a.href = url
-    a.download = nombreArchivo.replace(/\.[^.]+$/, '') + '.pdf'
+    a.download = (nombreArchivo || nombre).replace(/\.[^.]+$/, '') + '.pdf'
+    a.target = '_blank'
+    a.rel = 'noreferrer'
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
-    URL.revokeObjectURL(url)
   },
 
   auditoria: async () =>
     (await http.get<TicketAuditoria[]>('/api/tickets/auditoria')).data,
 
-  auditoriaPorTicket: async (ticketId: number) =>
+  auditoriaPorTicket: async (ticketId: string) =>
     (await http.get<TicketAuditoria[]>(`/api/tickets/${ticketId}/auditoria`)).data,
 }

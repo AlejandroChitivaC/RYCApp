@@ -1,8 +1,8 @@
 package com.rycapp.domain.model;
 
 public record Usuario(
-        Long id,
-        Long rolId,
+        String id,
+        String rolId,
         String cedula,
         String nombre,
         String apellido,

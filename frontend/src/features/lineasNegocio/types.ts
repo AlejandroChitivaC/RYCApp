@@ -1,5 +1,5 @@
 export type LineaNegocio = {
-  id: number
+  id: string
   lineaNegocio: string
   descripcion: string | null
   estado: string

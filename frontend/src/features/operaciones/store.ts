@@ -20,7 +20,7 @@ type State = {
   setFilters: (patch: Partial<Filters>) => void
   fetchAll: () => Promise<void>
   create: (payload: OperacionCreate) => Promise<Operacion>
-  confirmar: (id: number) => Promise<Operacion>
+  confirmar: (id: string) => Promise<Operacion>
 }
 
 export const useOperacionesStore = create<State>((set, get) => ({
@@ -37,8 +37,8 @@ export const useOperacionesStore = create<State>((set, get) => ({
       const params = {
         from: f.from ? isoStartOfDay(f.from) : undefined,
         to: f.to ? isoEndOfDay(f.to) : undefined,
-        lineaNegocioId: f.lineaNegocioId ? Number(f.lineaNegocioId) : undefined,
-        vehiculoId: f.vehiculoId ? Number(f.vehiculoId) : undefined,
+        lineaNegocioId: f.lineaNegocioId || undefined,
+        vehiculoId: f.vehiculoId || undefined,
       }
       set({ items: await operacionesApi.list(params) })
     } catch (e) {

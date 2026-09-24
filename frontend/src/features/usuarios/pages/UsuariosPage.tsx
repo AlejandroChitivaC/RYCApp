@@ -15,7 +15,7 @@ import { useUsuariosStore } from '../store'
 function matchesUsuario(
   x: Usuario,
   q: string,
-  rolNombre: Map<number, string>,
+  rolNombre: Map<string, string>,
 ) {
   const s = q.trim().toLowerCase()
   if (!s) return true
@@ -77,10 +77,10 @@ export function UsuariosPage() {
     }
   }, [activarOpen, rolesActivacionRegistro, activarRolId])
 
-  const sorted = useMemo(() => [...items].sort((a, b) => b.id - a.id), [items])
+  const sorted = useMemo(() => [...items].sort((a, b) => b.id.localeCompare(a.id)), [items])
 
   const rolNombre = useMemo(() => {
-    const m = new Map<number, string>()
+    const m = new Map<string, string>()
     for (const r of roles) m.set(r.id, r.descripcion)
     return m
   }, [roles])
@@ -198,7 +198,7 @@ export function UsuariosPage() {
                 disabled={!activarRolId || rolesActivacionRegistro.length === 0}
                 onClick={async () => {
                   if (!activarTarget || !activarRolId) return
-                  await activarCuenta(activarTarget.id, Number(activarRolId))
+                  await activarCuenta(activarTarget.id, activarRolId)
                   await fetchPendientesActivacion()
                   setActivarOpen(false)
                   setActivarTarget(null)

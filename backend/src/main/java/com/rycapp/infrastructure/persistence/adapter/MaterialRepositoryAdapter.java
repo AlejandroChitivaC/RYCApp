@@ -1,39 +1,45 @@
 package com.rycapp.infrastructure.persistence.adapter;
 
 import com.rycapp.application.ports.out.MaterialRepository;
+import com.rycapp.application.util.Ids;
 import com.rycapp.domain.model.Material;
-import com.rycapp.infrastructure.persistence.jpa.mapper.MaterialMapper;
-import com.rycapp.infrastructure.persistence.jpa.repository.MaterialJpaRepository;
+import com.rycapp.infrastructure.persistence.dynamo.DynamoSupport;
+import com.rycapp.infrastructure.persistence.dynamo.item.MaterialItem;
 import org.springframework.stereotype.Repository;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class MaterialRepositoryAdapter implements MaterialRepository {
-    private final MaterialJpaRepository jpaRepository;
+    private final DynamoDbTable<MaterialItem> table;
 
-    public MaterialRepositoryAdapter(MaterialJpaRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public MaterialRepositoryAdapter(DynamoDbTable<MaterialItem> materialesTable) {
+        this.table = materialesTable;
     }
 
     @Override
     public Material save(Material material) {
-        return MaterialMapper.toDomain(jpaRepository.save(MaterialMapper.toEntity(material)));
+        MaterialItem item = MaterialItem.from(new Material(
+                Ids.oNuevo(material.id()), material.material(), material.descripcion()
+        ));
+        table.putItem(item);
+        return item.toDomain();
     }
 
     @Override
-    public Optional<Material> findById(Long id) {
-        return jpaRepository.findById(id).map(MaterialMapper::toDomain);
+    public Optional<Material> findById(String id) {
+        return DynamoSupport.findOne(table, id).map(MaterialItem::toDomain);
     }
 
     @Override
     public List<Material> findAll() {
-        return jpaRepository.findAll().stream().map(MaterialMapper::toDomain).toList();
+        return DynamoSupport.scanAll(table).stream().map(MaterialItem::toDomain).toList();
     }
 
     @Override
-    public boolean existsByMaterialIgnoreCase(String material) {
-        return jpaRepository.existsByMaterialIgnoreCase(material);
+    public boolean existsByMaterialIgnoreCase(String nombre) {
+        return DynamoSupport.exists(table.index("nombre-index"), DynamoSupport.lower(nombre));
     }
 }

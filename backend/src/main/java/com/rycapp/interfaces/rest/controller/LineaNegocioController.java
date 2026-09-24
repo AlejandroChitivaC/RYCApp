@@ -34,13 +34,13 @@ public class LineaNegocioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<LineaNegocioResponse> editar(@PathVariable Long id, @Valid @RequestBody LineaNegocioUpdateRequest req) {
+    public ResponseEntity<LineaNegocioResponse> editar(@PathVariable String id, @Valid @RequestBody LineaNegocioUpdateRequest req) {
         var updated = useCase.editar(id, req.lineaNegocio(), req.descripcion());
         return ResponseEntity.ok(LineaNegocioDtoMapper.toResponse(updated));
     }
 
     @PatchMapping("/{id}/estado")
-    public ResponseEntity<LineaNegocioResponse> cambiarEstado(@PathVariable Long id, @Valid @RequestBody LineaNegocioEstadoRequest req) {
+    public ResponseEntity<LineaNegocioResponse> cambiarEstado(@PathVariable String id, @Valid @RequestBody LineaNegocioEstadoRequest req) {
         var updated = useCase.cambiarEstado(id, req.estado());
         return ResponseEntity.ok(LineaNegocioDtoMapper.toResponse(updated));
     }
@@ -52,7 +52,7 @@ public class LineaNegocioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LineaNegocioResponse> obtener(@PathVariable Long id) {
+    public ResponseEntity<LineaNegocioResponse> obtener(@PathVariable String id) {
         return ResponseEntity.ok(LineaNegocioDtoMapper.toResponse(useCase.obtener(id)));
     }
 }

@@ -27,8 +27,8 @@ public class ReporteController {
     public ResponseEntity<ReporteDashboardResponse> dashboard(
             @RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant from,
             @RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant to,
-            @RequestParam(value = "lineaNegocioId", required = false) Long lineaNegocioId,
-            @RequestParam(value = "proveedorId", required = false) Long proveedorId
+            @RequestParam(value = "lineaNegocioId", required = false) String lineaNegocioId,
+            @RequestParam(value = "proveedorId", required = false) String proveedorId
     ) {
         var r = useCase.resumen(from, to, lineaNegocioId, proveedorId);
         return ResponseEntity.ok(new ReporteDashboardResponse(

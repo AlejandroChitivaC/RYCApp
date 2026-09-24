@@ -14,10 +14,10 @@ export const usuariosApi = {
     (await http.get<Rol[]>('/api/usuarios/catalogo/roles-activacion-registro')).data,
   listPendientesActivacion: async () =>
     (await http.get<UsuarioPendienteActivacion[]>('/api/usuarios/pendientes-activacion')).data,
-  activarCuenta: async (id: number, rolId: number) =>
+  activarCuenta: async (id: string, rolId: string) =>
     (await http.post<Usuario>(`/api/usuarios/${id}/activar`, { rolId })).data,
   create: async (payload: UsuarioCreate) =>
     (await http.post<Usuario>('/api/usuarios', payload)).data,
-  update: async (id: number, payload: UsuarioUpdate) =>
+  update: async (id: string, payload: UsuarioUpdate) =>
     (await http.put<Usuario>(`/api/usuarios/${id}`, payload)).data,
 }

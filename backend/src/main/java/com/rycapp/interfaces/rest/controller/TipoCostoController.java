@@ -33,7 +33,7 @@ public class TipoCostoController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TipoCostoResponse> editar(@PathVariable Long id, @Valid @RequestBody TipoCostoUpdateRequest req) {
+    public ResponseEntity<TipoCostoResponse> editar(@PathVariable String id, @Valid @RequestBody TipoCostoUpdateRequest req) {
         return ResponseEntity.ok(toRes(useCase.editar(id, req.tipoCosto(), req.flujo(), req.descripcion(), req.estado())));
     }
 
@@ -43,7 +43,7 @@ public class TipoCostoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<TipoCostoResponse> obtener(@PathVariable Long id) {
+    public ResponseEntity<TipoCostoResponse> obtener(@PathVariable String id) {
         return ResponseEntity.ok(toRes(useCase.obtener(id)));
     }
 }

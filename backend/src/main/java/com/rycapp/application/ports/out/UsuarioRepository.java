@@ -8,15 +8,17 @@ import java.util.Optional;
 
 public interface UsuarioRepository {
     Usuario save(Usuario usuario);
-    Optional<Usuario> findById(Long id);
+    Optional<Usuario> findById(String id);
     List<Usuario> findAll();
     boolean existsByCedulaIgnoreCase(String cedula);
 
-    boolean tieneRolDescripcion(Long usuarioId, String rolDescripcion);
+    boolean tieneRolDescripcion(String usuarioId, String rolDescripcion);
 
     List<Usuario> findByRolDescripcion(String rolDescripcion);
 
     List<UsuarioPendienteActivacion> listarPendientesActivacionCorreoVerificado();
 
-    Optional<String> findCorreoCuentaByUsuarioId(Long usuarioId);
+    Optional<String> findCorreoCuentaByUsuarioId(String usuarioId);
+
+    List<String> findCorreosAdministradores();
 }

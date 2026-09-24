@@ -5,8 +5,8 @@ export const reportesApi = {
   dashboard: async (params?: {
     from?: string
     to?: string
-    lineaNegocioId?: number
-    proveedorId?: number
+    lineaNegocioId?: string
+    proveedorId?: string
   }) =>
     (
       await http.get<ReporteDashboard>('/api/reportes/dashboard', {

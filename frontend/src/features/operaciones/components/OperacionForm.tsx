@@ -20,10 +20,10 @@ type Props = {
   usuarioRegistroLabel: string
   onCancel: () => void
   onSubmit: (payload: {
-    lineaNegocioId: number
-    vehiculoId: number
-    materialId: number
-    proveedorId: number
+    lineaNegocioId: string
+    vehiculoId: string
+    materialId: string
+    proveedorId: string
     fechaInicio: string
     fechaFin: string
     medioPago: string
@@ -81,10 +81,10 @@ export function OperacionForm({ catalogos, usuarioRegistroLabel, onCancel, onSub
             return
           }
           await onSubmit({
-            lineaNegocioId: Number(lineaNegocioId),
-            vehiculoId: Number(vehiculoId),
-            materialId: Number(materialId),
-            proveedorId: Number(proveedorId),
+            lineaNegocioId,
+            vehiculoId,
+            materialId,
+            proveedorId,
             fechaInicio: isoStartOfDay(fechaInicio),
             fechaFin: isoStartOfDay(fechaFin),
             medioPago: medioPago.trim(),

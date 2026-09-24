@@ -8,14 +8,14 @@ import java.util.Optional;
 
 public interface OperacionRepository {
     Operacion save(Operacion operacion);
-    Optional<Operacion> findById(Long id);
+    Optional<Operacion> findById(String id);
     List<Operacion> findAll();
     List<Operacion> findByEstado(String estado);
     List<Operacion> filter(
             Instant fromInclusive,
             Instant toInclusive,
-            Long lineaNegocioId,
-            Long vehiculoId,
-            Long proveedorId
+            String lineaNegocioId,
+            String vehiculoId,
+            String proveedorId
     );
 }

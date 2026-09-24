@@ -32,7 +32,7 @@ public class MaterialService implements MaterialUseCase {
     }
 
     @Override
-    public Material editar(Long id, String material, String descripcion) {
+    public Material editar(String id, String material, String descripcion) {
         var current = repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Material no encontrado (id=" + id + ")."));
         var renamed = !current.material().equalsIgnoreCase(material);
@@ -50,7 +50,7 @@ public class MaterialService implements MaterialUseCase {
     }
 
     @Override
-    public Material obtener(Long id) {
+    public Material obtener(String id) {
         return repository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Material no encontrado (id=" + id + ")."));
     }

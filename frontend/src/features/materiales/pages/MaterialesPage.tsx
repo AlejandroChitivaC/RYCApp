@@ -67,7 +67,7 @@ export function MaterialesPage() {
     fetchAll()
   }, [fetchAll])
 
-  const sorted = useMemo(() => [...items].sort((a, b) => b.id - a.id), [items])
+  const sorted = useMemo(() => [...items].sort((a, b) => b.id.localeCompare(a.id)), [items])
 
   const filtered = useMemo(
     () => sorted.filter((m) => matchesMaterial(m, layoutQuery) && matchesMaterial(m, tableQuery)),

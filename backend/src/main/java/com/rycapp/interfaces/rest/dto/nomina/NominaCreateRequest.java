@@ -10,13 +10,13 @@ import java.time.Instant;
 
 public record NominaCreateRequest(
         @NotNull(message = "usuarioRegistroId es obligatorio.")
-        Long usuarioRegistroId,
+        String usuarioRegistroId,
 
         @NotNull(message = "tipoCostoId es obligatorio.")
-        Long tipoCostoId,
+        String tipoCostoId,
 
         @NotNull(message = "usuarioDebitadoId es obligatorio.")
-        Long usuarioDebitadoId,
+        String usuarioDebitadoId,
 
         Instant fechaInicio,
         Instant fechaFin,

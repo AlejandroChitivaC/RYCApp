@@ -4,5 +4,5 @@ import jakarta.validation.constraints.NotNull;
 
 public record UsuarioActivarRequest(
         @NotNull(message = "Debe indicar el rol a asignar (Conductor o Contador).")
-        Long rolId
+        String rolId
 ) {}

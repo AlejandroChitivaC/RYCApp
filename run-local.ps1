@@ -1,10 +1,11 @@
-# Levanta backend (Spring Boot) y frontend (Vite) en desarrollo local.
+# Levanta DynamoDB Local, backend (Spring Boot) y frontend (Vite).
 #
 # Uso:
 #   .\run-local.ps1
 #   .\run-local.ps1 -Local
 #
-# Requisitos: Java 21, Maven, Node.js, npm, MySQL con base rycapp en localhost:3306
+# Requisitos: Java 21, Maven, Node.js, npm.
+# DynamoDB Local: Docker si está instalado, o el JAR en tools/dynamodb-local.
 
 #Requires -Version 5.1
 
@@ -30,8 +31,8 @@ Uso: .\run-local.ps1 [-Local] [-Help]
   -Help    Muestra esta ayuda
 
 Requisitos:
-  - MySQL en localhost:3306, base de datos "rycapp"
   - Java 21, Maven, Node.js y npm en PATH
+  - DynamoDB Local: Docker, o el JAR en tools/dynamodb-local
 "@
 }
 
@@ -117,6 +118,29 @@ try {
         throw 'Ejecuta este script desde la raíz del repositorio.'
     }
 
+    Write-Host 'Levantando DynamoDB Local...'
+    $docker = Get-Command docker -ErrorAction SilentlyContinue
+    $ddbJar = Join-Path $Root 'tools\dynamodb-local\DynamoDBLocal.jar'
+    if ($docker) {
+        & docker compose up -d dynamodb
+        if ($LASTEXITCODE -ne 0) {
+            throw "docker compose up falló con código $LASTEXITCODE."
+        }
+    } elseif (Test-Path $ddbJar) {
+        $ddbDir = Split-Path $ddbJar
+        $null = Start-DevProcess `
+            -FilePath (Get-Command java).Source `
+            -ArgumentList @(
+                "-Djava.library.path=$ddbDir\DynamoDBLocal_lib",
+                '-jar', $ddbJar,
+                '-sharedDb', '-inMemory', '-port', '8000'
+            ) `
+            -WorkingDirectory $ddbDir
+        Start-Sleep -Seconds 2
+    } else {
+        throw 'No hay Docker ni tools/dynamodb-local. Descarga DynamoDB Local o instala Docker.'
+    }
+
     if (-not (Test-Path (Join-Path $FrontendDir 'node_modules'))) {
         Write-Host 'Instalando dependencias del frontend...'
         Push-Location $FrontendDir
@@ -133,6 +157,15 @@ try {
 
     $mvnPath = (Get-Command mvn).Source
     $npmPath = (Get-Command npm).Source
+
+    $env:AWS_ACCESS_KEY_ID = 'local'
+    $env:AWS_SECRET_ACCESS_KEY = 'local'
+    $env:AWS_REGION = 'us-east-1'
+    $env:DYNAMODB_ENDPOINT = 'http://localhost:8000'
+    $env:RYCAPP_CREATE_LOCAL_TABLES = 'true'
+    $env:APP_BOOTSTRAP_ADMIN_ENABLED = 'true'
+    $env:APP_BOOTSTRAP_ADMIN_EMAIL = 'admin@rycapp.local'
+    $env:APP_BOOTSTRAP_ADMIN_PASSWORD = 'Admin1234!'
 
     $mvnArgs = @('spring-boot:run')
     if ($Local) {
@@ -163,6 +196,7 @@ try {
     Write-Host 'Proyecto en marcha. Pulsa Ctrl+C para detener todo.'
     Write-Host '  Frontend → http://localhost:5173'
     Write-Host '  Backend  → http://localhost:8080'
+    Write-Host '  DynamoDB → localhost:8000'
     if (-not $Local) {
         Write-Host '  OTP sin correo: revisa los logs del backend.'
     }

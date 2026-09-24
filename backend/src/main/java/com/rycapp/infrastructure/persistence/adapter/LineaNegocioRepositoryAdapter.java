@@ -1,40 +1,45 @@
 package com.rycapp.infrastructure.persistence.adapter;
 
 import com.rycapp.application.ports.out.LineaNegocioRepository;
+import com.rycapp.application.util.Ids;
 import com.rycapp.domain.model.LineaNegocio;
-import com.rycapp.infrastructure.persistence.jpa.mapper.LineaNegocioMapper;
-import com.rycapp.infrastructure.persistence.jpa.repository.LineaNegocioJpaRepository;
+import com.rycapp.infrastructure.persistence.dynamo.DynamoSupport;
+import com.rycapp.infrastructure.persistence.dynamo.item.LineaNegocioItem;
 import org.springframework.stereotype.Repository;
+import software.amazon.awssdk.enhanced.dynamodb.DynamoDbTable;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
 public class LineaNegocioRepositoryAdapter implements LineaNegocioRepository {
-    private final LineaNegocioJpaRepository jpaRepository;
+    private final DynamoDbTable<LineaNegocioItem> table;
 
-    public LineaNegocioRepositoryAdapter(LineaNegocioJpaRepository jpaRepository) {
-        this.jpaRepository = jpaRepository;
+    public LineaNegocioRepositoryAdapter(DynamoDbTable<LineaNegocioItem> lineasNegocioTable) {
+        this.table = lineasNegocioTable;
     }
 
     @Override
-    public LineaNegocio save(LineaNegocio lineaNegocio) {
-        var saved = jpaRepository.save(LineaNegocioMapper.toEntity(lineaNegocio));
-        return LineaNegocioMapper.toDomain(saved);
+    public LineaNegocio save(LineaNegocio linea) {
+        LineaNegocioItem item = LineaNegocioItem.from(new LineaNegocio(
+                Ids.oNuevo(linea.id()), linea.lineaNegocio(), linea.descripcion(), linea.estado()
+        ));
+        table.putItem(item);
+        return item.toDomain();
     }
 
     @Override
-    public Optional<LineaNegocio> findById(Long id) {
-        return jpaRepository.findById(id).map(LineaNegocioMapper::toDomain);
+    public Optional<LineaNegocio> findById(String id) {
+        return DynamoSupport.findOne(table, id).map(LineaNegocioItem::toDomain);
     }
 
     @Override
     public List<LineaNegocio> findAll() {
-        return jpaRepository.findAll().stream().map(LineaNegocioMapper::toDomain).toList();
+        return DynamoSupport.scanAll(table).stream().map(LineaNegocioItem::toDomain).toList();
     }
 
     @Override
-    public boolean existsByLineaNegocioIgnoreCase(String lineaNegocio) {
-        return jpaRepository.existsByLineaNegocioIgnoreCase(lineaNegocio);
+    public boolean existsByLineaNegocioIgnoreCase(String nombre) {
+        return DynamoSupport.exists(table.index("nombre-index"), DynamoSupport.lower(nombre));
     }
 }

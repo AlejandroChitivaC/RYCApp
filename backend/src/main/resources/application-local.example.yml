@@ -4,16 +4,13 @@
 # Arranque con correo:
 #   mvn spring-boot:run -Dspring-boot.run.profiles=local
 #
+# Requiere DynamoDB Local: docker compose up -d
+#
 # Brevo — si el log dice "Authentication failed":
 #   1) https://app.brevo.com/settings/keys/smtp
-#   2) spring.mail.username = «Iniciar sesión» en SMTP (a menudo algo@smtp-brevo.com, no tu correo personal).
-#   3) spring.mail.password = clave SMTP (xsmtpsib-...), NUNCA la API key (xkeysib-...) ni la contraseña de login web.
-#   4) Si rotaste claves o dudas, genera una nueva clave SMTP en esa misma página.
-#   5) app.mail.from debe ser un remitente verificado en Brevo (Senders), no inventar sin verificar.
-#   6) Cuenta nueva: confirma que el envío transaccional/SMTP no esté suspendido (mensajes 450 en la doc Brevo).
-#
-# Depuración (mucho log): descomenta la siguiente línea bajo spring.mail:
-#   properties.mail.debug: true
+#   2) spring.mail.username = «Iniciar sesión» en SMTP.
+#   3) spring.mail.password = clave SMTP (xsmtpsib-...).
+#   4) app.mail.from debe ser un remitente verificado en Brevo.
 
 spring:
   mail:
@@ -31,10 +28,11 @@ spring:
 app:
   mail:
     from: "Nombre visible <remitente@verificado.com>"
-
-  # Siigo — prueba de conexión (GET /api/siigo/health como Administrador).
-  # Preferible: variables de entorno SIIGO_USERNAME, SIIGO_ACCESS_KEY, SIIGO_PARTNER_ID.
-  # Si defines aquí valores reales, NUNCA subas application-local.yml al repositorio.
+  bootstrap:
+    admin:
+      enabled: true
+      email: admin@rycapp.local
+      password: Admin1234!
   siigo:
     username: ""
     access-key: ""

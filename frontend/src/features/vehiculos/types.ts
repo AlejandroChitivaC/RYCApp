@@ -1,11 +1,11 @@
 export type Vehiculo = {
-  id: number
+  id: string
   placa: string
   clase: string
   marca: string
   modelo: string
   estado: string
-  conductorId: number | null
+  conductorId: string | null
   conductorNombre: string | null
 }
 
@@ -14,7 +14,7 @@ export type VehiculoCreate = {
   clase: string
   marca: string
   modelo: string
-  conductorId: number
+  conductorId: string
 }
 
 export type VehiculoUpdate = VehiculoCreate
