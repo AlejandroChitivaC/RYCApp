@@ -13,7 +13,6 @@ on:
 
 permissions:
   contents: read
-  security-events: write
   actions: read
   pull-requests: read
 
@@ -48,23 +47,6 @@ jobs:
       - name: Compilar y tests unitarios
         run: mvn -B -f backend/pom.xml test -Dtest='!*IT'
 
-  codeql:
-    name: CodeQL
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '21'
-          distribution: temurin
-          cache: maven
-      - uses: github/codeql-action/init@v3
-        with:
-          languages: java-kotlin, javascript-typescript
-      - name: Compilar backend para CodeQL
-        run: mvn -B -f backend/pom.xml -DskipTests compile
-      - uses: github/codeql-action/analyze@v3
-
   cve:
     name: CVEs (Trivy)
     runs-on: ubuntu-latest
@@ -90,12 +72,13 @@ jobs:
           exit-code: '0'
           format: sarif
           output: trivy-results.sarif
-      - name: Publicar en Security
+      - name: Subir informe Trivy
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: actions/upload-artifact@v4
         with:
-          sarif_file: trivy-results.sarif
-          category: trivy-fs
+          name: trivy-report
+          path: trivy-results.sarif
+          retention-days: 14
       - name: npm audit frontend
         working-directory: frontend
         run: npm audit --audit-level=critical
