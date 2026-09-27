@@ -27,4 +27,5 @@ ai-tools/
 tools/dynamodb-local/
 
 *.log
+k6-summary.json
 docs/*
