@@ -20,6 +20,11 @@ export default defineConfig({
   server: {
     allowedHosts: ['takes-arg-indicator-bars.trycloudflare.com'],
   },
+  preview: {
+    host: '127.0.0.1',
+    port: 4173,
+    strictPort: true,
+  },
   optimizeDeps: {
     include: ['notiflix'],
   },
