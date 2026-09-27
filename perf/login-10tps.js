@@ -41,3 +41,33 @@ export default function () {
     },
   })
 }
+
+function metric(data, name, key, fallback = 0) {
+  return data.metrics[name]?.values?.[key] ?? fallback
+}
+
+export function handleSummary(data) {
+  const tps = metric(data, 'http_reqs', 'rate')
+  const p95 = metric(data, 'http_req_duration', 'p(95)')
+  const errPct = metric(data, 'http_req_failed', 'rate') * 100
+  const checkPct = metric(data, 'checks', 'rate') * 100
+  const dropped = metric(data, 'dropped_iterations', 'count')
+  const cumple = tps >= 10 && errPct < 5 && p95 < 5000 && checkPct > 95
+
+  const md = [
+    '## Carga 10 TPS — login',
+    '',
+    '| Métrica | Resultado | Criterio |',
+    '|---|---|---|',
+    `| Throughput | **${tps.toFixed(2)} req/s** | ≥ 10 TPS |`,
+    `| Latencia p95 | ${p95.toFixed(0)} ms | < 5000 ms |`,
+    `| Errores HTTP | ${errPct.toFixed(2)}% | < 5% |`,
+    `| Checks OK | ${checkPct.toFixed(1)}% | > 95% |`,
+    `| Iteraciones no servidas | ${dropped} | ~0 |`,
+    '',
+    cumple ? '**Cumple 10 TPS.**' : '**No cumple el umbral de 10 TPS.**',
+    '',
+  ].join('\n')
+
+  return { 'k6-summary.md': md }
+}

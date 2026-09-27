@@ -8,6 +8,7 @@ backend/target/
 frontend/node_modules/
 frontend/dist/
 frontend/playwright-report/
+frontend/playwright-results.json
 frontend/test-results/
 frontend/blob-report/
 frontend/playwright/.cache/
@@ -28,4 +29,6 @@ tools/dynamodb-local/
 
 *.log
 k6-summary.json
+k6-summary.md
+trivy-report.txt
 docs/*

@@ -1,6 +1,6 @@
 # CVEs, análisis estático, Playwright y carga 10 TPS.
+# Los informes se ven en el Summary del run (sin descargar archivos).
 # En master/main: corre en el push; si pasa, deploy.yml se dispara después.
-# En PRs: corre solo. También se puede llamar desde un Deploy manual.
 
 name: Validar
 
@@ -61,24 +61,21 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
           format: table
-      - name: Generar SARIF
+          output: trivy-report.txt
+      - name: Informe en este run
         if: always()
-        uses: aquasecurity/trivy-action@v0.36.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          severity: CRITICAL
-          ignore-unfixed: true
-          exit-code: '0'
-          format: sarif
-          output: trivy-results.sarif
-      - name: Subir informe Trivy
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: trivy-report
-          path: trivy-results.sarif
-          retention-days: 14
+        run: |
+          {
+            echo '## Trivy — CVEs CRITICAL'
+            echo
+            if [ -s trivy-report.txt ]; then
+              echo '```'
+              cat trivy-report.txt
+              echo '```'
+            else
+              echo 'Trivy no generó salida.'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: npm audit frontend
         working-directory: frontend
         run: npm audit --audit-level=critical
@@ -115,6 +112,9 @@ jobs:
         env:
           VITE_API_BASE_URL: ''
       - run: npm run test:e2e
+      - name: Informe en este run
+        if: always()
+        run: node e2e/write-gh-summary.mjs playwright-results.json
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -131,10 +131,13 @@ jobs:
       - name: Login a 10 TPS durante 30s
         env:
           BASE_URL: ${{ vars.LOADTEST_BASE_URL || 'https://dne4r7yuqm0az.cloudfront.net' }}
-        run: k6 run --summary-export=k6-summary.json perf/login-10tps.js
-      - uses: actions/upload-artifact@v4
+        run: k6 run perf/login-10tps.js
+      - name: Informe en este run
         if: always()
-        with:
-          name: k6-10tps
-          path: k6-summary.json
-          retention-days: 14
+        run: |
+          if [ -f k6-summary.md ]; then
+            cat k6-summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo '## Carga 10 TPS' >> "$GITHUB_STEP_SUMMARY"
+            echo 'k6 no escribió el resumen.' >> "$GITHUB_STEP_SUMMARY"
+          fi
