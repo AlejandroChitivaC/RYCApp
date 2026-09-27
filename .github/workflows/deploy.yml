@@ -1,5 +1,6 @@
 # Compila backend + frontend y despliega con CDK (OIDC, sin llaves SSH).
-# Antes corre el workflow Validar (CVE, estático, Playwright).
+# No corre en el push: espera a que Validar termine bien en master/main.
+# Un Deploy manual (workflow_dispatch) sí vuelve a correr Validar antes.
 #
 # Secrets:
 #   AWS_DEPLOY_ROLE_ARN  — rol IAM con trust a GitHub OIDC
@@ -8,12 +9,14 @@
 name: Deploy AWS (CDK)
 
 on:
-  push:
+  workflow_run:
+    workflows: [Validar]
+    types: [completed]
     branches: [master, main]
   workflow_dispatch:
 
 concurrency:
-  group: deploy-aws-${{ github.ref }}
+  group: deploy-aws-${{ github.event.workflow_run.head_branch || github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -26,18 +29,28 @@ permissions:
 jobs:
   validate:
     name: Validar
+    if: github.event_name == 'workflow_dispatch'
     uses: ./.github/workflows/validate.yml
     secrets: inherit
 
   deploy:
     name: Desplegar
     needs: validate
+    if: >
+      always() &&
+      (
+        (github.event_name == 'workflow_dispatch' && needs.validate.result == 'success')
+        ||
+        (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success')
+      )
     runs-on: ubuntu-latest
     env:
       AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Comprobar secret de AWS
         env:

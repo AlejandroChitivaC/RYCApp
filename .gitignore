@@ -27,3 +27,4 @@ ai-tools/
 tools/dynamodb-local/
 
 *.log
+docs/*

@@ -1,12 +1,13 @@
-# Validación previa al deploy: CVEs, análisis estático y Playwright.
-# Lo llama deploy.yml; también corre en PRs y en ramas que no son main.
+# CVEs, análisis estático y Playwright.
+# En master/main: corre en el push; si pasa, deploy.yml se dispara después.
+# En PRs: corre solo. También se puede llamar desde un Deploy manual.
 
 name: Validar
 
 on:
   pull_request:
   push:
-    branches-ignore: [main, master]
+    branches: [master, main]
   workflow_call:
     secrets:
       VERACODE_API_ID:
