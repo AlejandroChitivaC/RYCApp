@@ -79,6 +79,23 @@ jobs:
           ignore-unfixed: true
           exit-code: '1'
           format: table
+      - name: Generar SARIF
+        if: always()
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: '0'
+          format: sarif
+          output: trivy-results.sarif
+      - name: Publicar en Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-results.sarif
+          category: trivy-fs
       - name: npm audit frontend
         working-directory: frontend
         run: npm audit --audit-level=critical
