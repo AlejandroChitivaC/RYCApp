@@ -71,11 +71,9 @@ export function UsuariosPage() {
     }
   }, [esAdmin, activarOpen, rolesActivacionRegistro.length, fetchRolesActivacionRegistro])
 
-  useEffect(() => {
-    if (activarOpen && rolesActivacionRegistro.length > 0 && !activarRolId) {
-      setActivarRolId(String(rolesActivacionRegistro[0].id))
-    }
-  }, [activarOpen, rolesActivacionRegistro, activarRolId])
+  const rolActivacionSeleccionado =
+    activarRolId ||
+    (rolesActivacionRegistro[0] ? String(rolesActivacionRegistro[0].id) : '')
 
   const sorted = useMemo(() => [...items].sort((a, b) => b.id.localeCompare(a.id)), [items])
 
@@ -165,7 +163,7 @@ export function UsuariosPage() {
             </p>
             <Select
               label="Rol definitivo"
-              value={activarRolId}
+              value={rolActivacionSeleccionado}
               onChange={(e) => setActivarRolId(e.target.value)}
             >
               {rolesActivacionRegistro.length === 0 ? (
@@ -195,10 +193,10 @@ export function UsuariosPage() {
               </Button>
               <Button
                 type="button"
-                disabled={!activarRolId || rolesActivacionRegistro.length === 0}
+                disabled={!rolActivacionSeleccionado || rolesActivacionRegistro.length === 0}
                 onClick={async () => {
-                  if (!activarTarget || !activarRolId) return
-                  await activarCuenta(activarTarget.id, activarRolId)
+                  if (!activarTarget || !rolActivacionSeleccionado) return
+                  await activarCuenta(activarTarget.id, rolActivacionSeleccionado)
                   await fetchPendientesActivacion()
                   setActivarOpen(false)
                   setActivarTarget(null)

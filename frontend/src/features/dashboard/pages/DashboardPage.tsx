@@ -119,10 +119,8 @@ export function DashboardPage() {
         if (!active) return
         setError(getApiErrorMessage(e))
         setReport(null)
-      } finally {
-        if (!active) return
-        setLoading(false)
       }
+      if (active) setLoading(false)
     })()
     return () => {
       active = false
@@ -131,34 +129,39 @@ export function DashboardPage() {
 
   const utilidadNum = Number(report?.utilidad ?? 0)
   const serie = report?.serieMensual ?? []
-  const porLinea = report?.porLinea ?? []
 
   const opsBars = useMemo(
-    () => serie.map((s) => ({ label: monthLabel(s.periodo), value: s.operaciones })),
-    [serie],
+    () => (report?.serieMensual ?? []).map((s) => ({ label: monthLabel(s.periodo), value: s.operaciones })),
+    [report],
   )
   const lineaBars = useMemo(
     () =>
-      porLinea.slice(0, 8).map((s) => ({
+      (report?.porLinea ?? []).slice(0, 8).map((s) => ({
         label: s.lineaNegocio.length > 12 ? `${s.lineaNegocio.slice(0, 11)}…` : s.lineaNegocio,
         value: Number(s.ingresos),
       })),
-    [porLinea],
+    [report],
   )
   const financeLines = useMemo(
     () => [
       {
         name: 'Ingresos',
         color: '#16a34a',
-        points: serie.map((s) => ({ label: monthLabel(s.periodo), value: Number(s.ingresos) })),
+        points: (report?.serieMensual ?? []).map((s) => ({
+          label: monthLabel(s.periodo),
+          value: Number(s.ingresos),
+        })),
       },
       {
         name: 'Costos',
         color: '#dc2626',
-        points: serie.map((s) => ({ label: monthLabel(s.periodo), value: Number(s.costos) })),
+        points: (report?.serieMensual ?? []).map((s) => ({
+          label: monthLabel(s.periodo),
+          value: Number(s.costos),
+        })),
       },
     ],
-    [serie],
+    [report],
   )
 
   return (

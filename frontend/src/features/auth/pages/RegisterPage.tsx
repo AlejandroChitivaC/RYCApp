@@ -8,7 +8,8 @@ import {
   AuthMailIcon,
   AuthUserIcon,
 } from '../components/AuthDarkField'
-import { PasswordFieldWithStrength, passwordMeetsPolicy } from '../components/PasswordFieldWithStrength'
+import { PasswordFieldWithStrength } from '../components/PasswordFieldWithStrength'
+import { passwordMeetsPolicy } from '../passwordPolicy'
 import { RegistrationStepper } from '../components/RegistrationStepper'
 import { AuthFooterStatus, AuthLogoHero, AuthSplitLayout } from '../components/AuthSplitLayout'
 import { authApi } from '../api'

@@ -4,7 +4,6 @@ import {
   passwordHasDigit,
   passwordHasMinLength,
   passwordHasSpecial,
-  passwordMeetsPolicy,
   strengthBarColor,
   strengthBorderClass,
 } from '../passwordPolicy'
@@ -133,5 +132,3 @@ export function PasswordFieldWithStrength({
     </div>
   )
 }
-
-export { passwordMeetsPolicy }
