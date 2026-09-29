@@ -15,7 +15,7 @@ public record NominaCreateRequest(
         @NotNull(message = "tipoCostoId es obligatorio.")
         String tipoCostoId,
 
-        @NotNull(message = "usuarioDebitadoId es obligatorio.")
+        @NotBlank(message = "Debe asignar el usuario al que se le debita.")
         String usuarioDebitadoId,
 
         Instant fechaInicio,

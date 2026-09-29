@@ -14,6 +14,7 @@ import { useProveedoresStore } from '../../proveedores/store'
 import { useAuthStore } from '../../auth/store'
 import { esActivo, hasRole, ROLES_CONSULTA_HISTORIAL } from '../../auth/roles'
 import { useVehiculosStore } from '../../vehiculos/store'
+import { AsignarFacturaModal } from '../components/AsignarFacturaModal'
 import { OperacionForm } from '../components/OperacionForm'
 import type { Operacion } from '../types'
 import { useOperacionesStore } from '../store'
@@ -48,6 +49,7 @@ export function OperacionesPage() {
   const fetchAll = useOperacionesStore((s) => s.fetchAll)
   const create = useOperacionesStore((s) => s.create)
   const confirmar = useOperacionesStore((s) => s.confirmar)
+  const asignarFactura = useOperacionesStore((s) => s.asignarFactura)
 
   const lineasItems = useLineasNegocioStore((s) => s.items)
   const fetchLineas = useLineasNegocioStore((s) => s.fetchAll)
@@ -65,6 +67,7 @@ export function OperacionesPage() {
   const fetchProveedores = useProveedoresStore((s) => s.fetchAll)
 
   const [open, setOpen] = useState(false)
+  const [asignarId, setAsignarId] = useState<string | null>(null)
   const { query: layoutQuery } = useLayoutSearch()
   const [tableQuery, setTableQuery] = useState('')
 
@@ -124,7 +127,7 @@ export function OperacionesPage() {
     <div>
       <PageListToolbar
         title="Operaciones registradas"
-        description="Filtros por fechas de inserción, línea y vehículo. Confirma una operación para que pueda sincronizarse con la facturación de Siigo."
+        description="Confirma una operación y asígnale la factura de Siigo que ya esté sincronizada."
         tableSearch={{ value: tableQuery, onChange: setTableQuery }}
         action={
           <Button className="rounded-xl px-5" onClick={() => setOpen(true)}>
@@ -224,6 +227,7 @@ export function OperacionesPage() {
                 <TH>Valor</TH>
                 <TH>Medio pago</TH>
                 <TH>Estado</TH>
+                <TH>Factura Siigo</TH>
                 {puedeConfirmar ? <TH>Acciones</TH> : null}
               </tr>
             </THead>
@@ -245,20 +249,32 @@ export function OperacionesPage() {
                   <TD>
                     <StatusBadge>{o.estado ?? 'REGISTRADA'}</StatusBadge>
                   </TD>
+                  <TD>{o.facturaSiigo ?? '—'}</TD>
                   {puedeConfirmar ? (
                     <TD>
-                      {o.estado !== 'CONFIRMADA' ? (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="rounded-xl border-zinc-200"
-                          onClick={() => void confirmar(o.id)}
-                        >
-                          Confirmar
-                        </Button>
-                      ) : (
-                        <span className="text-xs text-zinc-500">Lista para Siigo</span>
-                      )}
+                      <div className="flex flex-wrap gap-2">
+                        {o.estado !== 'CONFIRMADA' ? (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="rounded-xl border-zinc-200"
+                            onClick={() => {
+                              void confirmar(o.id).then(() => setAsignarId(o.id))
+                            }}
+                          >
+                            Confirmar
+                          </Button>
+                        ) : (
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="rounded-xl border-zinc-200"
+                            onClick={() => setAsignarId(o.id)}
+                          >
+                            {o.facturaSiigo ? 'Cambiar factura' : 'Asignar factura'}
+                          </Button>
+                        )}
+                      </div>
                     </TD>
                   ) : null}
                 </tr>
@@ -267,6 +283,14 @@ export function OperacionesPage() {
           </Table>
         )}
       </div>
+
+      <AsignarFacturaModal
+        operacionId={asignarId}
+        onClose={() => setAsignarId(null)}
+        onAssign={async (id, facturaId) => {
+          await asignarFactura(id, facturaId)
+        }}
+      />
 
       <Modal open={open} title="Nueva operación" onClose={() => setOpen(false)}>
         <OperacionForm

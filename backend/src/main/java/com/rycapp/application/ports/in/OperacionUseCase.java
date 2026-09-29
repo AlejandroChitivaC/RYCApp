@@ -1,5 +1,6 @@
 package com.rycapp.application.ports.in;
 
+import com.rycapp.domain.model.FacturaSiigo;
 import com.rycapp.domain.model.Operacion;
 
 import java.math.BigDecimal;
@@ -33,4 +34,6 @@ public interface OperacionUseCase {
     );
 
     Operacion confirmar(String id);
+
+    FacturaSiigo asignarFactura(String operacionId, String facturaId);
 }

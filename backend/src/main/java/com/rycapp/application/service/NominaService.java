@@ -5,6 +5,7 @@ import com.rycapp.application.ports.in.NominaUseCase;
 import com.rycapp.application.ports.out.NominaRepository;
 import com.rycapp.application.ports.out.TipoCostoRepository;
 import com.rycapp.application.ports.out.UsuarioRepository;
+import com.rycapp.domain.model.FlujosCosto;
 import com.rycapp.domain.model.Nomina;
 import org.springframework.stereotype.Service;
 
@@ -39,12 +40,16 @@ public class NominaService implements NominaUseCase {
             BigDecimal valor,
             String descripcion
     ) {
+        if (usuarioDebitadoId == null || usuarioDebitadoId.isBlank()) {
+            throw new IllegalArgumentException("Debe asignar el usuario al que se le debita.");
+        }
         usuarioRepository.findById(usuarioRegistroId)
                 .orElseThrow(() -> new NotFoundException("Usuario registro no encontrado (id=" + usuarioRegistroId + ")."));
         usuarioRepository.findById(usuarioDebitadoId)
                 .orElseThrow(() -> new NotFoundException("Usuario debitado no encontrado (id=" + usuarioDebitadoId + ")."));
-        tipoCostoRepository.findById(tipoCostoId)
+        var tipo = tipoCostoRepository.findById(tipoCostoId)
                 .orElseThrow(() -> new NotFoundException("Tipo de costo no encontrado (id=" + tipoCostoId + ")."));
+        FlujosCosto.exigirNomina(tipo);
         return repository.save(new Nomina(
                 null,
                 usuarioRegistroId,

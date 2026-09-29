@@ -20,6 +20,7 @@ type State = {
   setFilters: (patch: Partial<HistorialFilters>) => void
   fetchHistorial: () => Promise<void>
   confirmar: (id: string) => Promise<void>
+  asignarFactura: (id: string, facturaId: string) => Promise<void>
 }
 
 export const useHistorialOperacionesStore = create<State>((set, get) => ({
@@ -52,7 +53,21 @@ export const useHistorialOperacionesStore = create<State>((set, get) => ({
     try {
       const updated = await operacionesApi.confirmar(id)
       set({ items: get().items.map((x) => (x.id === id ? { ...x, ...updated } : x)) })
-      notify.success('Operación confirmada. Ya puede sincronizarse con Siigo.')
+      notify.success('Operación confirmada. Ya puedes asignarle una factura de Siigo.')
+    } catch (e) {
+      notify.failure(getApiErrorMessage(e))
+      throw e
+    } finally {
+      loading.remove()
+    }
+  },
+
+  asignarFactura: async (id, facturaId) => {
+    loading.show('Asignando factura...')
+    try {
+      const updated = await operacionesApi.asignarFactura(id, facturaId)
+      set({ items: get().items.map((x) => (x.id === id ? { ...x, ...updated } : x)) })
+      notify.success('Factura de Siigo asignada.')
     } catch (e) {
       notify.failure(getApiErrorMessage(e))
       throw e

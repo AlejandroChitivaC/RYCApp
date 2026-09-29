@@ -1,13 +1,16 @@
 package com.rycapp.application.service;
 
+import com.rycapp.application.exception.ConflictException;
 import com.rycapp.application.exception.NotFoundException;
 import com.rycapp.application.ports.in.OperacionUseCase;
+import com.rycapp.application.ports.out.FacturaSiigoRepository;
 import com.rycapp.application.ports.out.LineaNegocioRepository;
 import com.rycapp.application.ports.out.MaterialRepository;
 import com.rycapp.application.ports.out.OperacionRepository;
 import com.rycapp.application.ports.out.ProveedorRepository;
 import com.rycapp.application.ports.out.UsuarioRepository;
 import com.rycapp.application.ports.out.VehiculoRepository;
+import com.rycapp.domain.model.FacturaSiigo;
 import com.rycapp.domain.model.Operacion;
 import com.rycapp.domain.model.OperacionEstados;
 import org.slf4j.Logger;
@@ -28,6 +31,7 @@ public class OperacionService implements OperacionUseCase {
     private final VehiculoRepository vehiculoRepository;
     private final MaterialRepository materialRepository;
     private final ProveedorRepository proveedorRepository;
+    private final FacturaSiigoRepository facturaSiigoRepository;
 
     public OperacionService(
             OperacionRepository operacionRepository,
@@ -35,7 +39,8 @@ public class OperacionService implements OperacionUseCase {
             LineaNegocioRepository lineaNegocioRepository,
             VehiculoRepository vehiculoRepository,
             MaterialRepository materialRepository,
-            ProveedorRepository proveedorRepository
+            ProveedorRepository proveedorRepository,
+            FacturaSiigoRepository facturaSiigoRepository
     ) {
         this.operacionRepository = operacionRepository;
         this.usuarioRepository = usuarioRepository;
@@ -43,6 +48,7 @@ public class OperacionService implements OperacionUseCase {
         this.vehiculoRepository = vehiculoRepository;
         this.materialRepository = materialRepository;
         this.proveedorRepository = proveedorRepository;
+        this.facturaSiigoRepository = facturaSiigoRepository;
     }
 
     @Override
@@ -153,6 +159,48 @@ public class OperacionService implements OperacionUseCase {
         ));
         log.info("Operación confirmada id={}", confirmada.id());
         return confirmada;
+    }
+
+    @Override
+    public FacturaSiigo asignarFactura(String operacionId, String facturaId) {
+        var operacion = obtener(operacionId);
+        if (!OperacionEstados.esConfirmada(operacion.estado())) {
+            throw new IllegalArgumentException("Solo se puede asignar una factura de Siigo a una operación confirmada.");
+        }
+        var factura = facturaSiigoRepository.findById(facturaId)
+                .orElseThrow(() -> new NotFoundException("Factura de Siigo no encontrada (id=" + facturaId + ")."));
+        if (factura.operacionId() != null
+                && !factura.operacionId().isBlank()
+                && !factura.operacionId().equals(operacionId)) {
+            throw new ConflictException("Esa factura ya está asignada a otra operación.");
+        }
+        for (FacturaSiigo previa : facturaSiigoRepository.findByOperacionIds(List.of(operacionId))) {
+            if (!previa.id().equals(factura.id())) {
+                facturaSiigoRepository.save(conOperacion(previa, null));
+            }
+        }
+        var vinculada = facturaSiigoRepository.save(conOperacion(factura, operacionId));
+        log.info("Factura Siigo {} asignada a operación {}", vinculada.id(), operacionId);
+        return vinculada;
+    }
+
+    private static FacturaSiigo conOperacion(FacturaSiigo factura, String operacionId) {
+        return new FacturaSiigo(
+                factura.id(),
+                operacionId,
+                factura.siigoInvoiceId(),
+                factura.numero(),
+                factura.prefijo(),
+                factura.fecha(),
+                factura.fechaVencimiento(),
+                factura.identificacionCliente(),
+                factura.nombreCliente(),
+                factura.total(),
+                factura.saldo(),
+                factura.estadoPago(),
+                factura.observaciones(),
+                factura.fechaSincronizacion()
+        );
     }
 
     private static boolean esActivo(String estado) {

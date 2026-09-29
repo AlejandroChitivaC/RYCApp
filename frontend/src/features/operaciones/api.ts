@@ -31,4 +31,6 @@ export const operacionesApi = {
     (await http.post<Operacion>('/api/operaciones', payload)).data,
   confirmar: async (id: string) =>
     (await http.post<Operacion>(`/api/operaciones/${id}/confirmar`)).data,
+  asignarFactura: async (id: string, facturaId: string) =>
+    (await http.post<Operacion>(`/api/operaciones/${id}/factura`, { facturaId })).data,
 }

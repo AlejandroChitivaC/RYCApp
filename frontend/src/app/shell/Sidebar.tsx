@@ -11,6 +11,7 @@ import { useLineasNegocioStore } from '../../features/lineasNegocio/store'
 import { useOperacionesStore } from '../../features/operaciones/store'
 import { useHistorialOperacionesStore } from '../../features/operaciones/historialStore'
 import { useTicketsStore } from '../../features/tickets/store'
+import { useCostosStore, useTiposCostoStore } from '../../features/costos/store'
 
 function initials(nombre: string, apellido: string) {
   const a = (nombre || '').trim().charAt(0)
@@ -39,12 +40,16 @@ function useNavCounts(): Record<string, number> {
   const operaciones = useOperacionesStore((s) => s.items.length)
   const historial = useHistorialOperacionesStore((s) => s.items.length)
   const tickets = useTicketsStore((s) => s.items.length)
+  const costos = useCostosStore((s) => s.items.length)
+  const tiposCosto = useTiposCostoStore((s) => s.items.length)
   return {
     '/materiales': materiales,
     '/usuarios': usuarios,
     '/vehiculos': vehiculos,
     '/proveedores': proveedores,
     '/lineas-negocio': lineas,
+    '/costos': costos,
+    '/tipos-costo': tiposCosto,
     '/operaciones': operaciones,
     '/historial-operaciones': historial,
     '/tickets': tickets,

@@ -8,11 +8,13 @@ import {
 import {
   IconBriefcase,
   IconBuilding,
+  IconCoins,
   IconCube,
   IconGrid,
   IconHistory,
   IconPlug,
   IconReceipt,
+  IconTags,
   IconTicket,
   IconTruck,
   IconUsers,
@@ -33,6 +35,8 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/materiales', label: 'Materiales', icon: IconCube },
   { to: '/proveedores', label: 'Proveedores', icon: IconBuilding },
   { to: '/vehiculos', label: 'Vehículos', icon: IconTruck },
+  { to: '/costos', label: 'Costos', icon: IconCoins },
+  { to: '/tipos-costo', label: 'Tipos de costo', icon: IconTags },
   { to: '/operaciones', label: 'Operaciones', icon: IconReceipt },
   {
     to: '/historial-operaciones',

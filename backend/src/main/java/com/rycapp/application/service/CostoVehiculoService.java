@@ -7,6 +7,7 @@ import com.rycapp.application.ports.out.TipoCostoRepository;
 import com.rycapp.application.ports.out.UsuarioRepository;
 import com.rycapp.application.ports.out.VehiculoRepository;
 import com.rycapp.domain.model.CostoVehiculo;
+import com.rycapp.domain.model.FlujosCosto;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -44,10 +45,14 @@ public class CostoVehiculoService implements CostoVehiculoUseCase {
             String motivo,
             String descripcion
     ) {
+        if (vehiculoId == null || vehiculoId.isBlank()) {
+            throw new IllegalArgumentException("Debe asignar el vehículo.");
+        }
         usuarioRepository.findById(usuarioRegistroId)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado (id=" + usuarioRegistroId + ")."));
-        tipoCostoRepository.findById(tipoCostoId)
+        var tipo = tipoCostoRepository.findById(tipoCostoId)
                 .orElseThrow(() -> new NotFoundException("Tipo de costo no encontrado (id=" + tipoCostoId + ")."));
+        FlujosCosto.exigirVehiculo(tipo);
         vehiculoRepository.findById(vehiculoId)
                 .orElseThrow(() -> new NotFoundException("Vehículo no encontrado (id=" + vehiculoId + ")."));
         return repository.save(new CostoVehiculo(

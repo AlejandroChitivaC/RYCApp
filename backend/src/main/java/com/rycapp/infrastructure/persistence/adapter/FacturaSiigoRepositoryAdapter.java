@@ -49,6 +49,14 @@ public class FacturaSiigoRepositoryAdapter implements FacturaSiigoRepository {
     }
 
     @Override
+    public Optional<FacturaSiigo> findById(String id) {
+        if (id == null || id.isBlank()) {
+            return Optional.empty();
+        }
+        return DynamoSupport.findOne(table, id).map(FacturaSiigoItem::toDomain);
+    }
+
+    @Override
     public Optional<FacturaSiigo> findBySiigoInvoiceId(String siigoInvoiceId) {
         return DynamoSupport.findOne(table, siigoInvoiceId).map(FacturaSiigoItem::toDomain);
     }

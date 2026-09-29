@@ -11,6 +11,8 @@ import { UsuariosPage } from '../features/usuarios/pages/UsuariosPage'
 import { MaterialesPage } from '../features/materiales/pages/MaterialesPage'
 import { ProveedoresPage } from '../features/proveedores/pages/ProveedoresPage'
 import { VehiculosPage } from '../features/vehiculos/pages/VehiculosPage'
+import { CostosPage } from '../features/costos/pages/CostosPage'
+import { TiposCostoPage } from '../features/costos/pages/TiposCostoPage'
 import { OperacionesPage } from '../features/operaciones/pages/OperacionesPage'
 import { HistorialOperacionesPage } from '../features/operaciones/pages/HistorialOperacionesPage'
 import { TicketsPage } from '../features/tickets/pages/TicketsPage'
@@ -42,6 +44,8 @@ export const router = createBrowserRouter([
       { path: '/materiales', element: <MaterialesPage /> },
       { path: '/proveedores', element: <ProveedoresPage /> },
       { path: '/vehiculos', element: <VehiculosPage /> },
+      { path: '/costos', element: <CostosPage /> },
+      { path: '/tipos-costo', element: <TiposCostoPage /> },
       { path: '/operaciones', element: <OperacionesPage /> },
       {
         path: '/historial-operaciones',

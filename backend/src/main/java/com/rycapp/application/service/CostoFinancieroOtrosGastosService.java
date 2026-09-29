@@ -6,6 +6,7 @@ import com.rycapp.application.ports.out.CostoFinancieroOtrosGastosRepository;
 import com.rycapp.application.ports.out.TipoCostoRepository;
 import com.rycapp.application.ports.out.UsuarioRepository;
 import com.rycapp.domain.model.CostoFinancieroOtrosGastos;
+import com.rycapp.domain.model.FlujosCosto;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -32,8 +33,9 @@ public class CostoFinancieroOtrosGastosService implements CostoFinancieroOtrosGa
     public CostoFinancieroOtrosGastos crear(String usuarioRegistroId, String tipoCostoId, String medioPago, BigDecimal valor, String descripcion) {
         usuarioRepository.findById(usuarioRegistroId)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado (id=" + usuarioRegistroId + ")."));
-        tipoCostoRepository.findById(tipoCostoId)
+        var tipo = tipoCostoRepository.findById(tipoCostoId)
                 .orElseThrow(() -> new NotFoundException("Tipo de costo no encontrado (id=" + tipoCostoId + ")."));
+        FlujosCosto.rechazarSiExigeAsignacion(tipo);
         return repository.save(new CostoFinancieroOtrosGastos(
                 null, usuarioRegistroId, tipoCostoId, Instant.now(), medioPago, valor, descripcion
         ));

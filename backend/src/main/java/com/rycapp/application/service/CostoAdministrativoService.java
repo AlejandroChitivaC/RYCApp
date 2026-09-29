@@ -6,6 +6,7 @@ import com.rycapp.application.ports.out.CostoAdministrativoRepository;
 import com.rycapp.application.ports.out.TipoCostoRepository;
 import com.rycapp.application.ports.out.UsuarioRepository;
 import com.rycapp.domain.model.CostoAdministrativo;
+import com.rycapp.domain.model.FlujosCosto;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -40,8 +41,9 @@ public class CostoAdministrativoService implements CostoAdministrativoUseCase {
     ) {
         usuarioRepository.findById(usuarioRegistroId)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado (id=" + usuarioRegistroId + ")."));
-        tipoCostoRepository.findById(tipoCostoId)
+        var tipo = tipoCostoRepository.findById(tipoCostoId)
                 .orElseThrow(() -> new NotFoundException("Tipo de costo no encontrado (id=" + tipoCostoId + ")."));
+        FlujosCosto.rechazarSiExigeAsignacion(tipo);
         return repository.save(new CostoAdministrativo(
                 null,
                 usuarioRegistroId,

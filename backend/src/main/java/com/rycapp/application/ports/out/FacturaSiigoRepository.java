@@ -9,6 +9,8 @@ import java.util.Optional;
 public interface FacturaSiigoRepository {
     FacturaSiigo save(FacturaSiigo factura);
 
+    Optional<FacturaSiigo> findById(String id);
+
     Optional<FacturaSiigo> findBySiigoInvoiceId(String siigoInvoiceId);
 
     List<FacturaSiigo> findAll();

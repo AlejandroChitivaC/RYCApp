@@ -21,6 +21,7 @@ type State = {
   fetchAll: () => Promise<void>
   create: (payload: OperacionCreate) => Promise<Operacion>
   confirmar: (id: string) => Promise<Operacion>
+  asignarFactura: (id: string, facturaId: string) => Promise<Operacion>
 }
 
 export const useOperacionesStore = create<State>((set, get) => ({
@@ -68,7 +69,22 @@ export const useOperacionesStore = create<State>((set, get) => ({
     try {
       const updated = await operacionesApi.confirmar(id)
       set({ items: get().items.map((x) => (x.id === id ? { ...x, ...updated } : x)) })
-      notify.success('Operación confirmada. Ya puede sincronizarse con Siigo.')
+      notify.success('Operación confirmada. Ya puedes asignarle una factura de Siigo.')
+      return updated
+    } catch (e) {
+      notify.failure(getApiErrorMessage(e))
+      throw e
+    } finally {
+      loading.remove()
+    }
+  },
+
+  asignarFactura: async (id, facturaId) => {
+    loading.show('Asignando factura...')
+    try {
+      const updated = await operacionesApi.asignarFactura(id, facturaId)
+      set({ items: get().items.map((x) => (x.id === id ? { ...x, ...updated } : x)) })
+      notify.success('Factura de Siigo asignada.')
       return updated
     } catch (e) {
       notify.failure(getApiErrorMessage(e))

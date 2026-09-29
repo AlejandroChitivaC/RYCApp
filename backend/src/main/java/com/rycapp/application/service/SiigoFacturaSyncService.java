@@ -138,8 +138,12 @@ public class SiigoFacturaSyncService implements SiigoFacturaSyncUseCase {
         var existente = facturaSiigoRepository.findBySiigoInvoiceId(inv.id());
         if (existente.isPresent()) {
             id = existente.get().id();
-            if (operacionFinal == null) {
-                operacionFinal = existente.get().operacionId();
+            String previa = existente.get().operacionId();
+            boolean referenciaExplicita = extraerOperacionId(inv.observations(), inv.name()).isPresent();
+            if (previa != null && !previa.isBlank() && !referenciaExplicita) {
+                operacionFinal = previa;
+            } else if (operacionFinal == null) {
+                operacionFinal = previa;
             }
         }
 

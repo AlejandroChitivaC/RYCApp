@@ -5,6 +5,7 @@ import com.rycapp.application.ports.out.FacturaSiigoRepository;
 import com.rycapp.domain.model.FacturaSiigo;
 import com.rycapp.domain.model.Operacion;
 import com.rycapp.infrastructure.security.JwtPrincipal;
+import com.rycapp.interfaces.rest.dto.operacion.AsignarFacturaRequest;
 import com.rycapp.interfaces.rest.dto.operacion.OperacionCreateRequest;
 import com.rycapp.interfaces.rest.dto.operacion.OperacionResponse;
 import com.rycapp.interfaces.rest.mapper.OperacionDtoMapper;
@@ -90,6 +91,17 @@ public class OperacionController {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
     public ResponseEntity<OperacionResponse> confirmar(@PathVariable String id) {
         return ResponseEntity.ok(OperacionDtoMapper.toResponse(useCase.confirmar(id)));
+    }
+
+    @PostMapping("/{id}/factura")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
+    public ResponseEntity<OperacionResponse> asignarFactura(
+            @PathVariable String id,
+            @Valid @RequestBody AsignarFacturaRequest req
+    ) {
+        var factura = useCase.asignarFactura(id, req.facturaId());
+        var operacion = useCase.obtener(id);
+        return ResponseEntity.ok(OperacionDtoMapper.toResponse(operacion, factura.estadoPago(), factura.numero()));
     }
 
     private List<OperacionResponse> mapWithFacturacion(List<Operacion> items) {

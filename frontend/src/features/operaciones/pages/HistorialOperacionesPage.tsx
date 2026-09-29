@@ -11,6 +11,7 @@ import { useLineasNegocioStore } from '../../lineasNegocio/store'
 import { useMaterialesStore } from '../../materiales/store'
 import { useProveedoresStore } from '../../proveedores/store'
 import { useVehiculosStore } from '../../vehiculos/store'
+import { AsignarFacturaModal } from '../components/AsignarFacturaModal'
 import { useHistorialOperacionesStore } from '../historialStore'
 import type { Operacion } from '../types'
 import { fmtDateOnly } from '../../../shared/utils/format'
@@ -50,6 +51,7 @@ export function HistorialOperacionesPage() {
   const setFilters = useHistorialOperacionesStore((s) => s.setFilters)
   const fetchHistorial = useHistorialOperacionesStore((s) => s.fetchHistorial)
   const confirmar = useHistorialOperacionesStore((s) => s.confirmar)
+  const asignarFactura = useHistorialOperacionesStore((s) => s.asignarFactura)
 
   const lineasItems = useLineasNegocioStore((s) => s.items)
   const fetchLineas = useLineasNegocioStore((s) => s.fetchAll)
@@ -65,6 +67,7 @@ export function HistorialOperacionesPage() {
 
   const { query: layoutQuery } = useLayoutSearch()
   const [tableQuery, setTableQuery] = useState('')
+  const [asignarId, setAsignarId] = useState<string | null>(null)
 
   useEffect(() => {
     fetchLineas()
@@ -134,7 +137,7 @@ export function HistorialOperacionesPage() {
     <div>
       <PageListToolbar
         title="Historial de operaciones"
-        description="Consulta de servicios registrados y estado de pago según Siigo. Solo las operaciones confirmadas se sincronizan con facturación. Los registros históricos no pueden eliminarse."
+        description="Consulta de servicios registrados. Al confirmar una operación puedes asignarle una factura de Siigo."
         tableSearch={{ value: tableQuery, onChange: setTableQuery }}
       />
 
@@ -276,12 +279,21 @@ export function HistorialOperacionesPage() {
                         size="sm"
                         variant="secondary"
                         className="rounded-xl border-zinc-200"
-                        onClick={() => void confirmar(o.id)}
+                        onClick={() => {
+                          void confirmar(o.id).then(() => setAsignarId(o.id))
+                        }}
                       >
                         Confirmar
                       </Button>
                     ) : (
-                      <span className="text-xs text-zinc-500">Confirmada</span>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        className="rounded-xl border-zinc-200"
+                        onClick={() => setAsignarId(o.id)}
+                      >
+                        {o.facturaSiigo ? 'Cambiar factura' : 'Asignar factura'}
+                      </Button>
                     )}
                   </TD>
                   <TD className="max-w-[200px] truncate">
@@ -293,6 +305,14 @@ export function HistorialOperacionesPage() {
           </Table>
         )}
       </div>
+
+      <AsignarFacturaModal
+        operacionId={asignarId}
+        onClose={() => setAsignarId(null)}
+        onAssign={async (id, facturaId) => {
+          await asignarFactura(id, facturaId)
+        }}
+      />
     </div>
   )
 }

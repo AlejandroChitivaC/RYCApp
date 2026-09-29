@@ -15,7 +15,7 @@ public record CostoVehiculoCreateRequest(
         @NotNull(message = "tipoCostoId es obligatorio.")
         String tipoCostoId,
 
-        @NotNull(message = "vehiculoId es obligatorio.")
+        @NotBlank(message = "Debe asignar el vehículo.")
         String vehiculoId,
 
         Instant fechaInicio,
