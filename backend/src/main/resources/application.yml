@@ -6,6 +6,20 @@ spring:
     name: rycapp-backend
   config:
     import: optional:aws-secretsmanager:rycapp/backend
+  mail:
+    # Usuario, clave SMTP y remitente salen del secreto rycapp/backend
+    # (spring.mail.username, spring.mail.password, app.mail.from).
+    host: ${SPRING_MAIL_HOST:smtp-relay.brevo.com}
+    port: ${SPRING_MAIL_PORT:587}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+      mail.smtp.ssl.trust: smtp-relay.brevo.com
+      mail.smtp.ssl.protocols: TLSv1.2
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 10000
+      mail.smtp.writetimeout: 10000
   servlet:
     multipart:
       max-file-size: 4MB
@@ -31,7 +45,7 @@ app:
     otp-length: 6
     otp-expiration-minutes: 2
   mail:
-    from: "noreply@rycapp.local"
+    from: "ryc_app@outlook.es"
   origin-verify:
     secret: ${APP_ORIGIN_VERIFY_SECRET:}
   bootstrap:

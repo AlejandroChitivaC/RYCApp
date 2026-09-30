@@ -17,20 +17,23 @@ public class MailOtpSender {
 
     private final ObjectProvider<JavaMailSender> mailSenderProvider;
     private final String fromAddress;
+    private final String smtpUsername;
 
     public MailOtpSender(
             ObjectProvider<JavaMailSender> mailSenderProvider,
-            @Value("${app.mail.from:noreply@rycapp.local}") String fromAddress
+            @Value("${app.mail.from:noreply@rycapp.local}") String fromAddress,
+            @Value("${spring.mail.username:}") String smtpUsername
     ) {
         this.mailSenderProvider = mailSenderProvider;
         this.fromAddress = fromAddress;
+        this.smtpUsername = smtpUsername == null ? "" : smtpUsername.trim();
     }
 
     public void sendOtp(String toEmail, String plainOtp, int validMinutes) {
-        JavaMailSender sender = mailSenderProvider.getIfAvailable();
+        JavaMailSender sender = senderListo();
         if (sender == null) {
             log.warn(
-                    "[OTP] JavaMailSender no configurado (defina spring.mail.host). Correo={} Código={} (válido {} min)",
+                    "[OTP] SMTP Brevo sin usuario. En el secreto rycapp/backend define spring.mail.username (login SMTP), spring.mail.password (xsmtpsib-) y app.mail.from (remitente verificado). Correo={} Código={} (válido {} min)",
                     toEmail,
                     plainOtp,
                     validMinutes
@@ -63,10 +66,10 @@ public class MailOtpSender {
     }
 
     public void sendPasswordResetOtp(String toEmail, String plainOtp, int validMinutes) {
-        JavaMailSender sender = mailSenderProvider.getIfAvailable();
+        JavaMailSender sender = senderListo();
         if (sender == null) {
             log.warn(
-                    "[RESET] JavaMailSender no configurado. Correo={} Código={} (válido {} min)",
+                    "[RESET] SMTP Brevo sin usuario. Revisa el secreto rycapp/backend. Correo={} Código={} (válido {} min)",
                     toEmail,
                     plainOtp,
                     validMinutes
@@ -93,6 +96,13 @@ public class MailOtpSender {
             }
             log.warn("[RESET] Código de respaldo para {}: {}", toEmail, plainOtp);
         }
+    }
+
+    private JavaMailSender senderListo() {
+        if (smtpUsername.isBlank()) {
+            return null;
+        }
+        return mailSenderProvider.getIfAvailable();
     }
 
     private static boolean isSmtpAuthFailure(Throwable e) {
