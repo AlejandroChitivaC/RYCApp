@@ -23,6 +23,10 @@
         <serverless.container.version>2.1.3</serverless.container.version>
         <awspring.version>3.3.1</awspring.version>
         <testcontainers.version>1.20.4</testcontainers.version>
+        <spring-framework.version>6.2.19</spring-framework.version>
+        <spring-security.version>6.5.11</spring-security.version>
+        <tomcat.version>10.1.60</tomcat.version>
+        <netty.version>4.1.138.Final</netty.version>
     </properties>
 
     <dependencyManagement>
