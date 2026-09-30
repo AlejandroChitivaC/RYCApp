@@ -57,26 +57,15 @@ jobs:
         with:
           scan-type: fs
           scan-ref: .
+          scanners: vuln
           severity: CRITICAL
           ignore-unfixed: true
-          exit-code: '1'
-          format: table
-          output: trivy-report.txt
+          exit-code: '0'
+          format: json
+          output: trivy-report.json
 
-      - name: Informe Trivy
-        if: always()
-        run: |
-          {
-            echo '## Trivy — CVEs CRITICAL'
-            echo
-            if [ -s trivy-report.txt ]; then
-              echo '```'
-              cat trivy-report.txt
-              echo '```'
-            else
-              echo 'Trivy no generó salida.'
-            fi
-          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Informe de CVEs
+        run: node .github/scripts/informe-trivy.mjs trivy-report.json
 
       - name: npm audit frontend
         working-directory: frontend
