@@ -18,7 +18,7 @@ export default defineConfig({
   use: {
     baseURL,
     trace: 'on-first-retry',
-    screenshot: 'on',
+    screenshot: { mode: 'on', fullPage: true },
   },
   webServer: {
     command: process.env.CI
