@@ -1,0 +1,124 @@
+name: Validacion pre-deploy
+description: CVEs, código estático, Playwright y carga 10 TPS
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v4
+
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '22'
+        cache: npm
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Frontend — lint y typecheck
+      shell: bash
+      working-directory: frontend
+      run: |
+        npm ci
+        npm run lint
+        npx tsc -b --pretty false
+
+    - uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: temurin
+        cache: maven
+
+    - name: Backend — compilar y tests unitarios
+      shell: bash
+      run: mvn -B -f backend/pom.xml test -Dtest='!*IT'
+
+    - name: Escanear CVEs
+      uses: aquasecurity/trivy-action@v0.36.0
+      with:
+        scan-type: fs
+        scan-ref: .
+        severity: CRITICAL
+        ignore-unfixed: true
+        exit-code: '1'
+        format: table
+        output: trivy-report.txt
+
+    - name: Informe Trivy
+      if: always()
+      shell: bash
+      run: |
+        {
+          echo '## Trivy — CVEs CRITICAL'
+          echo
+          if [ -s trivy-report.txt ]; then
+            echo '```'
+            cat trivy-report.txt
+            echo '```'
+          else
+            echo 'Trivy no generó salida.'
+          fi
+        } >> "$GITHUB_STEP_SUMMARY"
+
+    - name: npm audit frontend
+      shell: bash
+      working-directory: frontend
+      run: npm audit --audit-level=critical
+
+    - name: npm audit infra
+      shell: bash
+      working-directory: infra
+      run: npm audit --audit-level=critical
+
+    - name: Dependencias del PR
+      if: github.event_name == 'pull_request'
+      uses: actions/dependency-review-action@v4
+      with:
+        fail-on-severity: critical
+
+    - name: Playwright — instalar navegador
+      shell: bash
+      working-directory: frontend
+      run: npx playwright install --with-deps chromium
+
+    - name: Playwright — build
+      shell: bash
+      working-directory: frontend
+      env:
+        VITE_API_BASE_URL: ''
+      run: npm run build
+
+    - name: Playwright — tests
+      shell: bash
+      working-directory: frontend
+      run: npm run test:e2e
+
+    - name: Informe Playwright
+      if: always()
+      shell: bash
+      working-directory: frontend
+      run: node e2e/write-gh-summary.mjs playwright-results.json
+
+    - name: Informe Playwright (artefacto)
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: playwright-report
+        path: frontend/playwright-report/
+        retention-days: 14
+
+    - uses: grafana/setup-k6-action@v1
+
+    - name: Carga 10 TPS
+      shell: bash
+      env:
+        BASE_URL: ${{ vars.LOADTEST_BASE_URL || 'https://dne4r7yuqm0az.cloudfront.net' }}
+      run: k6 run perf/login-10tps.js
+
+    - name: Informe de carga
+      if: always()
+      shell: bash
+      run: |
+        if [ -f k6-summary.md ]; then
+          cat k6-summary.md >> "$GITHUB_STEP_SUMMARY"
+        else
+          echo '## Carga 10 TPS' >> "$GITHUB_STEP_SUMMARY"
+          echo 'k6 no escribió el resumen.' >> "$GITHUB_STEP_SUMMARY"
+        fi
