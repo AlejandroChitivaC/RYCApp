@@ -99,7 +99,7 @@ public class MailAccountNotifications {
     ) throws Exception {
         MimeMessage mime = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mime, true, "UTF-8");
-        helper.setFrom(from);
+        MailFrom.apply(helper, from);
         helper.setTo(to);
         helper.setSubject(subject);
         helper.setText(plain, html);

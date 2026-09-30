@@ -46,7 +46,7 @@ public class MailOtpSender {
 
             MimeMessage mime = sender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mime, true, "UTF-8");
-            helper.setFrom(fromAddress);
+            MailFrom.apply(helper, fromAddress);
             helper.setTo(toEmail);
             helper.setSubject(SUBJECT_VERIFICACION);
             helper.setText(plain, html);
@@ -82,7 +82,7 @@ public class MailOtpSender {
 
             MimeMessage mime = sender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(mime, true, "UTF-8");
-            helper.setFrom(fromAddress);
+            MailFrom.apply(helper, fromAddress);
             helper.setTo(toEmail);
             helper.setSubject(SUBJECT_RESET);
             helper.setText(plain, html);
