@@ -14,11 +14,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.io.IOException;
@@ -112,6 +114,14 @@ public class GlobalExceptionHandler {
             fieldErrors.putIfAbsent(fe.getField(), fe.getDefaultMessage());
         }
         return build(HttpStatus.BAD_REQUEST, ex, request, fieldErrors, null);
+    }
+
+    @ExceptionHandler({MissingServletRequestParameterException.class, MissingServletRequestPartException.class})
+    public ResponseEntity<ApiErrorResponse> handleMissingPart(Exception ex, HttpServletRequest request) {
+        log.warn("400 | {} {} | {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST,
+                new IllegalArgumentException("Falta la operación o la imagen del ticket."),
+                request, null, null);
     }
 
     @ExceptionHandler(MultipartException.class)

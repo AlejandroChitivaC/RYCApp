@@ -33,9 +33,11 @@ public class TicketController {
     @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONDUCTOR')")
     public ResponseEntity<TicketResponse> cargar(
             @AuthenticationPrincipal JwtPrincipal principal,
-            @RequestParam("operacionId") String operacionId,
-            @RequestParam(value = "numeroTicket", required = false) String numeroTicket,
-            @RequestParam("archivo") MultipartFile archivo
+            // El contenedor de Lambda no copia los campos de texto del multipart a
+            // getParameter(), así que @RequestParam no los ve y responde 500.
+            @RequestPart("operacionId") String operacionId,
+            @RequestPart(value = "numeroTicket", required = false) String numeroTicket,
+            @RequestPart("archivo") MultipartFile archivo
     ) throws IOException {
         var ticket = useCase.cargar(
                 principal.usuarioId(),
