@@ -97,7 +97,7 @@ export function createBackend(scope: Construct, props: BackendProps): BackendRes
     ...tableEnv(props.tables),
     TICKETS_BUCKET: ticketsBucket.bucketName,
     SPRING_CONFIG_IMPORT: 'optional:aws-secretsmanager:rycapp/backend',
-    JAVA_TOOL_OPTIONS: '-XX:+TieredCompilation -XX:TieredStopAtLevel=1',
+    JAVA_TOOL_OPTIONS: '-Djava.awt.headless=true -XX:+TieredCompilation -XX:TieredStopAtLevel=1',
   };
 
   const apiFn = new lambda.Function(scope, 'ApiFn', {

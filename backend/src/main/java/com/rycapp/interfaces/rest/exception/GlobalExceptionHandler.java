@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.io.IOException;
@@ -111,6 +112,14 @@ public class GlobalExceptionHandler {
             fieldErrors.putIfAbsent(fe.getField(), fe.getDefaultMessage());
         }
         return build(HttpStatus.BAD_REQUEST, ex, request, fieldErrors, null);
+    }
+
+    @ExceptionHandler(MultipartException.class)
+    public ResponseEntity<ApiErrorResponse> handleMultipart(MultipartException ex, HttpServletRequest request) {
+        log.warn("400 | {} {} | multipart inválido: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+        return build(HttpStatus.BAD_REQUEST,
+                new IllegalArgumentException("No se pudo leer la imagen. Vuelve a seleccionar el archivo e inténtalo de nuevo."),
+                request, null, null);
     }
 
     @ExceptionHandler(Exception.class)

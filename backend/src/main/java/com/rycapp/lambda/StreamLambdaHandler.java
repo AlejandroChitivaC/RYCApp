@@ -17,6 +17,18 @@ public class StreamLambdaHandler implements RequestStreamHandler {
     static {
         try {
             HANDLER = SpringBootLambdaContainerHandler.getHttpApiV2ProxyHandler(RycAppBackendApplication.class);
+            // Sin esto, Lambda/CloudFront entrega el multipart en base64 y Spring
+            // recibe bytes corruptos: la conversión a PDF termina en 500.
+            HANDLER.getContainerConfig().addBinaryContentTypes(
+                    "multipart/form-data",
+                    "image/jpeg",
+                    "image/jpg",
+                    "image/png",
+                    "image/gif",
+                    "image/bmp",
+                    "application/pdf",
+                    "application/octet-stream"
+            );
         } catch (ContainerInitializationException e) {
             throw new IllegalStateException("No se pudo iniciar Spring en Lambda", e);
         }

@@ -24,7 +24,7 @@ import java.util.Set;
 public class TicketService implements TicketUseCase {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
     private static final Set<String> TIPOS_IMAGEN = Set.of(
-            "image/jpeg", "image/jpg", "image/png", "image/gif", "image/bmp"
+            "image/jpeg", "image/jpg", "image/pjpeg", "image/png", "image/x-png", "image/gif", "image/bmp"
     );
     private static final long TAMANO_MAXIMO = 4L * 1024 * 1024;
 
@@ -63,7 +63,7 @@ public class TicketService implements TicketUseCase {
         if (contenidoImagen.length > TAMANO_MAXIMO) {
             throw new IllegalArgumentException("El archivo supera el tamaño máximo de 4 MB.");
         }
-        String tipo = tipoContenidoOriginal != null ? tipoContenidoOriginal.toLowerCase().trim() : "";
+        String tipo = normalizarTipo(tipoContenidoOriginal);
         if (!TIPOS_IMAGEN.contains(tipo)) {
             throw new IllegalArgumentException("Solo se permiten imágenes (JPEG, PNG, GIF, BMP).");
         }
@@ -148,5 +148,23 @@ public class TicketService implements TicketUseCase {
         ticketRepository.saveAuditoria(new TicketAuditoria(
                 null, ticketId, usuarioId, null, null, Instant.now(), accion
         ));
+    }
+
+    private static String normalizarTipo(String contentType) {
+        if (contentType == null) {
+            return "";
+        }
+        String tipo = contentType.toLowerCase().trim();
+        int separador = tipo.indexOf(';');
+        if (separador >= 0) {
+            tipo = tipo.substring(0, separador).trim();
+        }
+        if ("image/pjpeg".equals(tipo) || "image/jpg".equals(tipo)) {
+            return "image/jpeg";
+        }
+        if ("image/x-png".equals(tipo)) {
+            return "image/png";
+        }
+        return tipo;
     }
 }
