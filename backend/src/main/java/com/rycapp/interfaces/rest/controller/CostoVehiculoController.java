@@ -5,6 +5,7 @@ import com.rycapp.interfaces.rest.dto.costovehiculo.CostoVehiculoCreateRequest;
 import com.rycapp.interfaces.rest.dto.costovehiculo.CostoVehiculoResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -13,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/costos-vehiculo")
+@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
 public class CostoVehiculoController {
     private final CostoVehiculoUseCase useCase;
 

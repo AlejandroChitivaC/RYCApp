@@ -53,7 +53,7 @@ public class TicketController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR', 'ROLE_CONDUCTOR')")
     public ResponseEntity<List<TicketResponse>> listar(
             @RequestParam(value = "operacionId", required = false) String operacionId
     ) {
@@ -64,7 +64,7 @@ public class TicketController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR', 'ROLE_CONDUCTOR')")
     public ResponseEntity<TicketResponse> obtener(
             @PathVariable String id,
             @AuthenticationPrincipal JwtPrincipal principal
@@ -73,7 +73,7 @@ public class TicketController {
     }
 
     @GetMapping("/{id}/pdf")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR', 'ROLE_CONDUCTOR')")
     public ResponseEntity<TicketPdfResponse> enlacePdf(
             @PathVariable String id,
             @AuthenticationPrincipal JwtPrincipal principal,
@@ -86,7 +86,7 @@ public class TicketController {
     }
 
     @GetMapping("/{id}/archivo")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR', 'ROLE_CONDUCTOR')")
     public ResponseEntity<byte[]> archivo(
             @PathVariable String id,
             @AuthenticationPrincipal JwtPrincipal principal

@@ -18,12 +18,19 @@ import { HistorialOperacionesPage } from '../features/operaciones/pages/Historia
 import { TicketsPage } from '../features/tickets/pages/TicketsPage'
 import { SiigoConnectionPage } from '../features/siigo/pages/SiigoConnectionPage'
 import { RequireRole } from '../features/auth/components/RequireRole'
+import { useAuthStore } from '../features/auth/store'
 import {
-  ROLES_CONSULTA_HISTORIAL,
+  homePathForRole,
+  ROLES_ADMIN,
+  ROLES_ADMIN_CONTADOR,
   ROLES_SIIGO,
-  ROLES_TICKETS_CARGA,
-  ROLES_TICKETS_CONSULTA,
+  ROLES_TICKETS,
 } from '../features/auth/roles'
+
+function HomeRedirect() {
+  const rol = useAuthStore((s) => s.user?.rol)
+  return <Navigate to={homePathForRole(rol)} replace />
+}
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -37,20 +44,83 @@ export const router = createBrowserRouter([
       </RequireAuth>
     ),
     children: [
-      { path: '/', element: <Navigate to="/dashboard" replace /> },
-      { path: '/dashboard', element: <DashboardPage /> },
-      { path: '/lineas-negocio', element: <LineasNegocioPage /> },
-      { path: '/usuarios', element: <UsuariosPage /> },
-      { path: '/materiales', element: <MaterialesPage /> },
-      { path: '/proveedores', element: <ProveedoresPage /> },
-      { path: '/vehiculos', element: <VehiculosPage /> },
-      { path: '/costos', element: <CostosPage /> },
-      { path: '/tipos-costo', element: <TiposCostoPage /> },
-      { path: '/operaciones', element: <OperacionesPage /> },
+      { path: '/', element: <HomeRedirect /> },
+      {
+        path: '/dashboard',
+        element: (
+          <RequireRole roles={ROLES_ADMIN_CONTADOR}>
+            <DashboardPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/lineas-negocio',
+        element: (
+          <RequireRole roles={ROLES_ADMIN}>
+            <LineasNegocioPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/usuarios',
+        element: (
+          <RequireRole roles={ROLES_ADMIN}>
+            <UsuariosPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/materiales',
+        element: (
+          <RequireRole roles={ROLES_ADMIN}>
+            <MaterialesPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/proveedores',
+        element: (
+          <RequireRole roles={ROLES_ADMIN}>
+            <ProveedoresPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/vehiculos',
+        element: (
+          <RequireRole roles={ROLES_ADMIN}>
+            <VehiculosPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/costos',
+        element: (
+          <RequireRole roles={ROLES_ADMIN_CONTADOR}>
+            <CostosPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/tipos-costo',
+        element: (
+          <RequireRole roles={ROLES_ADMIN}>
+            <TiposCostoPage />
+          </RequireRole>
+        ),
+      },
+      {
+        path: '/operaciones',
+        element: (
+          <RequireRole roles={ROLES_ADMIN_CONTADOR}>
+            <OperacionesPage />
+          </RequireRole>
+        ),
+      },
       {
         path: '/historial-operaciones',
         element: (
-          <RequireRole roles={ROLES_CONSULTA_HISTORIAL}>
+          <RequireRole roles={ROLES_ADMIN_CONTADOR}>
             <HistorialOperacionesPage />
           </RequireRole>
         ),
@@ -58,7 +128,7 @@ export const router = createBrowserRouter([
       {
         path: '/tickets',
         element: (
-          <RequireRole roles={[...ROLES_TICKETS_CARGA, ...ROLES_TICKETS_CONSULTA]}>
+          <RequireRole roles={ROLES_TICKETS}>
             <TicketsPage />
           </RequireRole>
         ),

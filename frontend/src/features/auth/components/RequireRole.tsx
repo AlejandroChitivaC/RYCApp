@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
+import { homePathForRole } from '../roles'
 import { useAuthStore } from '../store'
 
 type Props = {
@@ -8,11 +9,12 @@ type Props = {
   fallbackTo?: string
 }
 
-export function RequireRole({ roles, children, fallbackTo = '/dashboard' }: Props) {
+export function RequireRole({ roles, children, fallbackTo }: Props) {
   const user = useAuthStore((s) => s.user)
+  const destino = fallbackTo ?? homePathForRole(user?.rol)
 
   if (!user || !roles.includes(user.rol)) {
-    return <Navigate to={fallbackTo} replace />
+    return <Navigate to={destino} replace />
   }
 
   return <>{children}</>

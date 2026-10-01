@@ -15,6 +15,7 @@ import {
   AuthSplitLayout,
 } from '../components/AuthSplitLayout'
 import { authApi } from '../api'
+import { homePathForRole, puedeAccederRuta } from '../roles'
 import { useAuthStore } from '../store'
 
 const REMEMBER_EMAIL_KEY = 'ryc_auth_remember_email'
@@ -122,7 +123,10 @@ export function LoginPage() {
                 } catch {
                   /* ignore */
                 }
-                navigate(from, { replace: true })
+                const destino = puedeAccederRuta(res.usuario.rol, from)
+                  ? from
+                  : homePathForRole(res.usuario.rol)
+                navigate(destino, { replace: true })
               } catch (err) {
                 setError(getApiErrorMessage(err))
                 setErrorCode(getApiErrorCode(err) ?? null)
