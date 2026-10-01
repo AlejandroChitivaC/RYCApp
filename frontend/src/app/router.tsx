@@ -1,5 +1,6 @@
-import { createBrowserRouter, Navigate } from 'react-router-dom'
+import { createBrowserRouter } from 'react-router-dom'
 import { AppLayout } from './shell/AppLayout'
+import { HomeRedirect } from './shell/HomeRedirect'
 import { RequireAuth } from '../features/auth/components/RequireAuth'
 import { LoginPage } from '../features/auth/pages/LoginPage'
 import { RegisterPage } from '../features/auth/pages/RegisterPage'
@@ -18,19 +19,12 @@ import { HistorialOperacionesPage } from '../features/operaciones/pages/Historia
 import { TicketsPage } from '../features/tickets/pages/TicketsPage'
 import { SiigoConnectionPage } from '../features/siigo/pages/SiigoConnectionPage'
 import { RequireRole } from '../features/auth/components/RequireRole'
-import { useAuthStore } from '../features/auth/store'
 import {
-  homePathForRole,
   ROLES_ADMIN,
   ROLES_ADMIN_CONTADOR,
   ROLES_SIIGO,
   ROLES_TICKETS,
 } from '../features/auth/roles'
-
-function HomeRedirect() {
-  const rol = useAuthStore((s) => s.user?.rol)
-  return <Navigate to={homePathForRole(rol)} replace />
-}
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
