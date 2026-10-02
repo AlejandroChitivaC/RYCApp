@@ -30,6 +30,7 @@ public class UsuarioController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<UsuarioResponse> crear(@Valid @RequestBody UsuarioCreateRequest req) {
         var created = useCase.crear(req.rolId(), req.cedula(), req.nombre(), req.apellido());
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(created.id()).toUri();
@@ -37,27 +38,32 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<UsuarioResponse> editar(@PathVariable String id, @Valid @RequestBody UsuarioUpdateRequest req) {
         var updated = useCase.editar(id, req.rolId(), req.cedula(), req.nombre(), req.apellido(), req.estado());
         return ResponseEntity.ok(toResponse(updated));
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
     public ResponseEntity<List<UsuarioResponse>> listar() {
         return ResponseEntity.ok(useCase.listar().stream().map(UsuarioController::toResponse).toList());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
     public ResponseEntity<UsuarioResponse> obtener(@PathVariable String id) {
         return ResponseEntity.ok(toResponse(useCase.obtener(id)));
     }
 
     @GetMapping("/conductores")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<List<UsuarioResponse>> conductores() {
         return ResponseEntity.ok(useCase.listarConductores().stream().map(UsuarioController::toResponse).toList());
     }
 
     @GetMapping("/catalogo/estados-edicion")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
     public ResponseEntity<List<String>> catalogoEstadosEdicion() {
         return ResponseEntity.ok(useCase.catalogoEstadosUsuarioEdicion());
     }

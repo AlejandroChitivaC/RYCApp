@@ -39,6 +39,7 @@ public class VehiculoController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<VehiculoResponse> crear(@Valid @RequestBody VehiculoCreateRequest req) {
         var created = useCase.crear(req.placa(), req.clase(), req.marca(), req.modelo(), req.conductorId());
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(created.id()).toUri();
@@ -46,6 +47,7 @@ public class VehiculoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<VehiculoResponse> editar(@PathVariable String id, @Valid @RequestBody VehiculoUpdateRequest req) {
         var updated = useCase.editar(id, req.placa(), req.clase(), req.marca(), req.modelo(), req.conductorId());
         return ResponseEntity.ok(toResponse(updated));
@@ -61,12 +63,14 @@ public class VehiculoController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
     public ResponseEntity<List<VehiculoResponse>> listar() {
         var items = useCase.listar().stream().map(this::toResponse).toList();
         return ResponseEntity.ok(items);
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
     public ResponseEntity<VehiculoResponse> obtener(@PathVariable String id) {
         return ResponseEntity.ok(toResponse(useCase.obtener(id)));
     }

@@ -28,6 +28,7 @@ public class ProveedorController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ProveedorResponse> crear(@Valid @RequestBody ProveedorCreateRequest req) {
         var created = useCase.crear(req.nombre(), req.nit(), req.departamento(), req.municipio(), req.descripcion());
         URI location = ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(created.id()).toUri();
@@ -35,6 +36,7 @@ public class ProveedorController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<ProveedorResponse> editar(@PathVariable String id, @Valid @RequestBody ProveedorUpdateRequest req) {
         return ResponseEntity.ok(toRes(useCase.editar(id, req.nombre(), req.nit(), req.departamento(), req.municipio(), req.descripcion())));
     }
@@ -49,11 +51,13 @@ public class ProveedorController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
     public ResponseEntity<List<ProveedorResponse>> listar() {
         return ResponseEntity.ok(useCase.listar().stream().map(ProveedorController::toRes).toList());
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
     public ResponseEntity<ProveedorResponse> obtener(@PathVariable String id) {
         return ResponseEntity.ok(toRes(useCase.obtener(id)));
     }

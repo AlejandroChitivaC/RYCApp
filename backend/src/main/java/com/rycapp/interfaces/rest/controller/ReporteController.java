@@ -4,6 +4,7 @@ import com.rycapp.application.ports.in.ReporteUseCase;
 import com.rycapp.interfaces.rest.dto.reporte.ReporteDashboardResponse;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,6 +25,7 @@ public class ReporteController {
     }
 
     @GetMapping("/dashboard")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
     public ResponseEntity<ReporteDashboardResponse> dashboard(
             @RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant from,
             @RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant to,

@@ -5,6 +5,7 @@ import com.rycapp.interfaces.rest.dto.nomina.NominaCreateRequest;
 import com.rycapp.interfaces.rest.dto.nomina.NominaResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -13,6 +14,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/nominas")
+@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
 public class NominaController {
     private final NominaUseCase useCase;
 

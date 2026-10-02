@@ -38,6 +38,7 @@ public class OperacionController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR')")
     public ResponseEntity<OperacionResponse> crear(
             @AuthenticationPrincipal JwtPrincipal principal,
             @Valid @RequestBody OperacionCreateRequest req
@@ -59,6 +60,7 @@ public class OperacionController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR', 'ROLE_CONDUCTOR')")
     public ResponseEntity<List<OperacionResponse>> listar(
             @RequestParam(value = "from", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant from,
             @RequestParam(value = "to", required = false) @DateTimeFormat(iso = ISO.DATE_TIME) Instant to,
@@ -83,6 +85,7 @@ public class OperacionController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_CONTADOR', 'ROLE_CONDUCTOR')")
     public ResponseEntity<OperacionResponse> obtener(@PathVariable String id) {
         return ResponseEntity.ok(OperacionDtoMapper.toResponse(useCase.obtener(id)));
     }
