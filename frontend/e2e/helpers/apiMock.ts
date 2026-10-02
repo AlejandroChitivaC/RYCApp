@@ -436,7 +436,8 @@ export async function loginAs(
   await page.getByLabel('Correo electrónico').fill(creds.correo)
   await page.getByPlaceholder('Ingresa tu contraseña').fill(creds.password)
   await page.getByRole('button', { name: /entrar/i }).click()
-  await page.waitForURL('**/dashboard')
+  const inicio = creds.correo === CONDUCTOR.correo ? '**/tickets' : '**/dashboard'
+  await page.waitForURL(inicio)
 }
 
 export async function loginAsAdmin(page: Page): Promise<void> {
