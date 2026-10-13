@@ -147,7 +147,7 @@ jobs:
 
       - name: Trivy — filesystem JSON
         continue-on-error: true
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -163,7 +163,7 @@ jobs:
 
       - name: Trivy — filesystem SARIF
         continue-on-error: true
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -179,7 +179,7 @@ jobs:
 
       - name: Trivy — filesystem HTML
         continue-on-error: true
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: .
@@ -188,7 +188,7 @@ jobs:
           ignore-unfixed: 'false'
           exit-code: '0'
           format: template
-          template: '@contrib/html.tpl'
+          template: '@/contrib/html.tpl'
           output: security-reports/trivy-fs.html
           skip-dirs: node_modules,frontend/node_modules,infra/node_modules,frontend/dist,backend/target,infra/cdk.out,security-reports,.git
           trivy-config: trivy.yaml
@@ -196,7 +196,7 @@ jobs:
 
       - name: Trivy — JAR JSON
         continue-on-error: true
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: backend/target/rycapp-backend-0.0.1-SNAPSHOT.jar
@@ -211,7 +211,7 @@ jobs:
 
       - name: Trivy — JAR SARIF
         continue-on-error: true
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: fs
           scan-ref: backend/target/rycapp-backend-0.0.1-SNAPSHOT.jar
@@ -334,7 +334,7 @@ jobs:
       - name: Trivy — plantilla CDK JSON
         if: steps.synth.outputs.ok == 'true'
         continue-on-error: true
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: config
           scan-ref: infra/cdk.out
@@ -348,7 +348,7 @@ jobs:
       - name: Trivy — plantilla CDK SARIF
         if: steps.synth.outputs.ok == 'true'
         continue-on-error: true
-        uses: aquasecurity/trivy-action@0.36.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: config
           scan-ref: infra/cdk.out
