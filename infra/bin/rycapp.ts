@@ -1,8 +1,17 @@
 #!/usr/bin/env node
 import * as cdk from 'aws-cdk-lib';
+import { AwsSolutionsChecks, NagReportFormat } from 'cdk-nag';
 import { RycAppStack } from '../lib/rycapp-stack';
 
 const app = new cdk.App();
+cdk.Aspects.of(app).add(
+  new AwsSolutionsChecks({
+    verbose: true,
+    reports: true,
+    logIgnores: true,
+    reportFormats: [NagReportFormat.CSV, NagReportFormat.JSON],
+  }),
+);
 
 const stack = new RycAppStack(app, 'RycAppStack', {
   env: {

@@ -1,0 +1,30 @@
+compact: true
+framework:
+  - cloudformation
+download-external-modules: false
+evaluate-variables: true
+skip-check:
+  # Cifrado con clave administrada por AWS. Una CMK propia no cambia el cifrado en reposo.
+  - CKV_AWS_145
+  - CKV_AWS_119
+  - CKV_AWS_149
+  - CKV_AWS_158
+  # Lambda fuera de VPC: la Function URL y CloudFront no enrutan hacia una VPC.
+  - CKV_AWS_117
+  - CKV_AWS_115
+  - CKV_AWS_116
+  - CKV_AWS_173
+  - CKV_AWS_272
+  # WAF tiene coste fijo. El origen de la API solo acepta CloudFront con OAC.
+  - CKV_AWS_68
+  # El certificado por defecto de CloudFront fija TLSv1. Subirlo exige un dominio y ACM.
+  - CKV_AWS_174
+  # APP_ORIGIN_VERIFY_SECRET es el encabezado compartido con CloudFront, no una clave de AWS.
+  - CKV_AWS_45
+  # Los grants de CDK usan un comodín al final del ARN. La compuerta IAM sigue bloqueando Resource * peligroso.
+  - CKV_AWS_107
+  - CKV_AWS_108
+  - CKV_AWS_109
+  - CKV_AWS_110
+  - CKV_AWS_111
+  - CKV_AWS_356

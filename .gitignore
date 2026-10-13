@@ -31,4 +31,6 @@ tools/dynamodb-local/
 k6-summary.json
 k6-summary.md
 trivy-report.txt
+trivy-report.json
+security-reports/
 docs/*

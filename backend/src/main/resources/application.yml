@@ -39,7 +39,7 @@ app:
   cors:
     allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:5173,https://*.cloudfront.net}
   jwt:
-    secret: ${APP_JWT_SECRET:rycapp-dev-jwt-secret-key-min-32-chars-change-in-prod-2026!!}
+    secret: ${APP_JWT_SECRET:}
     expiration-minutes: 720
   auth:
     otp-length: 6
@@ -97,6 +97,8 @@ aws:
     endpoint: ${DYNAMODB_ENDPOINT:http://localhost:8000}
 
 app:
+  jwt:
+    secret: local-dev-only-not-a-production-secret-32b
   bootstrap:
     admin:
       enabled: true

@@ -34,7 +34,7 @@ function table(
       : undefined,
     billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     removalPolicy: retain ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
-    pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: retain },
+    pointInTimeRecoverySpecification: { pointInTimeRecoveryEnabled: true },
   });
 }
 

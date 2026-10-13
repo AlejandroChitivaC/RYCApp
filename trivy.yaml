@@ -1,0 +1,19 @@
+scan:
+  scanners:
+    - vuln
+    - secret
+    - misconfig
+    - license
+
+severity:
+  - UNKNOWN
+  - LOW
+  - MEDIUM
+  - HIGH
+  - CRITICAL
+
+vulnerability:
+  ignore-unfixed: false
+
+secret:
+  config: trivy-secret.yaml

@@ -1,0 +1,20 @@
+title = "RYCApp"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Valores ficticios de desarrollo y pruebas. No son credenciales de AWS."
+regexTarget = "match"
+regexes = [
+  '''local-dev-only-not-a-production-secret-32b''',
+  '''rycapp-dev-jwt-secret-key-min-32-chars-change-in-prod-2026!!''',
+  '''Admin1234!''',
+  '''Conductor1234!''',
+  '''TU_CLAVE_SMTP_BREVO''',
+  '''TU_LOGIN_SMTP_BREVO''',
+]
+paths = [
+  '''(?i)application-local\.example\.yml''',
+  '''security-reports/''',
+]

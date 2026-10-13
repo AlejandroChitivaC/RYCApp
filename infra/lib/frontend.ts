@@ -15,6 +15,7 @@ export interface FrontendResult {
 export interface FrontendProps {
   apiFunctionUrl: lambda.IFunctionUrl;
   originVerifySecret: string;
+  accessLogs: s3.IBucket;
 }
 
 export function createFrontend(scope: Construct, props: FrontendProps): FrontendResult {
@@ -23,6 +24,8 @@ export function createFrontend(scope: Construct, props: FrontendProps): Frontend
     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     encryption: s3.BucketEncryption.S3_MANAGED,
     enforceSSL: true,
+    serverAccessLogsBucket: props.accessLogs,
+    serverAccessLogsPrefix: 's3/web/',
   });
 
   const spaRewrite = new cloudfront.Function(scope, 'SpaRewrite', {
@@ -43,7 +46,7 @@ function handler(event) {
 `),
   });
 
-  const apiOrigin = new origins.FunctionUrlOrigin(props.apiFunctionUrl, {
+  const apiOrigin = origins.FunctionUrlOrigin.withOriginAccessControl(props.apiFunctionUrl, {
     customHeaders: {
       'X-Origin-Verify': props.originVerifySecret,
     },
@@ -52,6 +55,8 @@ function handler(event) {
   const distribution = new cloudfront.Distribution(scope, 'Cdn', {
     comment: 'RYCApp portal (S3 + API Lambda)',
     defaultRootObject: 'index.html',
+    logBucket: props.accessLogs,
+    logFilePrefix: 'cloudfront/',
     defaultBehavior: {
       origin: origins.S3BucketOrigin.withOriginAccessControl(siteBucket),
       viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,

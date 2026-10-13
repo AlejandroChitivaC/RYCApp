@@ -1,0 +1,18 @@
+rules:
+  - id: rycapp-checkserveridentity-disabled
+    languages: [yaml]
+    severity: WARNING
+    message: mail.smtp.ssl.checkserveridentity está desactivado. Déjalo solo en una plantilla local y no en el perfil que usa Lambda.
+    pattern-regex: checkserveridentity:\s*false
+    metadata:
+      category: security
+      technology: [spring]
+
+  - id: rycapp-function-url-sin-iam
+    languages: [typescript]
+    severity: INFO
+    message: Function URL con AuthType.NONE. El control de acceso del origen es el encabezado X-Origin-Verify que inyecta CloudFront.
+    pattern: lambda.FunctionUrlAuthType.NONE
+    metadata:
+      category: security
+      technology: [aws-cdk]

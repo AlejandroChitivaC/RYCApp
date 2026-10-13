@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "descripcion": "Criterios que impiden el despliegue a AWS. Un solo hallazgo bloqueante cierra la compuerta.",
+  "trivy": {
+    "vulnerabilidades": {
+      "severidades": ["CRITICAL", "HIGH"],
+      "soloConCorreccion": true
+    },
+    "secretos": {
+      "bloquear": true
+    },
+    "misconfiguracion": {
+      "severidades": ["CRITICAL", "HIGH"]
+    },
+    "licencias": {
+      "bloquear": false
+    }
+  },
+  "npmAudit": {
+    "severidades": ["critical", "high"],
+    "soloConCorreccion": true,
+    "ignorar": [
+      {
+        "paquete": "brace-expansion",
+        "motivo": "Queda embebido en aws-cdk-lib y npm no puede sustituirlo. No viaja dentro de la Lambda."
+      }
+    ]
+  },
+  "dependencyCheck": {
+    "cvssMinimo": 7.0
+  },
+  "semgrep": {
+    "severidades": ["ERROR"]
+  },
+  "gitleaks": {
+    "bloquear": true
+  },
+  "spotbugs": {
+    "bloquearPrioridadHasta": 1
+  },
+  "checkov": {
+    "severidades": ["CRITICAL", "HIGH"],
+    "idsBloqueantes": [
+      "CKV_AWS_19",
+      "CKV_AWS_20",
+      "CKV_AWS_28",
+      "CKV_AWS_34",
+      "CKV_AWS_53",
+      "CKV_AWS_54",
+      "CKV_AWS_55",
+      "CKV_AWS_56"
+    ]
+  },
+  "cdkNag": {
+    "niveles": ["Error"]
+  },
+  "iamPlantilla": {
+    "bloquearAccionYRecursoAsterisco": true,
+    "bloquearIamSobreRecursoAsterisco": true
+  },
+  "informesObligatorios": [
+    "trivy-fs.json",
+    "trivy-jar.json",
+    "gitleaks.json",
+    "semgrep.json",
+    "npm-audit-frontend.json",
+    "npm-audit-infra.json",
+    "dependency-check.json",
+    "spotbugs.xml",
+    "cdk-synth.log",
+    "cdk-synth.exit"
+  ],
+  "informesObligatoriosSiSynthOk": ["trivy-iac.json", "checkov.json"],
+  "riesgosAceptados": [
+    {
+      "id": "function-url-auth-none",
+      "motivo": "La Function URL usa AuthType NONE porque CloudFront no firma peticiones IAM. El origen exige el encabezado X-Origin-Verify y el bucket del sitio no es público."
+    },
+    {
+      "id": "sin-waf",
+      "motivo": "CloudFront no lleva AWS WAF: el coste fijo mensual queda fuera de este despliegue. El sitio entra por HTTPS y la API valida el origen."
+    },
+    {
+      "id": "sin-rotacion-automatica",
+      "motivo": "El secreto rycapp/backend no rota solo. Rotar el JWT cerraría las sesiones activas. La rotación es manual en Secrets Manager."
+    },
+    {
+      "id": "iam-grants-cdk",
+      "motivo": "Los grants de CDK terminan el ARN en un comodín (objetos del bucket o índices de la tabla). La compuerta sí bloquea Action * con Resource * y permisos IAM sobre *."
+    },
+    {
+      "id": "jwt-perfil-local",
+      "motivo": "El perfil Spring local usa un JWT de desarrollo. Lambda no activa ese perfil: en AWS el JWT sale de Secrets Manager."
+    },
+    {
+      "id": "jwt-dev-historico",
+      "motivo": "Commits anteriores tenían un JWT de desarrollo en application.yml. Ya no está en el perfil por defecto y sigue en el allowlist para no bloquear el historial."
+    },
+    {
+      "id": "brace-expansion-cdk",
+      "motivo": "aws-cdk-lib trae brace-expansion embebido. npm audit fix no puede cambiarlo y ese paquete no se despliega con la aplicación."
+    },
+    {
+      "id": "logs-sin-cifrado-cmk",
+      "motivo": "S3, DynamoDB y el secreto usan cifrado administrado por AWS. Una CMK propia añade coste y una llave que operar, sin cambiar el cifrado en reposo."
+    }
+  ]
+}

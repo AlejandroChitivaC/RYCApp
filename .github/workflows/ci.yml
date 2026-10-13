@@ -1,0 +1,414 @@
+# CI: calidad y análisis de seguridad. No despliega.
+# El CD está en cd.yml y solo arranca cuando este workflow termina en éxito.
+#
+# Secret opcional:
+#   NVD_API_KEY — clave gratuita de https://nvd.nist.gov/developers/request-an-api-key
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [master, main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validar:
+    name: Validacion de codigo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Frontend — lint y typecheck
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run lint
+          npx tsc -b --pretty false
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: Backend — compilar y tests unitarios
+        run: mvn -B -f backend/pom.xml test -Dtest='!*IT'
+
+      - name: Playwright — instalar navegador
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright — build
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: ''
+        run: npm run build
+
+      - name: Playwright — tests
+        working-directory: frontend
+        run: npm run test:e2e
+
+      - name: Informe Playwright
+        if: always()
+        working-directory: frontend
+        run: node e2e/write-gh-summary.mjs playwright-results.json
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: frontend/playwright-report/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - uses: grafana/setup-k6-action@v1
+
+      - name: Carga 10 TPS
+        env:
+          BASE_URL: ${{ vars.LOADTEST_BASE_URL || 'https://dne4r7yuqm0az.cloudfront.net' }}
+        run: k6 run perf/login-10tps.js
+
+      - name: Informe de carga
+        if: always()
+        run: |
+          if [ -f k6-summary.md ]; then
+            cat k6-summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo '## Carga 10 TPS' >> "$GITHUB_STEP_SUMMARY"
+            echo 'k6 no escribió el resumen.' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+  seguridad:
+    name: Analisis de seguridad
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: Cache de la base NVD
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/dependency-check-data
+          key: dependency-check-nvd-${{ runner.os }}-v1
+          restore-keys: |
+            dependency-check-nvd-${{ runner.os }}-
+
+      - name: Backend — empaquetar JAR
+        run: mvn -B -f backend/pom.xml package -DskipTests
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            frontend/package-lock.json
+            infra/package-lock.json
+
+      - name: Frontend — instalar y compilar
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: ''
+        run: |
+          npm ci
+          npm run build
+
+      - name: Infra — instalar
+        working-directory: infra
+        run: npm ci
+
+      - name: Preparar carpeta de informes
+        run: mkdir -p security-reports
+
+      - name: Trivy — filesystem JSON
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig,license
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: 'false'
+          exit-code: '0'
+          format: json
+          output: security-reports/trivy-fs.json
+          skip-dirs: node_modules,frontend/node_modules,infra/node_modules,frontend/dist,backend/target,infra/cdk.out,security-reports,.git
+          trivy-config: trivy.yaml
+          cache: 'true'
+
+      - name: Trivy — filesystem SARIF
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: 'false'
+          exit-code: '0'
+          format: sarif
+          output: security-reports/trivy-fs.sarif
+          skip-dirs: node_modules,frontend/node_modules,infra/node_modules,frontend/dist,backend/target,infra/cdk.out,security-reports,.git
+          trivy-config: trivy.yaml
+          cache: 'true'
+
+      - name: Trivy — filesystem HTML
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,secret,misconfig
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: 'false'
+          exit-code: '0'
+          format: template
+          template: '@contrib/html.tpl'
+          output: security-reports/trivy-fs.html
+          skip-dirs: node_modules,frontend/node_modules,infra/node_modules,frontend/dist,backend/target,infra/cdk.out,security-reports,.git
+          trivy-config: trivy.yaml
+          cache: 'true'
+
+      - name: Trivy — JAR JSON
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: fs
+          scan-ref: backend/target/rycapp-backend-0.0.1-SNAPSHOT.jar
+          scanners: vuln
+          vuln-type: library
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: 'false'
+          exit-code: '0'
+          format: json
+          output: security-reports/trivy-jar.json
+          cache: 'true'
+
+      - name: Trivy — JAR SARIF
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: fs
+          scan-ref: backend/target/rycapp-backend-0.0.1-SNAPSHOT.jar
+          scanners: vuln
+          vuln-type: library
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          ignore-unfixed: 'false'
+          exit-code: '0'
+          format: sarif
+          output: security-reports/trivy-jar.sarif
+          cache: 'true'
+
+      - name: Gitleaks
+        continue-on-error: true
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v8.24.2/gitleaks_8.24.2_linux_x64.tar.gz" | sudo tar -xz -C /usr/local/bin gitleaks
+          gitleaks version
+          gitleaks detect --source . --config .gitleaks.toml --report-format json --report-path security-reports/gitleaks.json --exit-code 0 --redact
+          gitleaks detect --source . --config .gitleaks.toml --report-format sarif --report-path security-reports/gitleaks.sarif --exit-code 0 --redact
+          if [ ! -s security-reports/gitleaks.json ]; then echo '[]' > security-reports/gitleaks.json; fi
+
+      - name: Semgrep
+        continue-on-error: true
+        run: |
+          python3 -m venv "$RUNNER_TEMP/security-venv"
+          # shellcheck disable=SC1091
+          source "$RUNNER_TEMP/security-venv/bin/activate"
+          python -m pip install --disable-pip-version-check 'semgrep>=1.86.0'
+          set +e
+          semgrep scan \
+            --config p/java \
+            --config p/javascript \
+            --config p/typescript \
+            --config p/react \
+            --config p/owasp-top-ten \
+            --config p/secrets \
+            --config .semgrep/rycapp.yml \
+            --metrics=off \
+            --disable-version-check \
+            --json --output security-reports/semgrep.json
+          semgrep scan \
+            --config p/java \
+            --config p/javascript \
+            --config p/typescript \
+            --config p/react \
+            --config p/owasp-top-ten \
+            --config p/secrets \
+            --config .semgrep/rycapp.yml \
+            --metrics=off \
+            --disable-version-check \
+            --sarif --output security-reports/semgrep.sarif
+          status=$?
+          set -e
+          if [ ! -s security-reports/semgrep.json ]; then exit "$status"; fi
+
+      - name: npm audit frontend
+        continue-on-error: true
+        working-directory: frontend
+        run: |
+          npm audit --omit=dev --json > "$GITHUB_WORKSPACE/security-reports/npm-audit-frontend.json" || true
+          npm audit --json > "$GITHUB_WORKSPACE/security-reports/npm-audit-frontend-completo.json" || true
+
+      - name: npm audit infra
+        continue-on-error: true
+        working-directory: infra
+        run: |
+          npm audit --omit=dev --json > "$GITHUB_WORKSPACE/security-reports/npm-audit-infra.json" || true
+          npm audit --json > "$GITHUB_WORKSPACE/security-reports/npm-audit-infra-completo.json" || true
+
+      - name: OWASP Dependency-Check
+        continue-on-error: true
+        timeout-minutes: 25
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          if [ -z "${NVD_API_KEY}" ]; then unset NVD_API_KEY; fi
+          mvn -B -f backend/pom.xml -Psecurity -DskipTests org.owasp:dependency-check-maven:check
+          json=$(find backend/target/dependency-check -type f -name '*.json' | head -n 1)
+          html=$(find backend/target/dependency-check -type f -name '*.html' | head -n 1)
+          sarif=$(find backend/target/dependency-check -type f -name '*.sarif' | head -n 1)
+          if [ -n "$json" ]; then cp "$json" security-reports/dependency-check.json; fi
+          if [ -n "$html" ]; then cp "$html" security-reports/dependency-check.html; fi
+          if [ -n "$sarif" ]; then cp "$sarif" security-reports/dependency-check.sarif; fi
+
+      - name: SpotBugs y Find Security Bugs
+        continue-on-error: true
+        run: |
+          mvn -B -f backend/pom.xml -Psecurity -DskipTests spotbugs:spotbugs
+          xml=$(find backend/target -type f -name 'spotbugsXml.xml' | head -n 1)
+          html=$(find backend/target -type f \( -name 'spotbugs.html' -o -name 'spotbugsXml.html' \) | head -n 1)
+          sarif=$(find backend/target -type f \( -name 'spotbugsSarif.json' -o -name 'spotbugs.sarif' \) | head -n 1)
+          if [ -n "$xml" ]; then cp "$xml" security-reports/spotbugs.xml; fi
+          if [ -n "$html" ]; then cp "$html" security-reports/spotbugs.html; fi
+          if [ -n "$sarif" ]; then cp "$sarif" security-reports/spotbugs.sarif; fi
+
+      - name: CDK synth con cdk-nag
+        env:
+          CDK_DEFAULT_ACCOUNT: '000000000000'
+          CDK_DEFAULT_REGION: us-east-1
+        working-directory: infra
+        run: |
+          set +e
+          npx cdk synth --output cdk.out > ../security-reports/cdk-synth.log 2>&1
+          code=$?
+          set -e
+          printf '%s' "$code" > ../security-reports/cdk-synth.exit
+          find cdk.out -type f -name '*NagReport*' -exec cp {} ../security-reports/ \;
+          exit 0
+
+      - name: Estado del synth
+        id: synth
+        run: |
+          if [ "$(cat security-reports/cdk-synth.exit)" = "0" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+            echo '{"Results":[],"omitido":true}' > security-reports/trivy-iac.json
+          fi
+
+      - name: Trivy — plantilla CDK JSON
+        if: steps.synth.outputs.ok == 'true'
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: config
+          scan-ref: infra/cdk.out
+          scanners: misconfig
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          exit-code: '0'
+          format: json
+          output: security-reports/trivy-iac.json
+          cache: 'true'
+
+      - name: Trivy — plantilla CDK SARIF
+        if: steps.synth.outputs.ok == 'true'
+        continue-on-error: true
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: config
+          scan-ref: infra/cdk.out
+          scanners: misconfig
+          severity: UNKNOWN,LOW,MEDIUM,HIGH,CRITICAL
+          exit-code: '0'
+          format: sarif
+          output: security-reports/trivy-iac.sarif
+          cache: 'true'
+
+      - name: Checkov
+        continue-on-error: true
+        run: |
+          if [ "$(cat security-reports/cdk-synth.exit)" != "0" ]; then
+            echo '{"results":{"failed_checks":[],"skipped":true},"motivo":"cdk synth no terminó bien"}' > security-reports/checkov.json
+            exit 0
+          fi
+          python3 -m venv "$RUNNER_TEMP/checkov-venv"
+          # shellcheck disable=SC1091
+          source "$RUNNER_TEMP/checkov-venv/bin/activate"
+          python -m pip install --disable-pip-version-check 'checkov>=3.2.300,<4'
+          checkov -d infra/cdk.out --framework cloudformation --config-file .checkov.yaml -o json --output-file-path security-reports/checkov.json --soft-fail --compact --quiet
+          checkov -d infra/cdk.out --framework cloudformation --config-file .checkov.yaml -o sarif --output-file-path security-reports/checkov.sarif --soft-fail --compact --quiet
+          if [ -d security-reports/checkov.json ]; then
+            found=$(find security-reports/checkov.json -type f -name '*.json' | head -n 1)
+            mv "$found" security-reports/checkov-real.json
+            rm -rf security-reports/checkov.json
+            mv security-reports/checkov-real.json security-reports/checkov.json
+          fi
+          if [ -d security-reports/checkov.sarif ]; then
+            found=$(find security-reports/checkov.sarif -type f -name '*.sarif' | head -n 1)
+            mv "$found" security-reports/checkov-real.sarif
+            rm -rf security-reports/checkov.sarif
+            mv security-reports/checkov-real.sarif security-reports/checkov.sarif
+          fi
+
+      - name: Evaluar política y publicar informes
+        id: politica
+        if: always()
+        run: node .github/scripts/publicar-informes-seguridad.mjs
+
+      - name: Subir informes HTML, JSON y SARIF
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informes-seguridad
+          path: security-reports/
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Publicar SARIF en GitHub Code Scanning
+        if: always()
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: security-reports/resumen.sarif
+          category: rycapp-seguridad
+
+      - name: Dependencias nuevas del pull request
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high

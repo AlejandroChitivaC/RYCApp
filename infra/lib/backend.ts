@@ -22,6 +22,7 @@ export interface BackendProps {
   tables: RycTables;
   retain: boolean;
   originVerifySecret: string;
+  accessLogs: s3.IBucket;
 }
 
 function tableEnv(tables: RycTables): Record<string, string> {
@@ -53,6 +54,8 @@ export function createBackend(scope: Construct, props: BackendProps): BackendRes
     blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
     encryption: s3.BucketEncryption.S3_MANAGED,
     enforceSSL: true,
+    serverAccessLogsBucket: props.accessLogs,
+    serverAccessLogsPrefix: 's3/tickets/',
     removalPolicy: props.retain ? RemovalPolicy.RETAIN : RemovalPolicy.DESTROY,
     autoDeleteObjects: !props.retain,
     cors: [
@@ -123,7 +126,7 @@ export function createBackend(scope: Construct, props: BackendProps): BackendRes
   });
 
   const functionUrl = apiAlias.addFunctionUrl({
-    authType: lambda.FunctionUrlAuthType.NONE,
+    authType: lambda.FunctionUrlAuthType.AWS_IAM,
     invokeMode: lambda.InvokeMode.BUFFERED,
     cors: {
       allowedOrigins: ['*'],

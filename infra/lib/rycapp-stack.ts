@@ -4,6 +4,8 @@ import { Construct } from 'constructs';
 import { createBackend } from './backend';
 import { createTables } from './database';
 import { createFrontend } from './frontend';
+import { createAccessLogsBucket } from './logs';
+import { applyNagSuppressions } from './nag';
 
 export class RycAppStack extends Stack {
   constructor(scope: Construct, id: string, props?: StackProps) {
@@ -19,15 +21,24 @@ export class RycAppStack extends Stack {
         .digest('hex')
         .slice(0, 32);
 
+    const accessLogs = createAccessLogsBucket(this, retain);
     const tables = createTables(this, retain);
     const backend = createBackend(this, {
       tables,
       retain,
       originVerifySecret,
+      accessLogs,
     });
     const frontend = createFrontend(this, {
       apiFunctionUrl: backend.functionUrl,
       originVerifySecret,
+      accessLogs,
+    });
+    applyNagSuppressions({
+      stack: this,
+      accessLogs,
+      distribution: frontend.distribution,
+      backendSecret: backend.backendSecret,
     });
 
     new CfnOutput(this, 'CloudFrontUrl', {
