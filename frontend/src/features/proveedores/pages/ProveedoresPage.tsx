@@ -69,7 +69,7 @@ export function ProveedoresPage() {
       <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <StatMiniCard
           icon={<IconProvider className="h-6 w-6" />}
-          label="Total proveedores"
+          label="Total clientes"
           value={total}
         />
         <StatMiniCard
@@ -87,8 +87,8 @@ export function ProveedoresPage() {
       </div>
 
       <PageListToolbar
-        title="Catálogo de proveedores"
-        description="Proveedores y ubicación según el modelo de datos."
+        title="Catálogo de clientes"
+        description="Clientes y ubicación según el modelo de datos."
         tableSearch={{ value: tableQuery, onChange: setTableQuery }}
         action={
           <Button
@@ -98,7 +98,7 @@ export function ProveedoresPage() {
               setOpen(true)
             }}
           >
-            + Nuevo proveedor
+            + Nuevo cliente
           </Button>
         }
       />
@@ -109,7 +109,7 @@ export function ProveedoresPage() {
         ) : error ? (
           <EmptyState title="No se pudo cargar" description={error} />
         ) : sorted.length === 0 ? (
-          <EmptyState title="Sin proveedores" description="Crea el primer proveedor." />
+          <EmptyState title="Sin clientes" description="Crea el primer cliente." />
         ) : (
           <Table>
             <THead>
@@ -170,7 +170,7 @@ export function ProveedoresPage() {
         )}
       </div>
 
-      <Modal open={open} title={editing ? 'Editar' : 'Nuevo'} onClose={() => setOpen(false)}>
+      <Modal open={open} title={editing ? 'Editar cliente' : 'Nuevo cliente'} onClose={() => setOpen(false)}>
         <ProveedorForm
           initial={editing}
           onCancel={() => setOpen(false)}

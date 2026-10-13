@@ -100,17 +100,17 @@ export function OperacionForm({ catalogos, usuarioRegistroLabel, onCancel, onSub
       }}
     >
       <div className="text-sm font-semibold text-slate-900">
-        Registrar operación (Operaciones_Lineas_Negocio)
+        Registrar venta
       </div>
       <div className="mt-1 text-sm text-slate-600">
-        El usuario de registro se toma automáticamente de tu sesión. Línea, vehículo, material, proveedor y las
+        El usuario de registro se toma automáticamente de tu sesión. Línea, vehículo, material, cliente y las
         fechas de inicio y fin son obligatorios. La fecha fin no puede ser anterior a la de inicio.
       </div>
 
       {!hasCatalogos ? (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Completa catálogos activos: al menos una línea de negocio, un vehículo con conductor, un material y
-          un proveedor. Los registros desactivados no aparecen aquí.
+          un cliente. Los registros desactivados no aparecen aquí.
         </div>
       ) : null}
 
@@ -173,7 +173,7 @@ export function OperacionForm({ catalogos, usuarioRegistroLabel, onCancel, onSub
         </Select>
 
         <Select
-          label="Proveedor"
+          label="Cliente"
           value={proveedorId}
           onChange={(e) => setProveedorId(e.target.value)}
           error={fieldErrors.proveedorId}

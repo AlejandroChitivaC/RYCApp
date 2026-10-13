@@ -28,7 +28,7 @@ export function ProveedorForm({ initial, onCancel, onSubmit }: Props) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
-  const title = useMemo(() => (initial ? 'Editar proveedor' : 'Nuevo proveedor'), [initial])
+  const title = useMemo(() => (initial ? 'Editar cliente' : 'Nuevo cliente'), [initial])
   const municipios = useMemo(() => {
     const list = municipiosDe(departamento)
     if (municipio && !list.includes(municipio)) {

@@ -31,11 +31,11 @@ export const useProveedoresStore = create<State>((set, get) => ({
   },
 
   create: async (payload) => {
-    loading.show('Creando proveedor...')
+    loading.show('Creando cliente...')
     try {
       const created = await proveedoresApi.create(payload)
       set({ items: [created, ...get().items] })
-      notify.success('Proveedor creado.')
+      notify.success('Cliente creado.')
       return created
     } catch (e) {
       notify.failure(getApiErrorMessage(e))
@@ -46,11 +46,11 @@ export const useProveedoresStore = create<State>((set, get) => ({
   },
 
   update: async (id, payload) => {
-    loading.show('Actualizando proveedor...')
+    loading.show('Actualizando cliente...')
     try {
       const updated = await proveedoresApi.update(id, payload)
       set({ items: get().items.map((x) => (x.id === id ? updated : x)) })
-      notify.success('Proveedor actualizado.')
+      notify.success('Cliente actualizado.')
       return updated
     } catch (e) {
       notify.failure(getApiErrorMessage(e))

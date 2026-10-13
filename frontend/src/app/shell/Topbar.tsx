@@ -32,7 +32,7 @@ export function Topbar() {
               {title}
             </h1>
             <p className="mt-1 max-w-2xl text-sm text-brand-muted">
-              Gestión operativa: catálogos y registro de operaciones.
+              Gestión operativa: catálogos, clientes, ventas y costos.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">

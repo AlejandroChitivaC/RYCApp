@@ -7,12 +7,12 @@ const menu = [
   { etiqueta: 'Líneas de negocio', ruta: /\/lineas-negocio$/ },
   { etiqueta: 'Usuarios', ruta: /\/usuarios$/ },
   { etiqueta: 'Materiales', ruta: /\/materiales$/ },
-  { etiqueta: 'Proveedores', ruta: /\/proveedores$/ },
+  { etiqueta: 'Clientes', ruta: /\/proveedores$/ },
   { etiqueta: 'Vehículos', ruta: /\/vehiculos$/ },
   { etiqueta: 'Costos', ruta: /\/costos$/ },
   { etiqueta: 'Tipos de costo', ruta: /\/tipos-costo$/ },
-  { etiqueta: 'Operaciones', ruta: /\/operaciones$/ },
-  { etiqueta: 'Historial de operaciones', ruta: /\/historial-operaciones$/ },
+  { etiqueta: 'Ventas', ruta: /\/operaciones$/ },
+  { etiqueta: 'Historial de ventas', ruta: /\/historial-operaciones$/ },
   { etiqueta: 'Tickets', ruta: /\/tickets$/ },
   { etiqueta: 'Siigo', ruta: /\/siigo$/ },
 ]
@@ -39,7 +39,7 @@ test.describe('Roles', () => {
       await expect(page).toHaveURL(/\/tickets$/)
       await expect(page.getByRole('heading', { name: 'Tickets', level: 1 })).toBeVisible()
       await expect(page.getByRole('navigation').getByRole('link', { name: 'Tickets', exact: true })).toBeVisible()
-      await expect(page.getByRole('link', { name: 'Historial de operaciones' })).toHaveCount(0)
+      await expect(page.getByRole('link', { name: 'Historial de ventas' })).toHaveCount(0)
       await expect(page.getByRole('link', { name: 'Siigo', exact: true })).toHaveCount(0)
       await expect(page.getByRole('link', { name: 'Dashboard', exact: true })).toHaveCount(0)
     })
@@ -58,7 +58,7 @@ test.describe('Roles', () => {
     await paso(page, '4. Una ruta directa al historial vuelve a Tickets', async () => {
       await page.goto('/historial-operaciones')
       await page.waitForURL('**/tickets')
-      await expect(page.getByRole('heading', { name: 'Historial de operaciones', level: 1 })).toHaveCount(0)
+      await expect(page.getByRole('heading', { name: 'Historial de ventas', level: 1 })).toHaveCount(0)
       await expect(page.getByRole('heading', { name: 'Tickets', level: 1 })).toBeVisible()
     })
   })

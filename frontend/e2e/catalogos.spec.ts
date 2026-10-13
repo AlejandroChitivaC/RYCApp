@@ -47,17 +47,17 @@ test.describe('Catálogos', () => {
     })
   })
 
-  test('crea un proveedor y lo ve en la lista', async ({ page }) => {
+  test('crea un cliente y lo ve en la lista', async ({ page }) => {
     await loginAsAdmin(page)
 
-    await paso(page, '1. Abre proveedores', async () => {
-      await page.getByRole('link', { name: 'Proveedores', exact: true }).click()
-      await expect(page.getByRole('heading', { name: 'Proveedores', level: 1 })).toBeVisible()
-      await expect(page.getByText('Sin proveedores')).toBeVisible()
+    await paso(page, '1. Abre clientes', async () => {
+      await page.getByRole('link', { name: 'Clientes', exact: true }).click()
+      await expect(page.getByRole('heading', { name: 'Clientes', level: 1 })).toBeVisible()
+      await expect(page.getByText('Sin clientes')).toBeVisible()
     })
 
     await paso(page, '2. Registra Cantera Norte', async () => {
-      await page.getByRole('button', { name: '+ Nuevo proveedor' }).click()
+      await page.getByRole('button', { name: '+ Nuevo cliente' }).click()
       const form = page.locator('form')
       await form.getByLabel('Nombre').fill('Cantera Norte')
       await form.getByLabel('NIT').fill('900111222')
@@ -66,7 +66,7 @@ test.describe('Catálogos', () => {
       await form.getByRole('button', { name: 'Guardar' }).click()
     })
 
-    await paso(page, '3. La lista muestra el proveedor', async () => {
+    await paso(page, '3. La lista muestra el cliente', async () => {
       await expect(page.getByText('Cantera Norte')).toBeVisible()
       await expect(page.getByText('900111222')).toBeVisible()
     })

@@ -7,6 +7,8 @@ import { PageListToolbar } from '../../../shared/ui/PageListToolbar'
 import { Select } from '../../../shared/ui/Select'
 import { StatusBadge } from '../../../shared/ui/StatusBadge'
 import { Table, TBody, TD, TH, THead } from '../../../shared/ui/Table'
+import { useCostosStore, useTiposCostoStore } from '../../costos/store'
+import { CATEGORIAS_COSTO, labelCategoria } from '../../costos/types'
 import { useLineasNegocioStore } from '../../lineasNegocio/store'
 import { useMaterialesStore } from '../../materiales/store'
 import { useProveedoresStore } from '../../proveedores/store'
@@ -14,7 +16,15 @@ import { useVehiculosStore } from '../../vehiculos/store'
 import { AsignarFacturaModal } from '../components/AsignarFacturaModal'
 import { useHistorialOperacionesStore } from '../historialStore'
 import type { Operacion } from '../types'
-import { fmtDateOnly } from '../../../shared/utils/format'
+import { fmtDateOnly, fmtMoneyCop } from '../../../shared/utils/format'
+
+function fechaEnRango(iso: string | null | undefined, from: string, to: string) {
+  const d = (iso ?? '').slice(0, 10)
+  if (!d) return true
+  if (from && d < from) return false
+  if (to && d > to) return false
+  return true
+}
 
 function matchesHistorial(
   o: Operacion,
@@ -65,9 +75,19 @@ export function HistorialOperacionesPage() {
   const vehiculosItems = useVehiculosStore((s) => s.items)
   const fetchVehiculos = useVehiculosStore((s) => s.fetchAll)
 
+  const costosItems = useCostosStore((s) => s.items)
+  const costosLoading = useCostosStore((s) => s.isLoading)
+  const costosError = useCostosStore((s) => s.error)
+  const fetchCostos = useCostosStore((s) => s.fetchAll)
+
+  const tiposCosto = useTiposCostoStore((s) => s.items)
+  const fetchTiposCosto = useTiposCostoStore((s) => s.fetchAll)
+
   const { query: layoutQuery } = useLayoutSearch()
   const [tableQuery, setTableQuery] = useState('')
   const [asignarId, setAsignarId] = useState<string | null>(null)
+  const [categoriaCosto, setCategoriaCosto] = useState('')
+  const [tipoCostoId, setTipoCostoId] = useState('')
 
   useEffect(() => {
     fetchLineas()
@@ -75,7 +95,17 @@ export function HistorialOperacionesPage() {
     fetchMateriales()
     fetchVehiculos()
     fetchHistorial()
-  }, [fetchLineas, fetchProveedores, fetchMateriales, fetchVehiculos, fetchHistorial])
+    fetchCostos()
+    fetchTiposCosto()
+  }, [
+    fetchLineas,
+    fetchProveedores,
+    fetchMateriales,
+    fetchVehiculos,
+    fetchHistorial,
+    fetchCostos,
+    fetchTiposCosto,
+  ])
 
   const lineasById = useMemo(() => {
     const map = new Map<string, string>()
@@ -133,11 +163,33 @@ export function HistorialOperacionesPage() {
     ],
   )
 
+  const tiposById = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const t of tiposCosto) map.set(t.id, t.tipoCosto)
+    return map
+  }, [tiposCosto])
+
+  const tiposFiltrados = useMemo(
+    () => (categoriaCosto ? tiposCosto.filter((t) => t.flujo === categoriaCosto) : tiposCosto),
+    [tiposCosto, categoriaCosto],
+  )
+
+  const filteredCostos = useMemo(
+    () =>
+      costosItems.filter((row) => {
+        if (!fechaEnRango(row.fechaInsercion, filters.from, filters.to)) return false
+        if (categoriaCosto && row.categoria !== categoriaCosto) return false
+        if (tipoCostoId && row.tipoCostoId !== tipoCostoId) return false
+        return true
+      }),
+    [costosItems, filters.from, filters.to, categoriaCosto, tipoCostoId],
+  )
+
   return (
     <div>
       <PageListToolbar
-        title="Historial de operaciones"
-        description="Consulta de servicios registrados. Al confirmar una operación puedes asignarle una factura de Siigo."
+        title="Historial de ventas"
+        description="Consulta de ventas registradas. Al confirmar una venta puedes asignarle una factura de Siigo."
         tableSearch={{ value: tableQuery, onChange: setTableQuery }}
       />
 
@@ -202,6 +254,8 @@ export function HistorialOperacionesPage() {
             className="rounded-xl border-zinc-200"
             onClick={() => {
               setFilters({ from: '', to: '', lineaNegocioId: '', proveedorId: '' })
+              setCategoriaCosto('')
+              setTipoCostoId('')
               setTimeout(() => fetchHistorial(), 0)
             }}
             size="sm"
@@ -218,8 +272,8 @@ export function HistorialOperacionesPage() {
           <EmptyState title="No se pudo cargar" description={error} />
         ) : items.length === 0 ? (
           <EmptyState
-            title="Sin operaciones"
-            description="No hay operaciones registradas que coincidan con los filtros seleccionados."
+            title="Sin ventas"
+            description="No hay ventas registradas que coincidan con los filtros seleccionados."
           />
         ) : filteredOps.length === 0 ? (
           <EmptyState
@@ -304,6 +358,96 @@ export function HistorialOperacionesPage() {
             </TBody>
           </Table>
         )}
+      </div>
+
+      <div className="mt-10">
+        <PageListToolbar
+          title="Inserciones de costos"
+          description="Nómina, gastos administrativos, costos de vehículo y financieros del mismo rango de fechas."
+        />
+        <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-12">
+          <div className="lg:col-span-4">
+            <Select
+              label="Categoría"
+              value={categoriaCosto}
+              onChange={(e) => {
+                setCategoriaCosto(e.target.value)
+                setTipoCostoId('')
+              }}
+            >
+              <option value="">Todas</option>
+              {CATEGORIAS_COSTO.map((c) => (
+                <option key={c.value} value={c.value}>
+                  {c.label}
+                </option>
+              ))}
+            </Select>
+          </div>
+          <div className="lg:col-span-4">
+            <Select
+              label="Tipo de costo"
+              value={tipoCostoId}
+              onChange={(e) => setTipoCostoId(e.target.value)}
+            >
+              <option value="">Todos</option>
+              {tiposFiltrados.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.tipoCosto}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </div>
+        <div className="mt-6">
+          {costosLoading ? (
+            <div className="h-40 w-full animate-pulse rounded-2xl bg-zinc-100" />
+          ) : costosError ? (
+            <EmptyState title="No se pudieron cargar los costos" description={costosError} />
+          ) : costosItems.length === 0 ? (
+            <EmptyState
+              title="Sin costos"
+              description="No hay inserciones de costo registradas."
+            />
+          ) : filteredCostos.length === 0 ? (
+            <EmptyState
+              title="Sin coincidencias"
+              description="Ningún costo coincide con la categoría, el tipo o el rango de fechas."
+            />
+          ) : (
+            <Table>
+              <THead>
+                <tr>
+                  <TH>Fecha</TH>
+                  <TH>Categoría</TH>
+                  <TH>Tipo de costo</TH>
+                  <TH>Valor</TH>
+                  <TH>Medio de pago</TH>
+                  <TH>Descripción</TH>
+                </tr>
+              </THead>
+              <TBody>
+                {filteredCostos.map((row) => (
+                  <tr key={`${row.categoria}-${row.id}`} className="hover:bg-brand-yellow/[0.06]">
+                    <TD className="tabular-nums text-zinc-600">{fmtDateOnly(row.fechaInsercion)}</TD>
+                    <TD>
+                      <StatusBadge>{labelCategoria(row.categoria)}</StatusBadge>
+                    </TD>
+                    <TD className="font-semibold text-brand-dark">
+                      {tiposById.get(row.tipoCostoId) ?? row.tipoCostoId}
+                    </TD>
+                    <TD className="tabular-nums font-semibold">{fmtMoneyCop(row.valor)}</TD>
+                    <TD>{row.medioPago}</TD>
+                    <TD className="max-w-[220px] truncate text-brand-muted">
+                      <span title={row.descripcion ?? row.motivo ?? undefined}>
+                        {row.descripcion ?? row.motivo ?? '—'}
+                      </span>
+                    </TD>
+                  </tr>
+                ))}
+              </TBody>
+            </Table>
+          )}
+        </div>
       </div>
 
       <AsignarFacturaModal

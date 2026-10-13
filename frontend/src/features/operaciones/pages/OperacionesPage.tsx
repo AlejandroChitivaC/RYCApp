@@ -126,12 +126,12 @@ export function OperacionesPage() {
   return (
     <div>
       <PageListToolbar
-        title="Operaciones registradas"
-        description="Confirma una operación y asígnale la factura de Siigo que ya esté sincronizada."
+        title="Ventas registradas"
+        description="Confirma una venta y asígnale la factura de Siigo que ya esté sincronizada."
         tableSearch={{ value: tableQuery, onChange: setTableQuery }}
         action={
           <Button className="rounded-xl px-5" onClick={() => setOpen(true)}>
-            + Nueva operación
+            + Nueva venta
           </Button>
         }
       />
@@ -213,8 +213,8 @@ export function OperacionesPage() {
           <EmptyState title="No se pudo cargar" description={error} />
         ) : sorted.length === 0 ? (
           <EmptyState
-            title="Sin operaciones"
-            description="Registra una operación para comenzar."
+            title="Sin ventas"
+            description="Registra una venta para comenzar."
           />
         ) : (
           <Table>
@@ -292,7 +292,7 @@ export function OperacionesPage() {
         }}
       />
 
-      <Modal open={open} title="Nueva operación" onClose={() => setOpen(false)}>
+      <Modal open={open} title="Nueva venta" onClose={() => setOpen(false)}>
         <OperacionForm
           catalogos={catalogos}
           usuarioRegistroLabel={usuarioRegistroLabel}

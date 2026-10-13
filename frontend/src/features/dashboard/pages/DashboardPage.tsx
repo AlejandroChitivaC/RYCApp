@@ -263,7 +263,7 @@ export function DashboardPage() {
           <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
             <StatMiniCard
               icon={<IconOps />}
-              label="Operaciones del periodo"
+              label="Ventas del periodo"
               value={loading ? '—' : (report?.operaciones ?? 0)}
               iconBgClass="bg-brand-yellow/25 text-brand-dark"
             />
@@ -293,12 +293,12 @@ export function DashboardPage() {
 
           <div className="mt-6 grid grid-cols-1 gap-4 xl:grid-cols-2">
             <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
-              <div className="text-sm font-extrabold text-brand-dark">Operaciones por mes</div>
+              <div className="text-sm font-extrabold text-brand-dark">Ventas por mes</div>
               <p className="mt-0.5 text-xs text-zinc-500">Volumen operativo del periodo filtrado.</p>
               {loading ? (
                 <div className="mt-4 h-56 animate-pulse rounded-xl bg-zinc-100" />
               ) : opsBars.every((p) => p.value === 0) ? (
-                <p className="mt-8 text-sm text-zinc-500">No hay operaciones en este periodo.</p>
+                <p className="mt-8 text-sm text-zinc-500">No hay ventas en este periodo.</p>
               ) : (
                 <BarChart points={opsBars} />
               )}

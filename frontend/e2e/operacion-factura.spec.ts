@@ -6,8 +6,8 @@ test('asigna una factura de Siigo y el historial muestra la operación', async (
   await loginAsAdmin(page)
 
   await paso(page, '1. Abre la operación confirmada', async () => {
-    await page.getByRole('navigation').getByRole('link', { name: 'Operaciones', exact: true }).click()
-    await expect(page.getByRole('heading', { name: 'Operaciones', level: 1 })).toBeVisible()
+    await page.getByRole('navigation').getByRole('link', { name: 'Ventas', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Ventas', level: 1 })).toBeVisible()
     await expect(page.getByRole('table').getByText('Transporte de agregados')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Asignar factura' })).toBeVisible()
   })
@@ -22,8 +22,8 @@ test('asigna una factura de Siigo y el historial muestra la operación', async (
   })
 
   await paso(page, '3. El historial muestra esa operación con la factura', async () => {
-    await page.getByRole('navigation').getByRole('link', { name: 'Historial de operaciones', exact: true }).click()
-    await expect(page.getByRole('heading', { name: 'Historial de operaciones', level: 1 })).toBeVisible()
+    await page.getByRole('navigation').getByRole('link', { name: 'Historial de ventas', exact: true }).click()
+    await expect(page.getByRole('heading', { name: 'Historial de ventas', level: 1 })).toBeVisible()
     await expect(page.getByText('Viaje de prueba')).toBeVisible()
     await expect(page.getByRole('cell', { name: 'FV-12' })).toBeVisible()
   })
