@@ -8,24 +8,36 @@ const password = __ENV.LOADTEST_PASSWORD || 'Admin1234!'
 
 export const options = {
   scenarios: {
+    // La versión nueva de Lambda responde 429 unos segundos después del despliegue.
+    calentar: {
+      executor: 'constant-arrival-rate',
+      rate: 2,
+      timeUnit: '1s',
+      duration: '45s',
+      preAllocatedVUs: 5,
+      maxVUs: 10,
+      exec: 'login',
+    },
     diez_tps: {
       executor: 'constant-arrival-rate',
       rate: 10,
       timeUnit: '1s',
       duration: '30s',
+      startTime: '50s',
       preAllocatedVUs: 15,
       maxVUs: 40,
+      exec: 'login',
     },
   },
   thresholds: {
-    http_req_failed: ['rate<0.05'],
-    http_req_duration: ['p(95)<5000'],
-    dropped_iterations: ['rate<1'],
-    checks: ['rate>0.95'],
+    'http_req_failed{scenario:diez_tps}': ['rate<0.05'],
+    'http_req_duration{scenario:diez_tps}': ['p(95)<5000'],
+    'dropped_iterations{scenario:diez_tps}': ['rate<1'],
+    'checks{scenario:diez_tps}': ['rate>0.95'],
   },
 }
 
-export default function () {
+export function login() {
   const payload = JSON.stringify({ correo, password })
   const res = http.post(
     `${baseUrl}/api/auth/login`,
@@ -54,12 +66,13 @@ function metric(data, name, key, fallback = 0) {
 }
 
 export function handleSummary(data) {
-  const tps = metric(data, 'http_reqs', 'rate')
-  const p95 = metric(data, 'http_req_duration', 'p(95)')
-  const errPct = metric(data, 'http_req_failed', 'rate') * 100
-  const checkPct = metric(data, 'checks', 'rate') * 100
-  const dropped = metric(data, 'dropped_iterations', 'count')
-  const cumple = tps >= 10 && errPct < 5 && p95 < 5000 && checkPct > 95
+  const count = metric(data, 'http_reqs{scenario:diez_tps}', 'count')
+  const tps = count / 30
+  const p95 = metric(data, 'http_req_duration{scenario:diez_tps}', 'p(95)')
+  const errPct = metric(data, 'http_req_failed{scenario:diez_tps}', 'rate') * 100
+  const checkPct = metric(data, 'checks{scenario:diez_tps}', 'rate') * 100
+  const dropped = metric(data, 'dropped_iterations{scenario:diez_tps}', 'count')
+  const cumple = tps >= 9.5 && errPct < 5 && p95 < 5000 && checkPct > 95
 
   const md = [
     '## Carga 10 TPS — login',

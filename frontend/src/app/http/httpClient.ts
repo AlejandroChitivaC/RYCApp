@@ -56,6 +56,8 @@ http.interceptors.request.use(async (config) => {
   const token = localStorage.getItem(TOKEN_KEY)
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
+    // OAC sustituye Authorization por la firma de AWS. Este header sí llega a la Lambda.
+    config.headers.set('X-User-Token', token)
   }
 
   if (config.data instanceof FormData) {

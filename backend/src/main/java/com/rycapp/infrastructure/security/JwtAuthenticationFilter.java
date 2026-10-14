@@ -30,10 +30,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
-        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
-        if (header != null && header.startsWith("Bearer ")) {
-            String token = header.substring(7).trim();
-            if (!token.isEmpty()) {
+        // CloudFront OAC firma con Authorization y pisa el Bearer del navegador.
+        // El JWT viaja en X-User-Token; Authorization se conserva para el entorno local.
+        String token = userToken(request);
+        if (token != null && !token.isEmpty()) {
                 try {
                     Claims claims = jwtService.parseClaims(token);
                     String usuarioId = claims.getSubject();
@@ -62,8 +62,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 } catch (Exception ignored) {
                     SecurityContextHolder.clearContext();
                 }
-            }
         }
         filterChain.doFilter(request, response);
+    }
+
+    private static String userToken(HttpServletRequest request) {
+        String custom = request.getHeader("X-User-Token");
+        if (custom != null && !custom.isBlank()) {
+            String value = custom.trim();
+            return value.regionMatches(true, 0, "Bearer ", 0, 7) ? value.substring(7).trim() : value;
+        }
+        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
+        if (header != null && header.startsWith("Bearer ")) {
+            String value = header.substring(7).trim();
+            return value.isEmpty() ? null : value;
+        }
+        return null;
     }
 }
