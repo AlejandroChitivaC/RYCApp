@@ -10,7 +10,21 @@
       "bloquear": true
     },
     "misconfiguracion": {
-      "severidades": ["CRITICAL", "HIGH"]
+      "severidades": ["CRITICAL", "HIGH"],
+      "ignorar": [
+        {
+          "id": "AWS-0011",
+          "motivo": "Proyecto de grado: AWS WAF tiene coste fijo mensual y queda fuera del alcance."
+        },
+        {
+          "id": "AWS-0013",
+          "motivo": "Proyecto de grado: el certificado por defecto de CloudFront fija TLSv1. Subirlo exige un dominio propio y ACM."
+        },
+        {
+          "id": "AWS-0132",
+          "motivo": "Proyecto de grado: los buckets usan cifrado administrado por AWS. Una CMK propia añade coste y una llave que operar."
+        }
+      ]
     },
     "licencias": {
       "bloquear": false
@@ -78,7 +92,7 @@
     },
     {
       "id": "sin-waf",
-      "motivo": "CloudFront no lleva AWS WAF: el coste fijo mensual queda fuera de este despliegue. El sitio entra por HTTPS y la API valida el origen."
+      "motivo": "Proyecto de grado: CloudFront no lleva AWS WAF. El coste fijo mensual queda fuera del alcance. El sitio entra por HTTPS y la API valida el origen."
     },
     {
       "id": "sin-rotacion-automatica",
@@ -102,7 +116,7 @@
     },
     {
       "id": "logs-sin-cifrado-cmk",
-      "motivo": "S3, DynamoDB y el secreto usan cifrado administrado por AWS. Una CMK propia añade coste y una llave que operar, sin cambiar el cifrado en reposo."
+      "motivo": "Proyecto de grado: S3, DynamoDB y el secreto usan cifrado administrado por AWS. Una CMK propia añade coste y una llave que operar, sin cambiar el cifrado en reposo."
     }
   ]
 }

@@ -128,13 +128,16 @@ function parseTrivy(path, origen, policy) {
     for (const mis of result.Misconfigurations ?? []) {
       const sev = upper(mis.Severity)
       if (!['CRITICAL', 'HIGH', 'MEDIUM'].includes(sev)) continue
+      const regla = mis.ID || mis.AVDID || 'misconfig'
+      const ignorado = (policy.trivy.misconfiguracion.ignorar ?? []).find((item) =>
+        regla === item.id || regla.endsWith(item.id))
       out.push(finding({
         herramienta: `Trivy ${origen}`,
-        regla: mis.ID || mis.AVDID || 'misconfig',
+        regla,
         severidad: sev,
-        bloquea: includesSeverity(misSev, sev),
+        bloquea: !ignorado && includesSeverity(misSev, sev),
         titulo: mis.Title || mis.Message || 'Mala configuración',
-        detalle: mis.Resolution || mis.Message || '',
+        detalle: [mis.Resolution || mis.Message || '', ignorado?.motivo || ''].filter(Boolean).join('. '),
         archivo: target,
         linea: mis.CauseMetadata?.StartLine,
       }))
@@ -712,7 +715,7 @@ function buildHtml(policy, items, gate) {
       <h2>Qué bloquea el despliegue</h2>
       <p>${esc(policy.descripcion)}</p>
       <ul>
-        <li>Trivy: vulnerabilidades ${esc((policy.trivy.vulnerabilidades.severidades || []).join(', '))} con corrección publicada, secretos, y mala configuración ${esc((policy.trivy.misconfiguracion.severidades || []).join(', '))}.</li>
+        <li>Trivy: vulnerabilidades ${esc((policy.trivy.vulnerabilidades.severidades || []).join(', '))} con corrección publicada, secretos, y mala configuración ${esc((policy.trivy.misconfiguracion.severidades || []).join(', '))}. No bloquean AWS-0011 (WAF), AWS-0013 (TLS del certificado por defecto) ni AWS-0132 (CMK en buckets).</li>
         <li>npm audit de dependencias de producción: ${esc((policy.npmAudit.severidades || []).join(', '))} si existe corrección.</li>
         <li>OWASP Dependency-Check: CVSS igual o mayor que ${esc(policy.dependencyCheck.cvssMinimo)}.</li>
         <li>Semgrep: severidad ${esc((policy.semgrep.severidades || []).join(', '))}.</li>
