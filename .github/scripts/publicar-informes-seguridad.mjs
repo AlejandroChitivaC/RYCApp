@@ -253,10 +253,22 @@ function parseSemgrep(path, policy) {
   } catch (error) {
     return [toolFailure('Semgrep', error.message)]
   }
-  if (doc.errors?.length) {
-    return [toolFailure('Semgrep', doc.errors.map((item) => item.message || item.type).join('; '))]
-  }
   const out = []
+  const graves = (doc.errors ?? []).filter((item) => !['WARN', 'WARNING', 'INFO'].includes(upper(item.level || 'ERROR')))
+  if (graves.length) {
+    return [toolFailure('Semgrep', graves.map((item) => item.message || item.type).join('; '))]
+  }
+  for (const item of doc.errors ?? []) {
+    out.push(finding({
+      herramienta: 'Semgrep',
+      regla: item.type || 'aviso',
+      severidad: 'WARNING',
+      bloquea: false,
+      titulo: 'Semgrep no pudo leer un archivo',
+      detalle: item.message || '',
+      archivo: item.path || '.github/workflows/ci.yml',
+    }))
+  }
   for (const result of doc.results ?? []) {
     const sev = upper(result.extra?.severity || 'INFO')
     out.push(finding({
