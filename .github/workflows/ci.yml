@@ -75,23 +75,6 @@ jobs:
           retention-days: 14
           if-no-files-found: ignore
 
-      - uses: grafana/setup-k6-action@v1
-
-      - name: Carga 10 TPS
-        env:
-          BASE_URL: ${{ vars.LOADTEST_BASE_URL || 'https://dne4r7yuqm0az.cloudfront.net' }}
-        run: k6 run perf/login-10tps.js
-
-      - name: Informe de carga
-        if: always()
-        run: |
-          if [ -f k6-summary.md ]; then
-            cat k6-summary.md >> "$GITHUB_STEP_SUMMARY"
-          else
-            echo '## Carga 10 TPS' >> "$GITHUB_STEP_SUMMARY"
-            echo 'k6 no escribió el resumen.' >> "$GITHUB_STEP_SUMMARY"
-          fi
-
   seguridad:
     name: Analisis de seguridad
     runs-on: ubuntu-latest

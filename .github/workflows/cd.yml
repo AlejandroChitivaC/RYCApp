@@ -1,6 +1,8 @@
 # CD: un solo despliegue del monorepo a AWS.
-# No se dispara solo. Espera a que el workflow CI termine en éxito
-# en master o main, y vuelve a exigir compuerta.json de esa misma corrida.
+# Espera a que el workflow CI termine en éxito en master o main
+# y vuelve a exigir compuerta.json de esa misma corrida.
+# workflow_dispatch reutiliza la compuerta de una corrida de CI ya hecha
+# (por ejemplo si la prueba de carga contra el sitio viejo impidió el éxito).
 #
 # Secrets:
 #   AWS_DEPLOY_ROLE_ARN
@@ -9,6 +11,12 @@
 name: CD
 
 on:
+  workflow_dispatch:
+    inputs:
+      ci_run_id:
+        description: ID de la corrida de CI cuya compuerta se reutiliza
+        required: true
+        type: string
   workflow_run:
     workflows: [CI]
     types: [completed]
@@ -27,9 +35,10 @@ jobs:
   desplegar:
     name: Despliegue AWS
     if: |
-      github.event.workflow_run.conclusion == 'success' &&
-      (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') &&
-      (github.event.workflow_run.head_branch == 'master' || github.event.workflow_run.head_branch == 'main')
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/master') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       (github.event.workflow_run.event == 'push' || github.event.workflow_run.event == 'workflow_dispatch') &&
+       (github.event.workflow_run.head_branch == 'master' || github.event.workflow_run.head_branch == 'main'))
     runs-on: ubuntu-latest
     env:
       AWS_REGION: ${{ secrets.AWS_REGION || 'us-east-1' }}
@@ -37,14 +46,14 @@ jobs:
       - name: Checkout del commit que pasó el CI
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.workflow_run.head_sha }}
 
       - name: Descargar compuerta de esa corrida de CI
         uses: actions/download-artifact@v4
         with:
           name: informes-seguridad
           path: security-reports
-          run-id: ${{ github.event.workflow_run.id }}
+          run-id: ${{ github.event_name == 'workflow_dispatch' && inputs.ci_run_id || github.event.workflow_run.id }}
           github-token: ${{ github.token }}
 
       - name: Exigir compuerta abierta
@@ -99,3 +108,20 @@ jobs:
       - name: CDK deploy
         working-directory: infra
         run: npx cdk deploy --all --require-approval never
+
+      - uses: grafana/setup-k6-action@v1
+
+      - name: Carga 10 TPS
+        env:
+          BASE_URL: ${{ vars.LOADTEST_BASE_URL || 'https://dne4r7yuqm0az.cloudfront.net' }}
+        run: k6 run perf/login-10tps.js
+
+      - name: Informe de carga
+        if: always()
+        run: |
+          if [ -f k6-summary.md ]; then
+            cat k6-summary.md >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo '## Carga 10 TPS' >> "$GITHUB_STEP_SUMMARY"
+            echo 'k6 no escribió el resumen.' >> "$GITHUB_STEP_SUMMARY"
+          fi
