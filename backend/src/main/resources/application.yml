@@ -6,6 +6,9 @@ spring:
     name: rycapp-backend
   config:
     import: optional:aws-secretsmanager:rycapp/backend
+  http:
+    converters:
+      preferred-json-mapper: jackson2
   mail:
     # Usuario, clave SMTP y remitente salen del secreto rycapp/backend
     # (spring.mail.username, spring.mail.password, app.mail.from).
