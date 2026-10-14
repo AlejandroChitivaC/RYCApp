@@ -1,4 +1,3 @@
-import * as crypto from 'crypto';
 import { CfnOutput, Stack, StackProps } from 'aws-cdk-lib';
 import { Construct } from 'constructs';
 import { createBackend } from './backend';
@@ -13,25 +12,16 @@ export class RycAppStack extends Stack {
 
     const retain = this.node.tryGetContext('retain') === 'true';
     this.tags.setTag('Project', 'RYCApp');
-    const originVerifySecret =
-      this.node.tryGetContext('originVerifySecret') ??
-      crypto
-        .createHash('sha256')
-        .update(`${this.account ?? 'dev'}:${this.region}:rycapp-origin`)
-        .digest('hex')
-        .slice(0, 32);
 
     const accessLogs = createAccessLogsBucket(this, retain);
     const tables = createTables(this, retain);
     const backend = createBackend(this, {
       tables,
       retain,
-      originVerifySecret,
       accessLogs,
     });
     const frontend = createFrontend(this, {
       apiFunctionUrl: backend.functionUrl,
-      originVerifySecret,
       accessLogs,
     });
     applyNagSuppressions({

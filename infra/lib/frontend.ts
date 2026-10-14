@@ -14,7 +14,6 @@ export interface FrontendResult {
 
 export interface FrontendProps {
   apiFunctionUrl: lambda.IFunctionUrl;
-  originVerifySecret: string;
   accessLogs: s3.IBucket;
 }
 
@@ -46,11 +45,9 @@ function handler(event) {
 `),
   });
 
-  const apiOrigin = origins.FunctionUrlOrigin.withOriginAccessControl(props.apiFunctionUrl, {
-    customHeaders: {
-      'X-Origin-Verify': props.originVerifySecret,
-    },
-  });
+  // Sin encabezados propios: con OAC, CloudFront firma la petición y un header
+  // extra deja la firma inválida (403 en POST /api/auth/login).
+  const apiOrigin = origins.FunctionUrlOrigin.withOriginAccessControl(props.apiFunctionUrl);
 
   const distribution = new cloudfront.Distribution(scope, 'Cdn', {
     comment: 'RYCApp portal (S3 + API Lambda)',

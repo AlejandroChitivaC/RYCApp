@@ -14,14 +14,12 @@ export interface BackendResult {
   apiAlias: lambda.Alias;
   functionUrl: lambda.FunctionUrl;
   ticketsBucket: s3.Bucket;
-  originVerifySecret: string;
   backendSecret: secretsmanager.ISecret;
 }
 
 export interface BackendProps {
   tables: RycTables;
   retain: boolean;
-  originVerifySecret: string;
   accessLogs: s3.IBucket;
 }
 
@@ -114,7 +112,6 @@ export function createBackend(scope: Construct, props: BackendProps): BackendRes
     snapStart: lambda.SnapStartConf.ON_PUBLISHED_VERSIONS,
     environment: {
       ...commonEnv,
-      APP_ORIGIN_VERIFY_SECRET: props.originVerifySecret,
       SERVER_PORT: '0',
     },
   });
@@ -170,7 +167,6 @@ export function createBackend(scope: Construct, props: BackendProps): BackendRes
     apiAlias,
     functionUrl,
     ticketsBucket,
-    originVerifySecret: props.originVerifySecret,
     backendSecret,
   };
 }
