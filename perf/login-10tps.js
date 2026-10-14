@@ -1,5 +1,6 @@
 import http from 'k6/http'
 import { check } from 'k6'
+import crypto from 'k6/crypto'
 
 const baseUrl = (__ENV.BASE_URL || 'https://dne4r7yuqm0az.cloudfront.net').replace(/\/$/, '')
 const correo = __ENV.LOADTEST_CORREO || 'admin@rycapp.local'
@@ -25,10 +26,16 @@ export const options = {
 }
 
 export default function () {
+  const payload = JSON.stringify({ correo, password })
   const res = http.post(
     `${baseUrl}/api/auth/login`,
-    JSON.stringify({ correo, password }),
-    { headers: { 'Content-Type': 'application/json' } },
+    payload,
+    {
+      headers: {
+        'Content-Type': 'application/json',
+        'x-amz-content-sha256': crypto.sha256(payload, 'hex'),
+      },
+    },
   )
   check(res, {
     'login 200': (r) => r.status === 200,
